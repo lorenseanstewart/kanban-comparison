@@ -194,3 +194,10 @@ export async function getUsers() {
     .from(users)
     .orderBy(asc(users.name));
 }
+
+export async function getTags() {
+  return db
+    .select({ id: tags.id, name: tags.name, color: tags.color })
+    .from(tags)
+    .orderBy(asc(tags.name));
+}

@@ -1,42 +1,66 @@
-import { User } from "@/schema";
+import { User, type Tag } from "@/schema";
 import { createSortable, transformStyle } from "@thisbeyond/solid-dnd";
 import { For, Show, createSignal, onMount } from "solid-js";
 import type { BoardCard, UsersList } from "~/api/boards";
 import { EditPencil } from "./icons/EditPencil";
+import { CardEditModal } from "./CardEditModal";
 
 export function DraggableCard(props: {
   card: BoardCard;
   users: UsersList | undefined;
+  allUsers: User[];
+  allTags: Tag[];
+  onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const [mounted, setMounted] = createSignal(false);
+  const [isModalOpen, setIsModalOpen] = createSignal(false);
 
   onMount(() => {
     setMounted(true);
   });
 
+  const handleUpdate = (updates: Partial<BoardCard>) => {
+    if (props.onCardUpdate) {
+      props.onCardUpdate(props.card.id, updates);
+    }
+  };
+
   return (
-    <Show
-      when={mounted()}
-      fallback={
-        <div class="card bg-base-100 dark:bg-neutral shadow-lg">
-          <CardContent
-            card={props.card}
-            users={props.users}
-          />
-        </div>
-      }
-    >
-      <DraggableContent
+    <>
+      <Show
+        when={mounted()}
+        fallback={
+          <div class="card bg-base-100 dark:bg-neutral shadow-lg">
+            <CardContent
+              card={props.card}
+              users={props.users}
+              onEdit={() => setIsModalOpen(true)}
+            />
+          </div>
+        }
+      >
+        <DraggableContent
+          card={props.card}
+          users={props.users}
+          onEdit={() => setIsModalOpen(true)}
+        />
+      </Show>
+      <CardEditModal
         card={props.card}
-        users={props.users}
+        users={props.allUsers}
+        tags={props.allTags}
+        isOpen={isModalOpen()}
+        onClose={() => setIsModalOpen(false)}
+        onUpdate={handleUpdate}
       />
-    </Show>
+    </>
   );
 }
 
 function DraggableContent(props: {
   card: BoardCard;
   users: UsersList | undefined;
+  onEdit: () => void;
 }) {
   const sortable = createSortable(props.card.id);
 
@@ -48,20 +72,22 @@ function DraggableContent(props: {
       classList={{
         "opacity-25": sortable.isActiveDraggable,
       }}
-      style={{
-        ...transformStyle(sortable.transform),
-        "view-transition-name": `card-${props.card.id}`,
-      }}
+      style={`${transformStyle(sortable.transform)}; view-transition-name: card-${props.card.id};`}
     >
       <CardContent
         card={props.card}
         users={props.users}
+        onEdit={props.onEdit}
       />
     </div>
   );
 }
 
-function CardContent(props: { card: BoardCard; users: UsersList | undefined }) {
+function CardContent(props: {
+  card: BoardCard;
+  users: UsersList | undefined;
+  onEdit: () => void;
+}) {
   const { card, users } = props;
   return (
     <div class="card-body gap-3 p-4">
@@ -70,7 +96,16 @@ function CardContent(props: { card: BoardCard; users: UsersList | undefined }) {
         <Show when={card.completed}>
           <span class="badge badge-success badge-outline">Done</span>
         </Show>
-        <EditPencil />
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onEdit();
+          }}
+          class="btn btn-ghost btn-xs btn-circle"
+        >
+          <EditPencil />
+        </button>
       </div>
 
       <Show when={card.assigneeId}>
@@ -96,11 +131,8 @@ function CardContent(props: { card: BoardCard; users: UsersList | undefined }) {
           <For each={card.tags}>
             {(tag) => (
               <span
-                class="badge border-0 shadow font-semibold"
-                style={{
-                  "background-color": tag.color,
-                  color: "white",
-                }}
+                class="badge border-0 shadow font-semibold text-white"
+                style={`background-color: ${tag.color};`}
               >
                 {tag.name}
               </span>

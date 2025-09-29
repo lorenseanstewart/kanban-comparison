@@ -3,10 +3,14 @@ import { SortableProvider } from "@thisbeyond/solid-dnd";
 import type { BoardCard, BoardList, UsersList } from "~/api/boards";
 import { DroppableList } from "~/components/DroppableList";
 import { DraggableCard } from "~/components/DraggableCard";
+import type { User, Tag } from "../../drizzle/schema";
 
 export function CardList(props: {
   list: BoardList;
   users: UsersList | undefined;
+  allUsers: User[];
+  allTags: Tag[];
+  onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const { list, users } = props;
   const [mounted, setMounted] = createSignal(false);
@@ -30,6 +34,9 @@ export function CardList(props: {
         <DraggableCard
           card={card}
           users={users}
+          allUsers={props.allUsers}
+          allTags={props.allTags}
+          onCardUpdate={props.onCardUpdate}
         />
       )}
     </For>

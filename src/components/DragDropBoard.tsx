@@ -78,11 +78,8 @@ export function DragDropBoard(props: {
                       <div class="flex flex-wrap gap-2.5">
                         {card().tags.map((tag) => (
                           <span
-                            class="badge border-0 shadow font-semibold"
-                            style={{
-                              "background-color": tag.color,
-                              color: "white",
-                            }}
+                            class="badge border-0 shadow font-semibold text-white"
+                            style={`background-color: ${tag.color};`}
                           >
                             {tag.name}
                           </span>

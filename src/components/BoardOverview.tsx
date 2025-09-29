@@ -86,7 +86,8 @@ export function BoardOverview(props: { data: BoardDetails }) {
                 Cards per List
               </h3>
               <table
-                class="charts-css column show-labels show-data-axes data-spacing-1 h-[148px] md:h-full w-full mx-auto"
+                class="charts-css column show-labels show-data-axes data-spacing-1 w-full mx-auto"
+                style="height: 148px;"
               >
                 <tbody>
                   <For each={data.lists}>
@@ -118,7 +119,8 @@ export function BoardOverview(props: { data: BoardDetails }) {
                 Distribution
               </h3>
               <table
-                class="charts-css pie h-[120px] w-[120px] mx-auto mb-3"
+                class="charts-css pie mx-auto mb-3"
+                style="height: 120px; width: 120px;"
               >
                 <tbody>
                   <For each={data.lists}>
