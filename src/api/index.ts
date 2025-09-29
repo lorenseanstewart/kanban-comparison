@@ -1,6 +1,16 @@
-import { action, query } from "@solidjs/router";
-import { getUser as gU, logout as l, loginOrRegister as lOR } from "./server";
+import { query, action } from "@solidjs/router";
+import { getBoards, getBoard, getUsers } from "./boards";
 
-export const getUser = query(gU, "user");
-export const loginOrRegister = action(lOR, "loginOrRegister");
-export const logout = action(l, "logout");
+type BoardId = { id: string };
+
+export const listBoards = query(() => getBoards(), "boards:list");
+export const fetchBoard = query((input: BoardId) => getBoard(input.id), "boards:detail");
+export const listUsers = query(() => getUsers(), "users:list");
+
+export const createBoard = action(async () => {
+  throw new Error("Not implemented");
+}, "boards:create");
+
+export const mutateCard = action(async () => {
+  throw new Error("Not implemented");
+}, "cards:mutate");

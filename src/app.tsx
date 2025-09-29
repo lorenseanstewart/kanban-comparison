@@ -8,11 +8,9 @@ export default function App() {
   return (
     <Router
       root={props => (
-        <>
-          <a href="/">Index</a>
-          <a href="/about">About</a>
+        <div data-theme="pastel" class="min-h-screen bg-base-300 text-base-content">
           <Suspense>{props.children}</Suspense>
-        </>
+        </div>
       )}
     >
       <FileRoutes />

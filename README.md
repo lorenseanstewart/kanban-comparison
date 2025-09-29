@@ -1,32 +1,59 @@
-# SolidStart
+# Trello Solid
 
-Everything you need to build a Solid project, powered by [`solid-start`](https://start.solidjs.com);
+## Overview
 
-## Creating a project
+Kanban-style board built with SolidStart, Drizzle ORM, and SQLite. Each board has the static lists `Todo`, `In-Progress`, `QA`, and `Done`; cards support assignees, tags, and comments with real-time-friendly data structures.
+
+## Requirements
+
+- Node.js 20+
+- npm 10+
+
+## Setup
 
 ```bash
-# create a new project in the current directory
-npm init solid@latest
-
-# create a new project in my-app
-npm init solid@latest my-app
+npm install
 ```
 
-## Developing
+## Database
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Generate Schema
+
+```bash
+npx drizzle-kit generate
+```
+
+### Apply Migrations
+
+Remove any existing database file if you want a clean slate:
+
+```bash
+rm -f drizzle/db.sqlite
+```
+
+Then apply migrations:
+
+```bash
+npx drizzle-kit push
+```
+
+### Seed Data
+
+```bash
+npm run seed
+```
+
+The seed script inserts deterministic users, boards, lists, cards, tags, tag links, and comments.
+
+## Development
 
 ```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev
 ```
 
-## Building
+## Build
 
-Solid apps are built with _adapters_, which optimise your project for deployment to different environments.
-
-By default, `npm run build` will generate a Node app that you can run with `npm start`. To use a different adapter, add it to the `devDependencies` in `package.json` and specify in your `app.config.js`.
-
-## This project was created with the [Solid CLI](https://github.com/solidjs-community/solid-cli)
+```bash
+npm run build
+npm run start
+```
