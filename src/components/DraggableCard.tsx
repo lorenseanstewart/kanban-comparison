@@ -1,15 +1,15 @@
-import { User, type Tag } from "@/schema";
+import { User } from "@/schema";
 import { createSortable, transformStyle } from "@thisbeyond/solid-dnd";
 import { For, Show, createSignal, onMount } from "solid-js";
-import type { BoardCard, UsersList } from "~/api/boards";
+import type { BoardCard, UsersList, TagsList } from "~/api/boards";
 import { EditPencil } from "./icons/EditPencil";
 import { CardEditModal } from "./CardEditModal";
 
 export function DraggableCard(props: {
   card: BoardCard;
   users: UsersList | undefined;
-  allUsers: User[];
-  allTags: Tag[];
+  allUsers: UsersList;
+  allTags: TagsList;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const [mounted, setMounted] = createSignal(false);

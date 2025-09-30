@@ -1,12 +1,11 @@
 import { createAsync, useParams, type RouteDefinition } from "@solidjs/router";
 import { For, Show, createSignal, createEffect } from "solid-js";
 import { fetchBoard, listUsers, listTags } from "~/api";
-import type { BoardDetails, UsersList } from "~/api/boards";
+import type { BoardCard, BoardDetails, UsersList, TagsList } from "~/api/boards";
 import { BoardOverview } from "~/components/BoardOverview";
 import { CardList } from "~/components/CardList";
 import { DragDropBoard } from "~/components/DragDropBoard";
 import { useBoardDragDrop } from "~/lib/drag-drop/hooks";
-import type { User, Tag } from "../../../drizzle/schema";
 
 function CardListFallback() {
   return (
@@ -35,8 +34,8 @@ export default function BoardPage() {
     fetchBoard({ id: params.id })
   );
   const users = createAsync<UsersList>(() => listUsers());
-  const allUsers = createAsync<User[]>(() => listUsers());
-  const allTags = createAsync<Tag[]>(() => listTags());
+  const allUsers = createAsync<UsersList>(() => listUsers());
+  const allTags = createAsync<TagsList>(() => listTags());
 
   // Local mutable copy for optimistic updates
   const [board, setBoard] = createSignal<BoardDetails | null>(null);

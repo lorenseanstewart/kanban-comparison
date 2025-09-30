@@ -1,15 +1,14 @@
 import { For, createSignal, onMount, Show } from "solid-js";
 import { SortableProvider } from "@thisbeyond/solid-dnd";
-import type { BoardCard, BoardList, UsersList } from "~/api/boards";
+import type { BoardCard, BoardList, UsersList, TagsList } from "~/api/boards";
 import { DroppableList } from "~/components/DroppableList";
 import { DraggableCard } from "~/components/DraggableCard";
-import type { User, Tag } from "../../drizzle/schema";
 
 export function CardList(props: {
   list: BoardList;
   users: UsersList | undefined;
-  allUsers: User[];
-  allTags: Tag[];
+  allUsers: UsersList;
+  allTags: TagsList;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const { list, users } = props;

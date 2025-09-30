@@ -1,12 +1,11 @@
 import { createSignal, Show, For } from "solid-js";
-import type { BoardCard } from "~/api/boards";
+import type { BoardCard, UsersList, TagsList } from "~/api/boards";
 import { updateCard } from "~/api/card-actions";
-import type { Tag, User } from "../../drizzle/schema";
 
 export function CardEditModal(props: {
   card: BoardCard;
-  users: User[];
-  tags: Tag[];
+  users: UsersList;
+  tags: TagsList;
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: (updatedCard: Partial<BoardCard>) => void;
