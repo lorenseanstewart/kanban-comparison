@@ -3,7 +3,9 @@ import { createSortable, transformStyle } from "@thisbeyond/solid-dnd";
 import { For, Show, createSignal, onMount } from "solid-js";
 import type { BoardCard, UsersList, TagsList } from "~/api/boards";
 import { EditPencil } from "./icons/EditPencil";
-import { CardEditModal } from "./CardEditModal";
+import { Plus } from "./icons/Plus";
+import { CardEditModal } from "./modals/CardEditModal";
+import { CommentModal } from "./modals/CommentModal";
 
 export function DraggableCard(props: {
   card: BoardCard;
@@ -13,7 +15,8 @@ export function DraggableCard(props: {
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const [mounted, setMounted] = createSignal(false);
-  const [isModalOpen, setIsModalOpen] = createSignal(false);
+  const [isEditModalOpen, setIsEditModalOpen] = createSignal(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = createSignal(false);
 
   onMount(() => {
     setMounted(true);
@@ -22,6 +25,21 @@ export function DraggableCard(props: {
   const handleUpdate = (updates: Partial<BoardCard>) => {
     if (props.onCardUpdate) {
       props.onCardUpdate(props.card.id, updates);
+    }
+  };
+
+  const handleCommentAdd = (comment: { userId: string; text: string }) => {
+    if (props.onCardUpdate) {
+      const newComment = {
+        id: crypto.randomUUID(),
+        cardId: props.card.id,
+        userId: comment.userId,
+        text: comment.text,
+        createdAt: new Date(),
+      };
+      props.onCardUpdate(props.card.id, {
+        comments: [...props.card.comments, newComment],
+      });
     }
   };
 
@@ -34,7 +52,8 @@ export function DraggableCard(props: {
             <CardContent
               card={props.card}
               users={props.users}
-              onEdit={() => setIsModalOpen(true)}
+              onEdit={() => setIsEditModalOpen(true)}
+              onOpenComments={() => setIsCommentModalOpen(true)}
             />
           </div>
         }
@@ -42,16 +61,24 @@ export function DraggableCard(props: {
         <DraggableContent
           card={props.card}
           users={props.users}
-          onEdit={() => setIsModalOpen(true)}
+          onEdit={() => setIsEditModalOpen(true)}
+          onOpenComments={() => setIsCommentModalOpen(true)}
         />
       </Show>
       <CardEditModal
         card={props.card}
         users={props.allUsers}
         tags={props.allTags}
-        isOpen={isModalOpen()}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isEditModalOpen()}
+        onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleUpdate}
+      />
+      <CommentModal
+        card={props.card}
+        users={props.allUsers}
+        isOpen={isCommentModalOpen()}
+        onClose={() => setIsCommentModalOpen(false)}
+        onCommentAdd={handleCommentAdd}
       />
     </>
   );
@@ -61,6 +88,7 @@ function DraggableContent(props: {
   card: BoardCard;
   users: UsersList | undefined;
   onEdit: () => void;
+  onOpenComments: () => void;
 }) {
   const sortable = createSortable(props.card.id);
 
@@ -78,6 +106,7 @@ function DraggableContent(props: {
         card={props.card}
         users={props.users}
         onEdit={props.onEdit}
+        onOpenComments={props.onOpenComments}
       />
     </div>
   );
@@ -87,6 +116,7 @@ function CardContent(props: {
   card: BoardCard;
   users: UsersList | undefined;
   onEdit: () => void;
+  onOpenComments: () => void;
 }) {
   const { card, users } = props;
   return (
@@ -142,8 +172,20 @@ function CardContent(props: {
       </Show>
 
       <Show when={card.comments.length > 0}>
-        <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner">
-          <p class="text-xs font-semibold text-base-content/50">Comments</p>
+        <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-semibold text-base-content/50">Comments</p>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                props.onOpenComments();
+              }}
+              class="btn btn-ghost btn-xs btn-circle"
+            >
+              <Plus />
+            </button>
+          </div>
           <ul class="space-y-1 text-sm text-base-content/70">
             <For each={card.comments}>
               {(comment) => (

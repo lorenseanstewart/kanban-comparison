@@ -2,7 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "./db";
-import { cards, cardTags } from "../../drizzle/schema";
+import { cards, cardTags, comments } from "../../drizzle/schema";
 import { revalidate } from "@solidjs/router";
 
 export async function updateCard(formData: FormData) {
@@ -39,4 +39,25 @@ export async function updateCard(formData: FormData) {
   }
 
   revalidate(["boards:detail", "boards:list"]);
+}
+
+export async function addComment(formData: FormData) {
+  const cardId = formData.get("cardId") as string;
+  const userId = formData.get("userId") as string;
+  const text = formData.get("text") as string;
+
+  if (!cardId || !userId || !text) {
+    throw new Error("Card ID, User ID, and text are required");
+  }
+
+  const commentId = crypto.randomUUID();
+
+  await db.insert(comments).values({
+    id: commentId,
+    cardId,
+    userId,
+    text,
+  });
+
+  revalidate(["boards:detail"]);
 }

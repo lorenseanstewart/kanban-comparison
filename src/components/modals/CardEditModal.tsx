@@ -86,83 +86,77 @@ export function CardEditModal(props: {
               value={props.card.id}
             />
 
-            <div class="space-y-4">
-              {/* Title */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Title</span>
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  class="input input-bordered w-full"
-                  value={props.card.title}
-                  required
-                />
-              </div>
+            <div class="form-control w-full mb-4">
+              <label class="label">
+                <span class="label-text">Title</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                class="input input-bordered w-full"
+                value={props.card.title}
+                required
+              />
+            </div>
 
-              {/* Description */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Description</span>
-                </label>
-                <textarea
-                  name="description"
-                  class="textarea textarea-bordered h-24"
-                  value={props.card.description || ""}
-                />
-              </div>
+            <div class="form-control w-full mb-4">
+              <label class="label">
+                <span class="label-text">Description</span>
+              </label>
+              <textarea
+                name="description"
+                class="textarea textarea-bordered h-24 w-full"
+                value={props.card.description || ""}
+              />
+            </div>
 
-              {/* Assignee */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Assignee</span>
-                </label>
-                <select
-                  name="assigneeId"
-                  class="select select-bordered w-full"
-                >
-                  <option value="">Unassigned</option>
-                  <For each={props.users}>
-                    {(user) => (
-                      <option
-                        value={user.id}
-                        selected={user.id === props.card.assigneeId}
-                      >
-                        {user.name}
-                      </option>
-                    )}
-                  </For>
-                </select>
-              </div>
+            <div class="form-control w-full mb-4">
+              <label class="label">
+                <span class="label-text">Assignee</span>
+              </label>
+              <select
+                name="assigneeId"
+                class="select select-bordered w-full"
+              >
+                <option value="">Unassigned</option>
+                <For each={props.users}>
+                  {(user) => (
+                    <option
+                      value={user.id}
+                      selected={user.id === props.card.assigneeId}
+                    >
+                      {user.name}
+                    </option>
+                  )}
+                </For>
+              </select>
+            </div>
 
-              {/* Tags */}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Tags</span>
-                </label>
-                <div class="flex flex-wrap gap-2">
-                  <For each={props.tags}>
-                    {(tag) => (
-                      <button
-                        type="button"
-                        class="badge border-2 font-semibold cursor-pointer transition-all"
-                        classList={{
-                          "badge-outline": !selectedTagIds().has(tag.id),
-                          "text-white": selectedTagIds().has(tag.id),
-                        }}
-                        style={
-                          selectedTagIds().has(tag.id)
-                            ? `background-color: ${tag.color}; border-color: ${tag.color};`
-                            : `color: ${tag.color}; border-color: ${tag.color};`
-                        }
-                        onClick={() => toggleTag(tag.id)}
-                      >
-                        {tag.name}
-                      </button>
-                    )}
-                  </For>
-                </div>
+            <div class="form-control w-full mb-4">
+              <label class="label">
+                <span class="label-text">Tags</span>
+              </label>
+              <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+                <For each={props.tags}>
+                  {(tag) => (
+                    <button
+                      type="button"
+                      class="badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
+                      classList={{
+                        "badge-outline": !selectedTagIds().has(tag.id),
+                        "text-white": selectedTagIds().has(tag.id),
+                      }}
+                      style={
+                        selectedTagIds().has(tag.id)
+                          ? `background-color: ${tag.color}; border-color: ${tag.color};`
+                          : `color: ${tag.color}; border-color: ${tag.color};`
+                      }
+                      onClick={() => toggleTag(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  )}
+                </For>
               </div>
             </div>
 
