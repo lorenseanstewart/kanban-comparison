@@ -1,11 +1,11 @@
-import { For } from "solid-js";
+import { For, createEffect } from "solid-js";
 
 export function BarChart(props: {
   data: Array<{ label: string; value: number }>;
   colors: string[];
   title: string;
 }) {
-  const maxValue = Math.max(...props.data.map((item) => item.value), 1);
+  const maxValue = () => Math.max(...props.data.map((item) => item.value), 1);
 
   return (
     <div class="card bg-base-100 shadow-lg">
@@ -16,14 +16,24 @@ export function BarChart(props: {
         <div class="grid gap-4" style={`grid-template-columns: repeat(${props.data.length}, 1fr);`}>
           <For each={props.data}>
             {(item, index) => {
-              const heightPercent = (item.value / maxValue) * 100;
+              let barRef: HTMLDivElement | undefined;
+
+              createEffect(() => {
+                if (barRef) {
+                  const heightPercent = (item.value / maxValue()) * 100;
+                  barRef.style.height = `${heightPercent}%`;
+                  barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+                }
+              });
+
               return (
                 <div class="flex flex-col items-center gap-2">
                   {/* Bar container - grows from bottom */}
                   <div class="w-full flex flex-col justify-end" style="height: 150px;">
                     <div
-                      class="w-full rounded-t transition-all"
-                      style={`height: ${heightPercent}%; background-color: ${props.colors[index() % props.colors.length]};`}
+                      ref={barRef}
+                      class="w-full rounded-t"
+                      style="height: 0%; transition: height 500ms ease-out, background-color 500ms ease-out;"
                     >
                       <div class="text-xs text-white font-semibold text-center pt-1">
                         {item.value}

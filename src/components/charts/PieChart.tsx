@@ -16,7 +16,7 @@ export function PieChart(props: {
         </h3>
         <table
           class="charts-css pie mx-auto mb-3"
-          style="height: 120px; width: 120px;"
+          style="height: 120px; width: 120px; --labels-size: 0;"
         >
           <tbody>
             <For each={props.data}>
