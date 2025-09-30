@@ -17,12 +17,30 @@ export function BarChart(props: {
           <For each={props.data}>
             {(item, index) => {
               let barRef: HTMLDivElement | undefined;
+              let isInitialized = false;
 
               createEffect(() => {
                 if (barRef) {
                   const heightPercent = (item.value / maxValue()) * 100;
-                  barRef.style.height = `${heightPercent}%`;
-                  barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+
+                  if (!isInitialized) {
+                    // First render - set immediately without transition
+                    barRef.style.transition = 'none';
+                    barRef.style.height = `${heightPercent}%`;
+                    barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+
+                    // Re-enable transitions after initial render
+                    requestAnimationFrame(() => {
+                      if (barRef) {
+                        barRef.style.transition = 'height 500ms ease-out, background-color 500ms ease-out';
+                        isInitialized = true;
+                      }
+                    });
+                  } else {
+                    // Subsequent updates - animate
+                    barRef.style.height = `${heightPercent}%`;
+                    barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+                  }
                 }
               });
 
@@ -33,7 +51,7 @@ export function BarChart(props: {
                     <div
                       ref={barRef}
                       class="w-full rounded-t"
-                      style="height: 0%; transition: height 500ms ease-out, background-color 500ms ease-out;"
+                      style="height: 0%;"
                     >
                       <div class="text-xs text-white font-semibold text-center pt-1">
                         {item.value}
