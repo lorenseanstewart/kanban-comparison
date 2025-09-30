@@ -16,6 +16,7 @@ import { BoardOverview } from "~/components/BoardOverview";
 import { CardList } from "~/components/CardList";
 import { DragDropBoard } from "~/components/DragDropBoard";
 import { AddCardModal } from "~/components/modals/AddCardModal";
+import { ErrorBoundary } from "~/components/ErrorBoundary";
 import { useBoardDragDrop } from "~/lib/drag-drop/hooks";
 
 function CardListFallback() {
@@ -144,66 +145,76 @@ export default function BoardPage() {
         </ul>
       </div>
 
-      <Show
-        when={board()}
-        keyed
-        fallback={
-          <div class="flex justify-center py-16">
-            <span
-              class="loading loading-spinner loading-lg text-primary"
-              aria-label="Loading board"
-            />
-          </div>
-        }
-      >
-        {(data: BoardDetails) => (
-          <>
-            <DragDropBoard
-              onDragEnd={handleDragEnd}
-              board={board}
-            >
-              <div class="space-y-8">
-                <BoardOverview data={data} />
+      <ErrorBoundary>
+        <Show
+          when={board()}
+          keyed
+          fallback={
+            <div class="flex justify-center py-16">
+              <span
+                class="loading loading-spinner loading-lg text-primary"
+                aria-label="Loading board"
+              />
+            </div>
+          }
+        >
+          {(data: BoardDetails) => (
+            <>
+              <ErrorBoundary>
+                <DragDropBoard
+                  onDragEnd={handleDragEnd}
+                  board={board}
+                >
+                  <div class="space-y-8">
+                    <ErrorBoundary>
+                      <BoardOverview data={data} />
+                    </ErrorBoundary>
 
-                <div class="flex justify-start mb-4">
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    onClick={() => setIsAddCardModalOpen(true)}
-                  >
-                    Add Card
-                  </button>
-                </div>
+                    <div class="flex justify-start mb-4">
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        onClick={() => setIsAddCardModalOpen(true)}
+                      >
+                        Add Card
+                      </button>
+                    </div>
 
-                <section class="flex gap-7 overflow-x-auto pb-8">
-                  <For
-                    each={data.lists}
-                    fallback={<CardListFallback />}
-                  >
-                    {(list) => (
-                      <CardList
-                        list={list}
-                        users={users()}
-                        allUsers={allUsers() || []}
-                        allTags={allTags() || []}
-                        onCardUpdate={handleCardUpdate}
-                      />
-                    )}
-                  </For>
-                </section>
-              </div>
-            </DragDropBoard>
-            <AddCardModal
-              boardId={data.id}
-              users={allUsers() || []}
-              tags={allTags() || []}
-              isOpen={isAddCardModalOpen()}
-              onClose={() => setIsAddCardModalOpen(false)}
-              onCardAdd={handleCardAdd}
-            />
-          </>
-        )}
-      </Show>
+                    <section class="flex gap-7 overflow-x-auto pb-8">
+                      <For
+                        each={data.lists}
+                        fallback={<CardListFallback />}
+                      >
+                        {(list) => (
+                          <ErrorBoundary>
+                            <CardList
+                              list={list}
+                              users={users()}
+                              allUsers={allUsers() || []}
+                              allTags={allTags() || []}
+                              onCardUpdate={handleCardUpdate}
+                            />
+                          </ErrorBoundary>
+                        )}
+                      </For>
+                    </section>
+                  </div>
+                </DragDropBoard>
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <AddCardModal
+                  boardId={data.id}
+                  users={allUsers() || []}
+                  tags={allTags() || []}
+                  isOpen={isAddCardModalOpen()}
+                  onClose={() => setIsAddCardModalOpen(false)}
+                  onCardAdd={handleCardAdd}
+                />
+              </ErrorBoundary>
+            </>
+          )}
+        </Show>
+      </ErrorBoundary>
     </main>
   );
 }

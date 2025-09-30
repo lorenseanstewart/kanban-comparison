@@ -2,6 +2,7 @@ import { Show, onMount, createSignal } from "solid-js";
 import type { BoardDetails } from "~/api/boards";
 import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 export function BoardOverview(props: { data: BoardDetails }) {
   const { data } = props;
@@ -67,16 +68,20 @@ export function BoardOverview(props: { data: BoardDetails }) {
         }
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
-          <BarChart
-            data={chartData}
-            colors={pastelColors}
-            title="Cards per List"
-          />
-          <PieChart
-            data={chartData}
-            colors={pastelColors}
-            title="Distribution"
-          />
+          <ErrorBoundary>
+            <BarChart
+              data={chartData}
+              colors={pastelColors}
+              title="Cards per List"
+            />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <PieChart
+              data={chartData}
+              colors={pastelColors}
+              title="Distribution"
+            />
+          </ErrorBoundary>
         </div>
       </Show>
     </section>
