@@ -171,6 +171,22 @@ function CardContent(props: {
         </div>
       </Show>
 
+      <Show when={card.comments.length === 0}>
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-semibold text-base-content/50">Comments</p>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onOpenComments();
+            }}
+            class="btn btn-ghost btn-xs btn-circle"
+          >
+            <Plus />
+          </button>
+        </div>
+      </Show>
+
       <Show when={card.comments.length > 0}>
         <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
           <div class="flex items-center justify-between">

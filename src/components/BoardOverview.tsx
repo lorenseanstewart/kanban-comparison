@@ -11,12 +11,6 @@ export function BoardOverview(props: { data: BoardDetails }) {
     setMounted(true);
   });
 
-  // Calculate total cards
-  const totalCards = data.lists.reduce(
-    (total, list) => total + list.cards.length,
-    0
-  );
-
   // DaisyUI pastel colors matching the theme
   const pastelColors = [
     "#fbbf24", // amber (warning)
@@ -34,28 +28,16 @@ export function BoardOverview(props: { data: BoardDetails }) {
   return (
     <section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
       {/* Header Section */}
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div class="space-y-3">
-          <div class="badge badge-secondary badge-outline">Board overview</div>
-          <h1 class="text-4xl font-black text-primary">{data.title}</h1>
-          <Show when={data.description}>
-            {(description) => (
-              <p class="text-base text-base-content/60 max-w-2xl">
-                {description()}
-              </p>
-            )}
-          </Show>
-        </div>
-        <div class="stats bg-base-100 shadow-lg">
-          <div class="stat">
-            <div class="stat-title">Lists</div>
-            <div class="stat-value text-primary">{data.lists.length}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-title">Cards</div>
-            <div class="stat-value text-secondary">{totalCards}</div>
-          </div>
-        </div>
+      <div class="space-y-3">
+        <div class="badge badge-secondary badge-outline">Board overview</div>
+        <h1 class="text-4xl font-black text-primary">{data.title}</h1>
+        <Show when={data.description}>
+          {(description) => (
+            <p class="text-base text-base-content/60 max-w-2xl">
+              {description()}
+            </p>
+          )}
+        </Show>
       </div>
 
       {/* Charts Section */}

@@ -13,7 +13,10 @@ export function BarChart(props: {
         <h3 class="card-title text-sm text-base-content mb-4">{props.title}</h3>
 
         {/* Pure CSS Grid layout - everything in normal flow */}
-        <div class="grid gap-4" style={`grid-template-columns: repeat(${props.data.length}, 1fr);`}>
+        <div
+          class="grid gap-4"
+          style={`grid-template-columns: repeat(${props.data.length}, 1fr);`}
+        >
           <For each={props.data}>
             {(item, index) => {
               let barRef: HTMLDivElement | undefined;
@@ -25,21 +28,24 @@ export function BarChart(props: {
 
                   if (!isInitialized) {
                     // First render - set immediately without transition
-                    barRef.style.transition = 'none';
+                    barRef.style.transition = "none";
                     barRef.style.height = `${heightPercent}%`;
-                    barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+                    barRef.style.backgroundColor =
+                      props.colors[index() % props.colors.length];
 
                     // Re-enable transitions after initial render
                     requestAnimationFrame(() => {
                       if (barRef) {
-                        barRef.style.transition = 'height 500ms ease-out, background-color 500ms ease-out';
+                        barRef.style.transition =
+                          "height 500ms ease-out, background-color 500ms ease-out";
                         isInitialized = true;
                       }
                     });
                   } else {
                     // Subsequent updates - animate
                     barRef.style.height = `${heightPercent}%`;
-                    barRef.style.backgroundColor = props.colors[index() % props.colors.length];
+                    barRef.style.backgroundColor =
+                      props.colors[index() % props.colors.length];
                   }
                 }
               });
@@ -47,7 +53,10 @@ export function BarChart(props: {
               return (
                 <div class="flex flex-col items-center gap-2">
                   {/* Bar container - grows from bottom */}
-                  <div class="w-full flex flex-col justify-end" style="height: 150px;">
+                  <div
+                    class="w-full flex flex-col justify-end"
+                    style="height: 150px;"
+                  >
                     <div
                       ref={barRef}
                       class="w-full rounded-t"
@@ -59,7 +68,7 @@ export function BarChart(props: {
                     </div>
                   </div>
                   {/* Label below bar */}
-                  <div class="text-xs text-base-content text-center font-medium">
+                  <div class="text-xs text-base-content text-center font-medium pt-3">
                     {item.label}
                   </div>
                 </div>

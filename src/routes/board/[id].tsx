@@ -1,10 +1,21 @@
-import { createAsync, useParams, type RouteDefinition } from "@solidjs/router";
+import {
+  createAsync,
+  useParams,
+  A,
+  type RouteDefinition,
+} from "@solidjs/router";
 import { For, Show, createSignal, createEffect } from "solid-js";
 import { fetchBoard, listUsers, listTags } from "~/api";
-import type { BoardCard, BoardDetails, UsersList, TagsList } from "~/api/boards";
+import type {
+  BoardCard,
+  BoardDetails,
+  UsersList,
+  TagsList,
+} from "~/api/boards";
 import { BoardOverview } from "~/components/BoardOverview";
 import { CardList } from "~/components/CardList";
 import { DragDropBoard } from "~/components/DragDropBoard";
+import { AddCardModal } from "~/components/modals/AddCardModal";
 import { useBoardDragDrop } from "~/lib/drag-drop/hooks";
 
 function CardListFallback() {
@@ -39,6 +50,7 @@ export default function BoardPage() {
 
   // Local mutable copy for optimistic updates
   const [board, setBoard] = createSignal<BoardDetails | null>(null);
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = createSignal(false);
 
   // Sync local state with server data
   createEffect(() => {
@@ -69,8 +81,69 @@ export default function BoardPage() {
     setBoard(updatedBoard);
   };
 
+  // Handle optimistic card creation
+  const handleCardAdd = (cardData: {
+    title: string;
+    description: string | null;
+    assigneeId: string | null;
+    tagIds: string[];
+  }) => {
+    const currentBoard = board();
+    if (!currentBoard) return;
+
+    // Find the Todo list
+    const todoList = currentBoard.lists.find((list) => list.title === "Todo");
+    if (!todoList) return;
+
+    // Create new card with optimistic data
+    const newCard: BoardCard = {
+      id: crypto.randomUUID(),
+      title: cardData.title,
+      description: cardData.description,
+      assigneeId: cardData.assigneeId,
+      position: todoList.cards.length,
+      completed: false,
+      tags: (allTags() || []).filter((tag) => cardData.tagIds.includes(tag.id)),
+      comments: [],
+    };
+
+    const updatedBoard = {
+      ...currentBoard,
+      lists: currentBoard.lists.map((list) =>
+        list.title === "Todo"
+          ? { ...list, cards: [...list.cards, newCard] }
+          : list
+      ),
+    };
+
+    setBoard(updatedBoard);
+  };
+
   return (
     <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+      <div class="breadcrumbs text-sm">
+        <ul>
+          <li>
+            <A
+              href="/"
+              class="link link-hover"
+            >
+              Boards
+            </A>
+          </li>
+          <li>
+            <Show
+              when={board()}
+              fallback={<span>Loading...</span>}
+            >
+              {(data) => (
+                <span class="text-base-content/60">{data().title}</span>
+              )}
+            </Show>
+          </li>
+        </ul>
+      </div>
+
       <Show
         when={board()}
         keyed
@@ -84,31 +157,51 @@ export default function BoardPage() {
         }
       >
         {(data: BoardDetails) => (
-          <DragDropBoard
-            onDragEnd={handleDragEnd}
-            board={board}
-          >
-            <div class="space-y-8">
-              <BoardOverview data={data} />
+          <>
+            <DragDropBoard
+              onDragEnd={handleDragEnd}
+              board={board}
+            >
+              <div class="space-y-8">
+                <BoardOverview data={data} />
 
-              <section class="flex gap-7 overflow-x-auto pb-8">
-                <For
-                  each={data.lists}
-                  fallback={<CardListFallback />}
-                >
-                  {(list) => (
-                    <CardList
-                      list={list}
-                      users={users()}
-                      allUsers={allUsers() || []}
-                      allTags={allTags() || []}
-                      onCardUpdate={handleCardUpdate}
-                    />
-                  )}
-                </For>
-              </section>
-            </div>
-          </DragDropBoard>
+                <div class="flex justify-start mb-4">
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onClick={() => setIsAddCardModalOpen(true)}
+                  >
+                    Add Card
+                  </button>
+                </div>
+
+                <section class="flex gap-7 overflow-x-auto pb-8">
+                  <For
+                    each={data.lists}
+                    fallback={<CardListFallback />}
+                  >
+                    {(list) => (
+                      <CardList
+                        list={list}
+                        users={users()}
+                        allUsers={allUsers() || []}
+                        allTags={allTags() || []}
+                        onCardUpdate={handleCardUpdate}
+                      />
+                    )}
+                  </For>
+                </section>
+              </div>
+            </DragDropBoard>
+            <AddCardModal
+              boardId={data.id}
+              users={allUsers() || []}
+              tags={allTags() || []}
+              isOpen={isAddCardModalOpen()}
+              onClose={() => setIsAddCardModalOpen(false)}
+              onCardAdd={handleCardAdd}
+            />
+          </>
         )}
       </Show>
     </main>
