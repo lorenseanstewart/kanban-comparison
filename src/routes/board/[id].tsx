@@ -45,7 +45,6 @@ export default function BoardPage() {
   const boardData = createAsync<BoardDetails | null>(() =>
     fetchBoard({ id: params.id })
   );
-  const users = createAsync<UsersList>(() => listUsers());
   const allUsers = createAsync<UsersList>(() => listUsers());
   const allTags = createAsync<TagsList>(() => listTags());
 
@@ -189,7 +188,7 @@ export default function BoardPage() {
                           <ErrorBoundary>
                             <CardList
                               list={list}
-                              users={users()}
+                              users={allUsers()}
                               allUsers={allUsers() || []}
                               allTags={allTags() || []}
                               onCardUpdate={handleCardUpdate}
