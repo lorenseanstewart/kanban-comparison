@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import 'charts.css/dist/charts.min.css';
+
+@plugin "daisyui";
+
+@theme {
+	--daisyui-theme-name: pastel;
+}
+
+/* Drag and drop styles */
+[aria-grabbed="true"] {
+	opacity: 0.5;
+	cursor: grabbing;
+}
+
+.dndzone-drag-shadow {
+	opacity: 0.8;
+	transform: rotate(3deg);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}

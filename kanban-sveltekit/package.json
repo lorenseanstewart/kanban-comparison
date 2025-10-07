@@ -1,0 +1,38 @@
+{
+	"name": "kanban-sveltekit",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"seed": "tsx src/db/seed.ts"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^6.0.0",
+		"@sveltejs/kit": "^2.22.0",
+		"@sveltejs/vite-plugin-svelte": "^6.0.0",
+		"@tailwindcss/vite": "^4.1.13",
+		"@types/better-sqlite3": "^7.6.13",
+		"autoprefixer": "^10.4.21",
+		"drizzle-kit": "^0.31.5",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"tailwindcss": "^4.1.13",
+		"tsx": "^4.20.6",
+		"typescript": "^5.0.0",
+		"vite": "^7.0.4"
+	},
+	"dependencies": {
+		"better-sqlite3": "^12.4.1",
+		"charts.css": "^1.2.0",
+		"daisyui": "^5.1.26",
+		"drizzle-orm": "^0.44.5",
+		"svelte-dnd-action": "^0.9.65",
+		"valibot": "^1.1.0"
+	}
+}

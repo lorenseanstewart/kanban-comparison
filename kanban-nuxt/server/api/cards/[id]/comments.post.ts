@@ -1,0 +1,56 @@
+import * as v from 'valibot'
+import { comments } from '../../../../drizzle/schema'
+import { CommentSchema } from '../../../utils/validation'
+
+export default defineEventHandler(async (event) => {
+  const cardId = getRouterParam(event, 'id')
+
+  if (!cardId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Card ID is required',
+    })
+  }
+
+  try {
+    const body = await readBody(event)
+
+    const result = v.safeParse(CommentSchema, { ...body, cardId })
+    if (!result.success) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: result.issues[0].message,
+      })
+    }
+
+    const commentId = crypto.randomUUID()
+    const createdAt = new Date().toISOString()
+
+    await db.insert(comments).values({
+      id: commentId,
+      content: result.output.content,
+      cardId: result.output.cardId,
+      authorId: result.output.userId,
+      createdAt,
+    })
+
+    return {
+      success: true,
+      comment: {
+        id: commentId,
+        userId: result.output.userId,
+        text: result.output.content,
+        cardId: result.output.cardId,
+        createdAt,
+      },
+    }
+  } catch (error: any) {
+    if (error.statusCode) throw error
+
+    console.error('Failed to create comment:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to create comment',
+    })
+  }
+})

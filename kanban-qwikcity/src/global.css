@@ -1,0 +1,68 @@
+@import 'charts.css/dist/charts.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Drag and Drop Styles */
+[draggable="true"] {
+  cursor: grab;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+[draggable="true"].dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.drop-zone {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  min-height: 200px;
+}
+
+.drop-zone.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
+}
+
+/* Drag over styling for the card list container */
+article.card.drag-over {
+  outline: 3px dashed #3b82f6 !important;
+  outline-offset: 2px;
+  background-color: rgba(59, 130, 246, 0.05) !important;
+  transition: outline 0.2s ease, background-color 0.2s ease;
+}
+
+/* View Transitions for Cards */
+/* The browser automatically morphs position/size between old and new positions */
+::view-transition-old(card-*),
+::view-transition-new(card-*) {
+  animation-duration: 400ms;
+  animation-timing-function: ease-in-out;
+}
+
+/* Optional: Add slight opacity fade during transition */
+::view-transition-old(card-*) {
+  animation-name: fade-out-subtle;
+}
+
+::view-transition-new(card-*) {
+  animation-name: fade-in-subtle;
+}
+
+@keyframes fade-out-subtle {
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fade-in-subtle {
+  from {
+    opacity: 0.4;
+  }
+}
