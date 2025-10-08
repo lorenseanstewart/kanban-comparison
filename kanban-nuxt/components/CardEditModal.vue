@@ -43,8 +43,6 @@ function toggleTag(tagId: string) {
   selectedTagIds.value = newSet
 }
 
-const { $fetch } = useNuxtApp()
-
 async function handleSubmit(e: Event) {
   e.preventDefault()
   const form = e.target as HTMLFormElement
@@ -63,15 +61,27 @@ async function handleSubmit(e: Event) {
   })
 
   try {
-    await $fetch(`/api/cards/${props.card.id}`, {
-      method: 'PATCH',
-      body: {
-        title,
-        description: description || null,
-        assigneeId: assigneeId || null,
-        tagIds: Array.from(selectedTagIds.value),
+    const payload = {
+      title,
+      description: description || null,
+      assigneeId: assigneeId || null,
+      tagIds: Array.from(selectedTagIds.value),
+    }
+
+    console.log('Sending payload:', payload)
+
+    const response = await fetch(`/api/cards/${props.card.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(payload),
     })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+    }
+
     emit('close')
   } catch (error: any) {
     // Revert optimistic change on failure

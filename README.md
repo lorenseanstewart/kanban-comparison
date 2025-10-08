@@ -4,13 +4,15 @@ This repository is a **follow-up proof of concept** to the blog post ["React Won
 
 That post argued React's dominance stifles innovation. This repo **proves it with data**.
 
-By building the same real-world Kanban app across **5 framework implementations**, we measure the actual costs of "React-by-default":
+By building the same real-world Kanban app across **7 framework implementations**, we measure the actual costs of "React-by-default":
 
 1. ✅ **Next.js 15** (standard) - Virtual DOM baseline
 2. ✅ **Next.js 15 + React Compiler** - Can optimization close the gap?
-3. ✅ **SolidStart** - Fine-grained reactivity (signals)
-4. ✅ **SvelteKit** - Compiler-first approach (Svelte 5 runes)
-5. 🚧 **Qwik City** - Resumability (no hydration)
+3. ✅ **Nuxt 4** - Vue 3 reactive refs + SSR-first DX
+4. ⚠️ **Analog** - Angular meta-framework with signals (planned)
+5. ✅ **SolidStart** - Fine-grained reactivity (signals)
+6. ✅ **SvelteKit** - Compiler-first approach (Svelte 5 runes)
+7. ✅ **Qwik City** - Resumability (no hydration)
 
 All apps share the same SQLite database, features, and UI. **Identical functionality, measurable differences.**
 
@@ -18,17 +20,17 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 
 ## Tech Stack Comparison
 
-| Category | Next.js | SolidStart | SvelteKit | Qwik |
-|----------|---------|------------|-----------|------|
-| **Framework** | Next.js 15 (App Router) | SolidStart 1.0 | SvelteKit + Svelte 5 | Qwik City |
-| **UI Library** | React 19 | SolidJS 1.9 | Svelte 5 | Qwik |
-| **Reactivity Model** | Virtual DOM | Signals (fine-grained) | Runes (compile-time) | Signals + Resumability |
-| **Data Fetching** | Server Components | `createAsync` with cache | `load` functions | `routeLoader$` |
-| **Mutations** | Server Actions | Server functions | Form actions | Server actions |
-| **Database** | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 |
-| **Styling** | Tailwind CSS v3 + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI |
-| **Drag & Drop** | @dnd-kit/core, @dnd-kit/sortable | @thisbeyond/solid-dnd | svelte-dnd-action | TBD |
-| **Build Tool** | Turbopack | Vinxi | Vite | Vite + Qwik optimizer |
+| Category | Next.js | Nuxt | Analog | SolidStart | SvelteKit | Qwik |
+|----------|---------|------|--------|------------|-----------|------|
+| **Framework** | Next.js 15 (App Router) | Nuxt 4 | Analog (Angular) | SolidStart 1.0 | SvelteKit + Svelte 5 | Qwik City |
+| **UI Library** | React 19 | Vue 3 | Angular 19 | SolidJS 1.9 | Svelte 5 | Qwik |
+| **Reactivity Model** | Virtual DOM | Reactive refs | Signals + Zone.js | Signals (fine-grained) | Runes (compile-time) | Signals + Resumability |
+| **Data Fetching** | Server Components | `useAsyncData` / `useFetch` | `injectLoad` + DI | `createAsync` with cache | `load` functions | `routeLoader$` |
+| **Mutations** | Server Actions | API routes (`server/api/*`) | `ApiService` + RxJS | Server functions | Form actions | Server actions |
+| **Database** | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 |
+| **Styling** | Tailwind CSS v3 + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI |
+| **Drag & Drop** | @dnd-kit/core, @dnd-kit/sortable | vuedraggable | Angular CDK | @thisbeyond/solid-dnd | Native HTML5 | Native HTML5 |
+| **Build Tool** | Turbopack | Vite | Vite + Angular | Vinxi | Vite | Vite + Qwik optimizer |
 
 ---
 
@@ -41,7 +43,7 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 | **Next.js** | ~122 kB | ~148 kB | ✅ Complete |
 | **Next.js + Compiler** | ~123 kB | ~153 kB | ✅ Complete
 | **Nuxt** | ~132kb | ~139kb | ✅ Complete |
-| **Analog** | ~XXkb | ~XXkb | ⚠️ Planned |
+| **Analog** | ~117kb | ~159kb | ⚠️ Planned |
 | **SolidStart** | ~30 kB | ~40 kB | ✅ Complete |
 | **SvelteKit** | ~24 kB | ~40 kB | ✅ Complete |
 | **Qwik City** | ~45kb | ~61kb | ✅ Complete |
@@ -53,16 +55,32 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 
 **Why This Matters**: For teams serving mobile professionals (real estate agents, field workers, healthcare staff) on cellular connections, 108 kB = 1.5-2 seconds on 4G. That's the difference between confident and apologetic when a buyer is watching.
 
+### Measurement Methodology (summary)
+
+- Client JS bundle sizes reported are gzipped totals for the route under test
+- Measurements run with pinned versions and consistent build flags across apps
+- Performance captured with consistent throttling/CPU settings
+- Full reproducible recipe and bundle composition steps: see `PERFORMANCE_METRICS_GUIDE.md`
+
+> Fairness constraints (apples-to-apples): pinned framework/tool versions, identical data volume on the Board page, normalized CSS/icon handling (treeshake/purge), consistent throttling and CPU slowdown.
+
+Quick reproduce (5 minutes):
+
+```bash
+# build and measure all apps → writes metrics/summary.json and bundle reports
+node scripts/measure-all.mjs
+```
+
 ---
 
 ## Performance Metrics of Board Page (run locally)
 
-| Metric | Next.js | Next.js + Compiler | SolidStart | SvelteKit | Qwik |
-|--------|---------|-------------------|------------|-----------|------|
-| Lighthouse Performance | 98% | 98% | 100% | 99% | TBD |
-| First Contentful Paint | 18ms | 17ms | 59ms | 7ms | TBD |
-| Largest Contentful Paint | 8ms | 9ms | 6ms | 6ms | TBD |
-| Interaction to Next Paint | 24-40ms | 24-40ms | 24-40ms | 24-40ms | TBD |
+| Metric | Next.js | Next.js + Compiler | Nuxt | Analog | SolidStart | SvelteKit | Qwik |
+|--------|---------|-------------------|------|--------|------------|-----------|------|
+| Lighthouse Performance | 98% | 98% | TBD | TBD | 100% | 99% | TBD |
+| First Contentful Paint | 18ms | 17ms | TBD | TBD | 59ms | 7ms | TBD |
+| Largest Contentful Paint | 8ms | 9ms | TBD | TBD | 6ms | 6ms | TBD |
+| Interaction to Next Paint | 24-40ms | 24-40ms | TBD | TBD | 24-40ms | 24-40ms | TBD |
 
 **Key Takeaway**: All are fast in optimal conditions, but smaller bundles win on cellular networks where every KB matters.
 
@@ -92,11 +110,26 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 - **Optimistic Updates**: Managed via `$state` runes with automatic reactivity
 - **Drag-and-Drop**: Uses `svelte-dnd-action` library with built-in FLIP animations
 
-### Qwik City (Coming Soon)
-- **Resumability**: No hydration—resume execution instantly
+### Nuxt 4
+- **Vue 3 Reactivity**: Reactive refs (`ref()`, `reactive()`) with automatic dependency tracking
+- **Composables**: `useAsyncData` and `useFetch` for SSR-aware data fetching with caching
+- **Server Routes**: API routes in `server/api/*` with `defineEventHandler`
+- **Auto-imports**: Components, composables, and utilities auto-imported
+- **Drag-and-Drop**: Uses `vuedraggable` component wrapper
+
+### Analog (Planned)
+- **Angular Signals**: Modern signals API reducing RxJS boilerplate
+- **Dependency Injection**: Angular's powerful DI system for services
+- **Server Routes**: Vite-powered server routes with Angular integration
+- **Drag-and-Drop**: Angular CDK for feature-rich drag-and-drop
+- **TypeScript-First**: Strong typing throughout with Angular's compiler
+
+### Qwik City
+- **Resumability**: No hydration—resume execution instantly from HTML
 - **Progressive Loading**: Load only what's needed for current interaction
-- **Fine-grained Lazy Loading**: Component-level code splitting
+- **Fine-grained Lazy Loading**: Component-level code splitting with `$()`
 - **Signals**: Fine-grained reactivity without Virtual DOM
+- **Serialization**: Everything must be serializable for resumability
 
 ---
 
@@ -347,11 +380,83 @@ This isn't just about bundle sizes. It's about:
 
 ---
 
+## Code Comparison Highlights
+
+This repository provides detailed code comparisons across all 7 frameworks. Key patterns to explore:
+
+### 1. **Reactivity & State Management**
+Compare how each framework handles reactive state:
+- **React**: `useState` + `useEffect` with manual dependency arrays
+- **Vue/Nuxt**: `ref()` + `watch()` with `.value` access
+- **Angular/Analog**: `signal()` + `effect()` with getters/setters
+- **Solid**: `createSignal` + `createEffect` with automatic tracking
+- **Svelte**: `$state` + `$effect` (looks like normal variables)
+- **Qwik**: `useSignal` + `useTask$` (serializable for resumability)
+
+**Files**: `CardEditModal` component across all frameworks
+
+### 2. **Server-Side Data Fetching**
+Compare data loading patterns:
+- **Next.js**: Async Server Components with `Promise.all`
+- **Nuxt**: `useAsyncData` with SSR-aware caching
+- **SvelteKit**: `load` functions with `depends()` for invalidation
+- **Solid**: `createAsync` with cache deduplication
+- **Qwik**: `routeLoader$` with automatic serialization
+- **Analog**: `injectLoad` + Angular DI
+
+**Files**: Board page route across all frameworks
+
+### 3. **Form Handling & Mutations**
+Compare form submission and server mutations:
+- **Next.js**: Server Actions with `revalidatePath()`
+- **Nuxt**: `$fetch` to API routes in `server/api/*`
+- **SvelteKit**: Form Actions with progressive enhancement
+- **Solid**: Server functions with `action()`
+- **Qwik**: `routeAction$` with resumable forms
+- **Analog**: `ApiService` + RxJS Observables
+
+**Files**: Card create/update actions across all frameworks
+
+### 4. **Control Flow**
+Compare template syntax vs JSX:
+- **React/Solid/Qwik**: JavaScript expressions (ternary, `.map()`)
+- **Vue/Nuxt**: Directive attributes (`v-if`, `v-for`)
+- **Svelte**: Template blocks (`#if`, `#each`)
+- **Angular**: New control flow syntax (`@if`, `@for`)
+
+**Files**: Board listing page across all frameworks
+
+### 5. **Drag & Drop**
+Compare library integration approaches:
+- **React**: `@dnd-kit` (most popular ecosystem)
+- **Vue/Nuxt**: `vuedraggable` component wrapper
+- **Solid**: `@thisbeyond/solid-dnd` (similar API to dnd-kit)
+- **Svelte**: Native HTML5 drag & drop (lightest)
+- **Qwik**: Native with serializable handlers
+- **Angular**: Angular CDK (most feature-rich, heaviest)
+
+**Files**: Board page drag-drop implementation
+
+See [BLOG_POST_NOTES.md](BLOG_POST_NOTES.md) for detailed file paths and code comparison analysis.
+
+### 6. **Routing & Nested Layouts**
+Compare routing primitives and nested layouts, which shape daily DX:
+- **Next.js**: App Router with nested `layout.tsx` and segment conventions
+- **Nuxt**: File-system routing with `pages/` and nested layouts
+- **SvelteKit**: `+layout.svelte` / `+page.svelte` hierarchy
+- **SolidStart**: File-based routes with nested layouts
+- **Qwik City**: File-based routing with `layout.tsx`
+- **Analog (Angular)**: Standalone route definitions with nested layouts
+
+**Files**: Home route + board route layout files for each framework
+
+---
+
 ## Related
 
 - Blog Post: ["React Won by Default – And It's Killing Frontend Innovation"](link-to-post)
+- See [BLOG_POST_NOTES.md](BLOG_POST_NOTES.md) for detailed code comparison analysis and blog post outline
 - See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for implementation guidelines
-- See [BLOG_POST_IDEAS.md](BLOG_POST_IDEAS.md) for companion blog post outline
 
 ---
 

@@ -52,4 +52,5 @@ export const CommentSchema = v.object({
     v.maxLength(1000, 'Comment must be less than 1000 characters')
   ),
   cardId: v.pipe(v.string('Card ID is required'), v.uuid('Invalid card ID')),
+  userId: v.pipe(v.string('User ID is required'), v.uuid('Invalid user ID')),
 })

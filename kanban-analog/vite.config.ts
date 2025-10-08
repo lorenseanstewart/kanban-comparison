@@ -1,0 +1,50 @@
+/// <reference types="vitest" />
+
+import { defineConfig } from 'vite';
+import analog from '@analogjs/platform';
+import tailwindcss from '@tailwindcss/vite';
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  build: {
+    target: ['es2020'],
+    minify: 'esbuild',
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@angular/core') || id.includes('@angular/common') || id.includes('@angular/platform-browser')) {
+              return 'angular-core';
+            }
+            if (id.includes('@angular/router') || id.includes('@analogjs/router')) {
+              return 'angular-router';
+            }
+            if (id.includes('@angular/forms') || id.includes('@angular/cdk')) {
+              return 'angular-forms';
+            }
+          }
+        },
+      },
+    },
+  },
+  resolve: {
+    mainFields: ['module'],
+  },
+  plugins: [
+    analog({
+      ssr: true,
+      nitro: {
+        preset: 'node-server',
+        minify: true,
+        compressPublicAssets: true,
+      },
+      vite: {
+        experimental: {
+          supportAnalogFormat: false,
+        },
+      },
+    }),
+    tailwindcss()
+  ],
+}));

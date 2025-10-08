@@ -14,7 +14,21 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const body = await readBody(event)
+    console.log('Request method:', event.method)
+    console.log('Request headers:', getHeaders(event))
+
+    const rawBody = await readRawBody(event, 'utf-8')
+    console.log('Raw body:', rawBody)
+
+    const body = rawBody ? JSON.parse(rawBody) : null
+    console.log('Parsed body:', body, 'Type:', typeof body)
+
+    if (!body || typeof body !== 'object') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Request body is required and must be an object',
+      })
+    }
 
     const result = v.safeParse(CardUpdateSchema, body)
     if (!result.success) {

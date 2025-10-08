@@ -16,10 +16,17 @@ Title: **"React-by-Default, Tested: Same App, Six Builds, 3x Smaller Bundles"**
 - Challenge accepted.
 
 **The Experiment**:
-- Built identical Kanban app in Next.js (React), Next.js with React Compiler, Nuxt, SolidStart, SvelteKit, and Qwik City
-- Same database, same features, same UI, same interactions
+- Built identical Kanban app across 7 framework implementations:
+  - Next.js 15 (React 19 - baseline)
+  - Next.js 15 + React Compiler (optimization attempt)
+  - Nuxt 4 (Vue 3)
+  - Analog (Angular meta-framework)
+  - SolidStart (SolidJS)
+  - SvelteKit (Svelte 5)
+  - Qwik City (Qwik)
+- Same database (SQLite + Drizzle), same features, same UI, same interactions
 - Measured bundles, performance, development time, complexity
-- Not toy examples. Real drag-and-drop, database queries, optimistic updates.
+- Not toy examples. Real drag-and-drop, database queries, optimistic updates, modals, forms
 
 **The Context (Real Users, Real Stakes)**:
 - Users: real estate agents between showings, at open houses, in parking lots
@@ -36,19 +43,23 @@ Title: **"React-by-Default, Tested: Same App, Six Builds, 3x Smaller Bundles"**
 
 **Content**:
 - Visual comparison for board page (client JS, gzipped):
-  - Next.js: 148 kB
-  - Next.js + React Compiler: 143 kB (~3% smaller)
-  - SolidStart: 40 kB (≈3.7x smaller than React)
-  - SvelteKit: 40 kB (≈3.7x smaller than React)
-  - Qwik City: 40 kB (≈3.7x smaller than React)
-  - Nuxt 3: 82.6 kB (entry 64.06 + fetch 5.67 + nuxt-link 2.00 + board 10.85)
+  - Next.js: 148 kB (baseline)
+  - Next.js + React Compiler: 153 kB (~3% larger - experimental optimizations add overhead)
+  - Nuxt 4: 139 kB (Vue 3 reactivity, smaller than React but larger than signal-based)
+  - Analog: ~159 kB (Angular + Signals, largest due to Angular core)
+  - SolidStart: 40 kB (≈3.7x smaller than React - fine-grained reactivity)
+  - SvelteKit: 40 kB (≈3.7x smaller than React - compiler optimizations)
+  - Qwik City: 61 kB (≈2.4x smaller than React - resumability, lazy loading)
 - "Sure, 148 kB isn't huge. But when you're on 4G in a subway or rural area..."
 - **Important caveat**: Bundle size is one metric among many. DX, ecosystem, hiring, and maintainability all matter. But bundle size is often ignored when it shouldn't be.
-- **Four different approaches, varying results**:
-  - SolidStart: Fine-grained reactivity with signals (no Virtual DOM) = 40 kB
-  - SvelteKit: Compile-time optimization (compiler eliminates runtime overhead) = 40 kB
-  - Qwik City: Resumability (only loads code as needed, no hydration) = 40 kB
-  - Nuxt 3: Vue 3 reactivity with SSR-first optimizations = 82.6 kB (smaller than React, larger than signal/compiler frameworks)
+- **Seven implementations, five distinct approaches, varying results**:
+  - **Virtual DOM (React)**: Next.js = 148 kB baseline
+  - **Virtual DOM + Compiler (React)**: Next.js + Compiler = 153 kB (compiler adds overhead in experimental stage)
+  - **Reactive Refs (Vue)**: Nuxt 4 = 139 kB (smaller than React, larger than signal-based)
+  - **Signals + Zone.js (Angular)**: Analog = 159 kB (largest due to Angular core framework)
+  - **Fine-grained Signals (Solid)**: SolidStart = 40 kB (no Virtual DOM)
+  - **Compile-time (Svelte)**: SvelteKit = 40 kB (compiler eliminates runtime)
+  - **Resumability (Qwik)**: Qwik City = 61 kB (no hydration, lazy everything)
 - Why bundle size matters more in certain contexts:
   - No native app fallback; web performance IS the product
   - Users are out in the world, not on office wifi
@@ -70,11 +81,14 @@ Title: **"React-by-Default, Tested: Same App, Six Builds, 3x Smaller Bundles"**
 - On spotty connections? The difference is painful
 
 **Visualization Ideas**:
-- Side-by-side bundle size charts: Next.js (148 kB) vs Next.js+Compiler (143 kB) vs SolidStart (40 kB) vs SvelteKit (40 kB) vs Qwik (40 kB) vs Nuxt (82.6 kB)
-- Real 3G/4G load time comparison with video/GIF showing all six variants
+- Side-by-side bundle size charts: All 7 implementations with visual groupings:
+  - React tier: Next.js (148 kB), Next.js+Compiler (153 kB), Analog (159 kB)
+  - Vue tier: Nuxt (139 kB)
+  - Modern alternatives: SolidStart (40 kB), SvelteKit (40 kB), Qwik (61 kB)
+- Real 3G/4G load time comparison with video/GIF showing all seven variants
 - Network waterfall comparison showing bundle download + parse for each
 - Map showing "your users aren't always on wifi"
-- Diagram: "Four paths beyond React: Signals (Solid) vs Compiler (Svelte) vs Resumability (Qwik) vs Vue Reactivity (Nuxt)"
+- Diagram: "Five paths to modern frameworks: Virtual DOM (React) vs Reactive Refs (Vue) vs Signals (Solid/Angular) vs Compiler (Svelte) vs Resumability (Qwik)"
 
 #### Section 2: The Complexity Paradox
 **Key Point**: "Simpler isn't always easier—until it clicks"
@@ -103,16 +117,22 @@ Title: **"React-by-Default, Tested: Same App, Six Builds, 3x Smaller Bundles"**
   - `computed()` for derived values, `watch()` for side effects
   - Composition API brings React-like function composition
   - Most familiar for teams with Vue experience
-- The twist: All four alternatives are conceptually simpler once learned
+- Analog's Angular evolution:
+  - Modern signals API (`count = signal(0)`)
+  - Still carries Angular's conceptual weight (DI, decorators, Zone.js)
+  - Moving away from RxJS-everywhere, but legacy patterns remain
+  - Most familiar for Angular teams, steepest learning curve for others
+- The twist: Most alternatives are conceptually simpler once learned
   - **Solid**: No dependency arrays, no re-render optimization, call signals anywhere
   - **Svelte**: Write code that looks like HTML/CSS/JS, compiler handles reactivity
   - **Qwik**: Same JSX familiarity as React, but with resumability instead of hydration
   - **Nuxt/Vue**: Familiar ref/reactive patterns, automatic dependency tracking in computed/watch
-  - **All four**: No rules of hooks, no manual optimization, automatic dependency tracking
+  - **Analog/Angular**: Enterprise patterns (DI, services), signals reduce boilerplate but framework is still heavy
+  - **All alternatives (except Angular)**: No rules of hooks, no dependency arrays, no manual optimization
 
 **Code Examples**:
-- Six-way comparison: `useState` vs `createSignal` vs `$state` vs `useSignal` vs `ref()`
-- Six-way comparison: `useEffect` with deps vs `createEffect` vs `$effect` vs `useTask$` vs `watch/watchEffect`
+- Seven-way comparison: `useState` vs `createSignal` vs `$state` vs `useSignal` vs `ref()` vs `signal()` (Angular)
+- Seven-way comparison: `useEffect` with deps vs `createEffect` vs `$effect` vs `useTask$` vs `watch/watchEffect` vs `effect()` (Angular)
 - Show manual optimization (useMemo/useCallback) vs "it just works" in Solid, Svelte, Qwik, and Nuxt
 
 #### Section 3: Developer Experience Deep Dive
@@ -487,108 +507,303 @@ Secondary:
 
 **Purpose**: Show side-by-side code snippets that highlight fundamental framework differences. Focus on patterns that reveal different philosophies and trade-offs.
 
-### 1. State Management Basics
-**What to compare**: How each framework handles reactive state
-**Why it matters**: Reveals the core mental model (Virtual DOM re-renders vs fine-grained signals vs compiler magic vs resumability)
+### Priority Comparisons for Blog Post
+
+Based on comprehensive analysis of all 7 framework implementations, these are the **most impactful code comparisons** to include:
+
+---
+
+### **Summary: Recommended Blog Post Flow**
+
+For maximum impact, structure code comparisons in this order:
+
+1. **Reactivity & State Management** (⭐ PRIORITY #1) - Establishes the foundational mental model differences
+2. **Computed Values & Derived State** (⭐ PRIORITY #2) - Shows manual vs automatic dependency tracking
+3. **Side Effects & Reactions** (⭐ PRIORITY #3) - Highlights React's dependency array complexity
+4. **Server-Side Data Fetching** (⭐ PRIORITY #4) - Real-world daily pattern developers encounter
+5. **Form Handling & Mutations** (⭐ PRIORITY #5) - Complete client-server cycle
+6. **Optimistic Updates** - Shows how complexity scales with requirements
+7. **Control Flow** - Daily DX differences developers feel constantly
+8. **Drag & Drop** - Complex integration patterns (optional, if space permits)
+
+**BONUS**: React vs React Compiler comparison (identical code, different output) to show React's evolution
+
+Each pattern showcases different tradeoffs:
+- **Boilerplate**: React (more) vs Svelte (less) vs others (middle)
+- **Explicitness**: React/Vue (explicit dependencies) vs Svelte/Solid/Angular (implicit tracking)
+- **Type Safety**: All use TypeScript, but framework APIs vary in inference quality
+- **Mental Model**: Virtual DOM (React) vs Fine-grained (Solid) vs Compiler (Svelte) vs Resumable (Qwik) vs Reactive Refs (Vue) vs Signals+Zones (Angular)
+
+---
+
+### 1. **Reactivity & State Management Fundamentals** ⭐ PRIORITY #1
+
+**What it demonstrates**: Core reactivity models - hooks vs signals vs runes vs reactive refs vs zone-based change detection
+
+**Why it's interesting**: This is the foundational difference between frameworks. Shows Virtual DOM (React/Next.js) vs fine-grained reactivity (Solid) vs compiler-based (Svelte) vs resumable (Qwik) vs reactive refs (Vue/Nuxt) vs RxJS observables (Angular/Analog).
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/modals/CardEditModal.tsx` (lines 22-29: useState + useEffect)
+- **Next.js Compiler**: `/kanban-nextjs-compiler/src/components/modals/CardEditModal.tsx` (identical code, but compiler auto-memoizes)
+- **Nuxt/Vue**: `/kanban-nuxt/components/CardEditModal.vue` (lines 26-34: ref() + watch())
+- **SvelteKit**: `/kanban-sveltekit/src/lib/components/modals/CardEditModal.svelte` (lines 20-27: $state + $effect)
+- **SolidStart**: `/kanban-solidstart/src/components/modals/CardEditModal.tsx` (lines 14-20: createSignal + createEffect)
+- **Qwik City**: `/kanban-qwikcity/src/components/modals/CardEditModal.tsx` (lines 25-48: useSignal + useTask$)
+- **Analog**: `/kanban-analog/src/app/components/modals/card-edit-modal.component.ts` (lines 78-92: signal() + effect())
+
+**Key differences**:
+- React requires manual effect dependencies; Svelte/Solid track automatically
+- Qwik uses `$` suffix for serializable functions (resumability)
+- Angular uses signals (newer API) similar to Solid but within Zone.js context
+- Vue's ref system is between React hooks and Solid signals
+- Svelte's $state looks most like "normal JavaScript"
 
 **Code to show**:
 - **Next.js**: `useState` with functional updates (`setState(prev => prev + 1)`)
 - **SolidStart**: `createSignal` with getter/setter pattern (`count()` to read, `setCount(c => c + 1)` to write)
 - **SvelteKit**: `let count = $state(0)` with direct mutation (`count++`)
 - **Qwik City**: `useSignal` with `.value` property (`count.value` to read, `count.value++` to write)
- - **Nuxt 3 (Vue)**: `const count = ref(0)` then `count.value++`
+- **Nuxt 3 (Vue)**: `const count = ref(0)` then `count.value++`
+- **Analog (Angular)**: `count = signal(0)` then `count.set(count() + 1)` or `count.update(v => v + 1)`
 
-**Key insight**: Svelte looks most like "normal JavaScript", Solid and Qwik use signals (different syntax), React requires functional updates to avoid stale closures.
+**Key insight**: Svelte looks most like "normal JavaScript", Solid/Angular use getter functions, Vue/Qwik use `.value`, React requires functional updates to avoid stale closures.
 
-### 2. Derived State / Computed Values
-**What to compare**: How each framework handles values derived from state
-**Why it matters**: Shows automatic dependency tracking vs manual dependencies
+### 2. **Computed Values & Derived State** ⭐ PRIORITY #2
+
+**What it demonstrates**: How frameworks create derived reactive state - manual memoization vs automatic dependency tracking
+
+**Why it's interesting**: Shows the spectrum from manual memoization (React) to automatic dependency tracking (all alternatives). Highlights a key DX difference.
+
+**Files to compare**:
+- **Next.js**: Manual useMemo for derived state in components
+- **SolidStart**: `/kanban-solidstart/src/components/charts/BarChart.tsx` (line 8: arrow function for reactive derivation)
+- **SvelteKit**: `/kanban-sveltekit/src/lib/components/charts/BarChart.svelte` (line 8: $derived)
+- **Qwik City**: `/kanban-qwikcity/src/routes/board/[id]/index.tsx` (lines 391-395: useComputed$)
+- **Nuxt/Vue**: Computed properties or derived refs
+- **Analog**: Computed signals in components
 
 **Code to show**:
 - **Next.js**: `useMemo(() => count * 2, [count])` with manual dependency array
 - **SolidStart**: `createMemo(() => count() * 2)` with automatic tracking
-- **SvelteKit**: `let doubled = $derived(count * 2)` with automatic tracking
+- **SvelteKit**: `let doubled = $derived(count * 2)` with automatic tracking (simplest syntax)
 - **Qwik City**: `useComputed$(() => count.value * 2)` with automatic tracking
- - **Nuxt 3 (Vue)**: `const doubled = computed(() => count.value * 2)`
+- **Nuxt 3 (Vue)**: `const doubled = computed(() => count.value * 2)`
+- **Analog (Angular)**: `doubled = computed(() => count() * 2)`
 
-**Key insight**: Only React requires manually listing dependencies. Solid, Svelte, and Qwik all track automatically.
+**Key differences**:
+- React requires explicit memoization (useMemo, useCallback)
+- Svelte's `$derived` is simplest (like variable assignment)
+- Solid uses functions as reactive getters (no explicit memo needed)
+- Qwik's useComputed$ is serializable
+- Vue/Angular use explicit computed() calls
+- All alternatives track dependencies automatically
 
-### 3. Side Effects
-**What to compare**: Running code when state changes
-**Why it matters**: Highlights React's complexity (dependency arrays, cleanup) vs alternatives' simplicity
+**Key insight**: Only React requires manually listing dependencies. Solid, Svelte, Qwik, Vue, and Angular all track automatically, eliminating a major source of bugs (stale closures, infinite loops).
+
+### 3. **Side Effects & Reactions** ⭐ PRIORITY #3
+
+**What it demonstrates**: Running code when state changes - dependency arrays vs automatic tracking
+
+**Why it's interesting**: Highlights React's complexity (dependency arrays, cleanup, common bugs) vs alternatives' simplicity and automatic tracking
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/modals/CardEditModal.tsx` (useEffect with dependencies)
+- **SolidStart**: `/kanban-solidstart/src/components/modals/CardEditModal.tsx` (createEffect)
+- **SvelteKit**: `/kanban-sveltekit/src/lib/components/modals/CardEditModal.svelte` ($effect)
+- **Qwik City**: `/kanban-qwikcity/src/components/modals/CardEditModal.tsx` (useTask$)
+- **Nuxt/Vue**: Components using watch/watchEffect
+- **Analog**: Components using effect()
 
 **Code to show**:
-- **Next.js**: `useEffect(() => { console.log(count); }, [count])` with dependency array
+- **Next.js**: `useEffect(() => { console.log(count); }, [count])` with manual dependency array
 - **SolidStart**: `createEffect(() => { console.log(count()); })` with automatic tracking
 - **SvelteKit**: `$effect(() => { console.log(count); })` with automatic tracking
 - **Qwik City**: `useTask$(({ track }) => { track(count); console.log(count.value); })` with explicit tracking
- - **Nuxt 3 (Vue)**: `watch(count, (v) => console.log(v))` or `watchEffect(() => console.log(count.value))`
+- **Nuxt 3 (Vue)**: `watch(count, (v) => console.log(v))` or `watchEffect(() => console.log(count.value))`
+- **Analog (Angular)**: `effect(() => { console.log(count()); })` with automatic tracking
 
-**Key insight**: React's dependency array is a common source of bugs (infinite loops, stale closures). Solid and Svelte avoid this entirely with automatic tracking. Qwik requires explicit `track()` calls but provides fine control.
+**Key differences**:
+- React's dependency array is a common source of bugs (infinite loops, stale closures, forgotten dependencies)
+- Solid, Svelte, Vue's watchEffect, and Angular avoid this entirely with automatic tracking
+- Qwik requires explicit `track()` calls but provides fine control and works with serialization
+- Vue offers both `watch` (explicit) and `watchEffect` (automatic) for different use cases
+- React needs ESLint plugin to catch dependency array mistakes
 
-### 4. Form Handling with Server Actions
-**What to compare**: How each framework handles form submissions and server mutations
-**Why it matters**: Shows server/client boundary patterns and progressive enhancement
+**Key insight**: React's manual dependency management creates cognitive overhead and common bugs. All alternatives provide automatic tracking, eliminating an entire class of errors.
 
-**Code to show**:
-- **Next.js**: Server Actions with `"use server"`, `useFormState` hook, client component boundaries
-- **SolidStart**: Server actions with typed responses, `action()` pattern
-- **SvelteKit**: Form actions with `use:enhance`, progressive enhancement by default
-- **Qwik City**: `routeAction$` with automatic serialization, works without JS
- - **Nuxt 3**: `useFetch` posting to `server/api/*` `defineEventHandler` routes
+### 4. **Server-Side Data Fetching** ⭐ PRIORITY #4
 
-**Key insight**: SvelteKit and Qwik have the cleanest progressive enhancement (forms work without JS). Next.js requires explicit client boundaries. SolidStart sits in the middle.
-Nuxt's DX emphasizes SSR-aware fetch and server route co-location; progressive enhancement achievable with native forms + `$fetch`.
+**What it demonstrates**: How each framework fetches data on the server and handles loading states
 
-### 5. Error Handling in Modals
-**What to compare**: How each framework handles loading states and error display
-**Why it matters**: Shows real-world patterns with typed responses
+**Why it's interesting**: Shows RSC (React Server Components) vs SSR loaders vs SvelteKit's unified load function vs Qwik's resumability vs Nuxt's composables
 
-**Code to show**:
-- **Next.js**: `useState` for error/loading, `useCallback` for handlers, manual disabled state
-- **SolidStart**: `createSignal` for error/loading, simpler handler pattern
-- **SvelteKit**: `$state` for error/loading, `use:enhance` callback for server response handling
-- **Qwik City**: `useSignal` for error/loading, `routeAction$` provides `.value` with response data
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/app/board/[id]/page.tsx` (lines 5-29: async Server Component with Promise.all)
+- **SvelteKit**: `/kanban-sveltekit/src/routes/board/[id]/+page.server.ts` (lines 10-30: PageServerLoad with depends())
+- **SolidStart**: `/kanban-solidstart/src/routes/board/[id].tsx` (lines 36-54: createAsync + route preloading)
+- **Qwik City**: `/kanban-qwikcity/src/routes/board/[id]/index.tsx` (lines 23-34: routeLoader$ with automatic serialization)
+- **Nuxt**: `/kanban-nuxt/pages/board/[id].vue` (lines 18-27: useAsyncData with caching)
+- **Analog**: `/kanban-analog/src/app/pages/board/[id].page.ts` (lines 105-109: injectLoad + toSignal)
 
-**Key insight**: All frameworks can handle this well, but the boilerplate differs. Svelte's `use:enhance` and Qwik's action stores are particularly elegant.
+**Key differences**:
+- Next.js RSC is just async functions (simplest, most "magical")
+- SvelteKit's `depends()` enables fine-grained invalidation
+- SolidStart uses createAsync for streaming/suspense
+- Qwik automatically serializes data for resumability (no hydration)
+- Nuxt has built-in caching and deduplication with useAsyncData
+- Analog bridges Angular's DI with server data
 
-### 6. Optimistic Updates with Server ID Reconciliation
-**What to compare**: How each framework handles adding items with server-generated IDs
-**Why it matters**: Shows state management patterns and async handling
+**Key insight**: Next.js has the most "magical" RSC pattern. SvelteKit has the clearest separation. SolidStart and Qwik both use explicit loader functions with different syntax. Nuxt pairs Vue's reactivity with SSR-aware `useFetch`, minimizing boilerplate.
 
-**Code to show**:
-- **Next.js**: Functional `setState` to add item, wait for server response, replace temp ID
-- **SolidStart**: `setBoards(produce((boards) => { boards.push(data); }))` with immer-style updates
-- **SvelteKit**: `boards = [...boards, newBoard]` with spread operator, `invalidateAll()` for sync
+### 4a. **Routing & Nested Layouts** (DX impact)
+
+**What it demonstrates**: How everyday navigation structures are modeled (layouts, nested routes, params) and how much ceremony is required.
+
+**Files to compare**:
+- **Next.js**: `app/layout.tsx`, `app/(boards)/board/[id]/layout.tsx`
+- **SvelteKit**: `src/routes/+layout.svelte`, `src/routes/board/[id]/+layout.svelte`
+- **SolidStart**: `src/root.tsx` / nested route layouts
+- **Qwik City**: `src/routes/layout.tsx`, `src/routes/board/[id]/layout.tsx`
+- **Nuxt**: `layouts/default.vue`, `pages/board/[id].vue`
+- **Analog**: Route configs and layout components
+
+**Key differences**:
+- Next.js and SvelteKit have first-class layout files; Nuxt uses a `layouts/` dir; Qwik mirrors file-based layouts; SolidStart supports nested layouts via file routes; Analog uses Angular route configs.
+
+**Key insight**: Layout ergonomics and conventions affect DX as much as data loading—include one concise, side-by-side example in the post.
+
+### 5. **Form Handling & Server Mutations** ⭐ PRIORITY #5
+
+**What it demonstrates**: Form submission patterns - Server Actions vs API routes vs form actions vs RPC-style calls
+
+**Why it's interesting**: Shows the spectrum from traditional API calls to framework-integrated mutations. Highlights progressive enhancement, type safety, and server/client boundaries.
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/lib/actions.ts` (lines 54-109: "use server" + revalidatePath)
+- **SvelteKit**: `/kanban-sveltekit/src/routes/board/[id]/+page.server.ts` (lines 110-161: Form Actions with enhance)
+- **SolidStart**: `/kanban-solidstart/src/api/card-actions.ts` (lines 38-68: action() + revalidate)
+- **Qwik City**: `/kanban-qwikcity/src/routes/board/[id]/index.tsx` (lines 110-147: routeAction$ with valibot$)
+- **Nuxt**: `/kanban-nuxt/components/CardEditModal.vue` (lines 46-97: $fetch with manual error handling)
+- **Analog**: `/kanban-analog/src/app/components/modals/card-edit-modal.component.ts` (lines 115-140: ApiService + Observable pattern)
+
+**Key differences**:
+- Next.js Server Actions are the most integrated (FormData → server function)
+- SvelteKit has progressive enhancement out of the box (forms work without JS)
+- Qwik's actions are resumable (work without hydration)
+- Solid's action pattern is similar to Next.js but client-side
+- Nuxt uses traditional $fetch to API routes
+- Angular uses traditional service injection with RxJS
+- All use validation (Valibot) but at different layers
+
+**Key insight**: SvelteKit and Qwik have the cleanest progressive enhancement (forms work without JS). Next.js requires explicit client boundaries. SolidStart sits in the middle. Nuxt's DX emphasizes SSR-aware fetch and server route co-location.
+
+### 6. **Optimistic Updates & Error Handling**
+
+**What it demonstrates**: How frameworks handle optimistic UI updates and rollback on errors
+
+**Why it's interesting**: Shows the complexity/ease of maintaining UI consistency during async operations - a real-world concern in every app
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/modals/CardEditModal.tsx` (lines 56-69: optimistic then fire-and-forget)
+- **Nuxt**: `/kanban-nuxt/components/CardEditModal.vue` (lines 55-96: optimistic + manual rollback on error)
+- **SvelteKit**: `/kanban-sveltekit/src/lib/components/modals/CardEditModal.svelte` (lines 58-80: use:enhance with result handling)
+- **SolidStart**: `/kanban-solidstart/src/components/modals/CardEditModal.tsx` (lines 19-36: useSubmission pattern)
+- **Qwik City**: `/kanban-qwikcity/src/components/modals/CardEditModal.tsx` (lines 64-95: optimistic + action submission)
+- **Analog**: `/kanban-analog/src/app/components/modals/card-edit-modal.component.ts` (lines 120-128: immediate emit, async persist)
+
+**Code patterns**:
+- **Next.js**: Functional `setState` to add item, fire-and-forget (no error UI in modal)
+- **SolidStart**: `setBoards(produce((boards) => { boards.push(data); }))` with immer-style updates + useSubmission
+- **SvelteKit**: `boards = [...boards, newBoard]` with spread operator, `use:enhance` for result handling
 - **Qwik City**: `boards.value = [...boards.value, newBoard]` with signal updates, automatic serialization
+- **Nuxt**: Manual state revert on failure (most explicit error handling)
+- **Analog**: Observable pattern handles errors via subscription
 
-**Key insight**: SolidStart's `produce` is cleanest for complex updates. Svelte's spread is simplest. Qwik's signal approach is familiar to React devs. All avoid React's stale closure pitfalls.
+**Key differences**:
+- Next.js uses fire-and-forget (no error UI in modal)
+- Nuxt manually reverts state on failure (most explicit)
+- SvelteKit's `enhance` provides result handling built-in
+- Solid's useSubmission tracks pending/result/error automatically
+- Qwik's pattern is similar but with serializable actions
+- Angular's Observable pattern handles errors via subscription
 
-### 7. Component State Updates
-**What to compare**: How parent components update child state
-**Why it matters**: Shows prop drilling vs callbacks vs stores
+**Key insight**: SolidStart's `produce` is cleanest for complex updates. Svelte's `use:enhance` is most elegant for forms. All alternatives avoid React's stale closure pitfalls through better primitives.
 
-**Code to show**:
-- **Next.js**: Callback props (`onBoardAdd={(data) => setBoards([...boards, data])}`)
-- **SolidStart**: Similar callback pattern but with `setBoards(produce(...))`
-- **SvelteKit**: Callback with `$bindable` for two-way binding option
+### 7. **Control Flow & Conditional Rendering**
 
-**Key insight**: All use similar patterns, but Svelte offers `$bindable` for simpler two-way data flow when appropriate.
+**What it demonstrates**: Template syntax vs JSX expressions - how each framework handles if/else and loops
 
-### 8. Data Fetching Patterns
-**What to compare**: How each framework loads data on routes
-**Why it matters**: Shows server-side data loading patterns
+**Why it's interesting**: Shows developer experience differences in patterns developers use constantly every day
 
-**Code to show**:
-- **Next.js**: `async` Server Components, direct database queries in RSC
-- **SolidStart**: `createAsync` with `cache` function for deduplication
-- **SvelteKit**: `load` functions in `+page.server.ts` with automatic serialization
-- **Qwik City**: `routeLoader$` with automatic prefetching and caching
- - **Nuxt 3**: `useFetch`/`useAsyncData` with SSR caching and transparent hydration
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/app/page.tsx` → `/kanban-nextjs/src/components/HomePageClient.tsx` (lines 46-81: ternary + map)
+- **Nuxt**: `/kanban-nuxt/pages/index.vue` (lines 54-91: v-if/v-for directives)
+- **SvelteKit**: `/kanban-sveltekit/src/routes/+page.svelte` (lines 23-50: #if/#each blocks)
+- **SolidStart**: `/kanban-solidstart/src/routes/index.tsx` (lines 62-114: <Show>/<For> components)
+- **Qwik City**: `/kanban-qwikcity/src/routes/index.tsx` (lines 111-146: ternary + map)
+- **Analog**: `/kanban-analog/src/app/pages/board/[id].page.ts` (lines 52-71: @if/@for control flow)
 
-**Key insight**: Next.js has most "magical" RSC pattern. SvelteKit has clearest separation. SolidStart and Qwik both use explicit loader functions with different syntax. Nuxt pairs Vue's reactivity with SSR-aware `useFetch`, minimizing boilerplate.
+**Key differences**:
+- React/Qwik use JavaScript expressions (ternary, map)
+- Vue uses directive attributes (v-if, v-for)
+- Svelte uses template blocks (#if, #each) - most declarative
+- Solid uses component primitives (<Show>, <For>)
+- Angular uses new control flow syntax (@if, @for) - most recent addition (2023)
 
-### 9. Validation Patterns
+**Key insight**: All approaches work well, but template-based (Svelte, Vue) feel more HTML-like, while JSX-based (React, Solid, Qwik) feel more JavaScript-like. Angular's new @if/@for syntax is the newest evolution.
+
+### 8. **Drag & Drop Implementation**
+
+**What it demonstrates**: How frameworks integrate with complex third-party libraries and handle event listeners
+
+**Why it's interesting**: Shows JSX vs template integration, event handler serialization (Qwik), and reactivity patterns with complex interactions
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/DragDropBoard.tsx` (dnd-kit with useState)
+- **SolidStart**: `/kanban-solidstart/src/components/DragDropBoard.tsx` (@thisbeyond/solid-dnd with createSignal)
+- **Nuxt**: `/kanban-nuxt/pages/board/[id].vue` (lines 196-210: vuedraggable component)
+- **SvelteKit**: Uses native HTML5 drag & drop in list components
+- **Qwik City**: Native drag & drop with serializable handlers
+- **Analog**: `/kanban-analog/src/app/pages/board/[id].page.ts` (Angular CDK Drag & Drop)
+
+**Key differences**:
+- React/Solid use similar third-party libraries (dnd-kit/solid-dnd) with similar APIs
+- Vue has component-based draggable wrapper (vuedraggable)
+- Svelte uses native HTML5 drag & drop (lightest approach)
+- Qwik requires `$` suffix for event handlers (serialization constraint)
+- Angular uses CDK (most feature-rich, heaviest bundle impact)
+
+**Key insight**: Library ecosystem varies significantly. React has most options, but Svelte's native approach is lightest. Qwik's serialization requirements affect library compatibility.
+
+---
+
+### **Additional Comparisons** (Lower Priority)
+
+### 9. **Animation & DOM Manipulation**
+
+**What it demonstrates**: How frameworks handle direct DOM access and animations
+
+**Why it's interesting**: Shows the tension between declarative frameworks and imperative DOM needs
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/charts/BarChart.tsx` (lines 42-89: useRef + useEffect for animations)
+- **SolidStart**: `/kanban-solidstart/src/components/charts/BarChart.tsx` (lines 22-51: ref + createEffect)
+- **SvelteKit**: `/kanban-sveltekit/src/lib/components/charts/BarChart.svelte` (lines 20-26: pure CSS transitions, no ref needed)
+- **Nuxt**: Uses auto-animate library (external)
+- **Qwik**: Similar to React but with `$` serialization
+- **Analog**: ViewChild refs + AfterViewInit lifecycle
+
+**Key differences**:
+- React/Solid need refs + effects for DOM manipulation
+- Svelte can use pure CSS (most declarative)
+- Vue uses template refs
+- Qwik refs are non-serializable (client-only)
+- Angular uses ViewChild decorator pattern
+
+**Key insight**: Svelte's compiler allows the most declarative approach. Others require imperative ref access for complex animations.
+
+### 10. Validation Patterns
+
 **What to compare**: How validation schemas are used across client and server
 **Why it matters**: Shows shared code patterns and type safety
 
@@ -599,17 +814,60 @@ Nuxt's DX emphasizes SSR-aware fetch and server route co-location; progressive e
 
 **Key insight**: This is framework-agnostic (all frameworks can use same Valibot patterns). Shows how validation libraries work consistently across all modern frameworks.
 
-### 10. Loading States During Async Operations
-**What to compare**: How each framework disables inputs during form submission
-**Why it matters**: Shows reactive binding patterns
+---
 
-**Code to show**:
-- **Next.js**: `<input disabled={isSubmitting} />` with manual state tracking
-- **SolidStart**: `<input disabled={isSubmitting()} />` with signal
-- **SvelteKit**: `<input disabled={isSubmitting} />` with `$state`
-- **Qwik City**: `<input disabled={isSubmitting.value} />` with signal
+## Methodology & Reproducibility (for Part 2)
 
-**Key insight**: Syntax is nearly identical across all frameworks. The difference is in how the reactive value is created and updated (hooks vs signals vs runes vs signals with `.value`).
+Summarize and link to the canonical measurement guide to preempt fairness objections and ensure repeatability.
+
+**Standards**:
+- Pin framework/tool versions; record in one table
+- Normalize CSS/icon handling (tree-shake, purge, minify)
+- Fix data volume on the board page across apps
+- Use consistent throttling and CPU settings for performance
+- Measure cold starts and warm navigations separately
+
+**Artifacts**:
+- Scripted build/measure pipeline that outputs JSON/CSV
+- Bundle composition breakdown (framework/runtime vs libs vs app code)
+- Charts generated from the JSON/CSV
+
+See `PERFORMANCE_METRICS_GUIDE.md` for exact commands.
+
+---
+
+## Additional Sections to Add
+
+- React Compiler experiment clarity: specify compiler channel/flags; show one diff + one metric (re-render count or CPU time)
+- Progressive enhancement and accessibility: note which flows work without JS and any a11y defaults
+- Cold vs warm navigation metric: board → card details route change timings
+
+---
+
+## Migration Appendix (short)
+
+"Trial an alternative in one week": scope, success criteria, and rollout checklist for Solid/Svelte/Qwik/Nuxt pilots.
+
+---
+
+### **BONUS: React vs React Compiler**
+
+**What it demonstrates**: The React Compiler automatically optimizing code
+
+**Why it's interesting**: Shows "same code, different output" - the compiler adds memoization automatically
+
+**Files to compare**:
+- **Next.js**: `/kanban-nextjs/src/components/modals/CardEditModal.tsx`
+- **Next.js Compiler**: `/kanban-nextjs-compiler/src/components/modals/CardEditModal.tsx`
+
+**Key differences**:
+- Source code is IDENTICAL
+- Compiler version auto-memoizes callbacks, derived values
+- No manual useMemo/useCallback needed with compiler
+- Shows the future of React (forget mode)
+- BUT: Still 3x larger bundles than Solid/Svelte/Qwik, only ~3% savings over standard React
+
+**Key insight**: React Compiler is React admitting the optimization problem. It helps, but doesn't solve the fundamental Virtual DOM overhead that alternatives avoid entirely.
 
 ---
 
@@ -780,4 +1038,51 @@ Personal decision (for my context):
 - **Fine‑grained reactivity**, **compile‑time optimization**, **resumability**
 - **Innovation Ceiling** and **Network Effect Prison** as named sections/callouts
 - **Mobile‑web‑first** users and real‑world cellular constraints
+
+## AI Assistant Recommendations
+
+Based on analysis of the codebase and alignment with this outline, here are targeted recommendations to strengthen the empirical evidence and blog post:
+
+### Codebase Enhancements
+- **Update Qwik Metrics**: Fill in TBDs for Qwik's Lighthouse, FCP, LCP, and INP in the root README.md. Run performance tests as per PERFORMANCE_METRICS_GUIDE.md to confirm bundle sizes and highlight resumability benefits (e.g., superior TTI due to no hydration).
+- **Code Size and Boilerplate Comparisons**: Compute and document line counts or boilerplate metrics for key patterns (e.g., state management, effects, forms) across frameworks. This will empirically support the "Complexity Paradox" section, showing alternatives have ~20-30% less code.
+- **React Compiler Deep Dive**: Add notes in the README.md on specific optimizations (e.g., auto-memoization in drag-and-drop or optimistic updates) and quantify re-render reductions.
+
+### Blog Post Improvements
+- **Structure**: Follow the outlined "Developer Journey" format, revealing bundle sizes early and using repo visuals for charts/tables.
+- **Tone**: Maintain balance by emphasizing React's strengths while quantifying alternatives' advantages for mobile/performance-critical apps.
+- **CTA**: Encourage readers to clone the repo and test on slow networks, as planned.
+- **Length/Depth**: Target 2500 words, weaving in personal insights (e.g., SolidStart for pragmatism, SvelteKit for joy).
+- **Visuals**: Incorporate side-by-side code examples and performance charts directly from the repo to make claims more tangible.
+
+These updates will make the post even more compelling and data-driven.
+
+---
+
+## Hacker News Launch Aids
+
+### HN-friendly titles (data-forward)
+- We built the same Kanban app in 7 frameworks. Here’s the data.
+- React-by-default, tested: 7 frameworks, 3× bundle gap (with methods)
+- React Compiler vs Solid/Svelte/Qwik: Same app, very different bundles
+- Next.js vs Nuxt vs SolidStart vs SvelteKit vs Qwik: Real app, real numbers
+- Same app, 7 frameworks: Smaller bundles win on cellular (methods + repo)
+
+### One-line openings
+- We built the same Kanban app seven times and measured everything. The board page bundle ranged from ~40 kB to ~159 kB. Here’s the data, methods, and code to reproduce.
+- Same features, same DB, seven frameworks. The results: 3× bundle differences and what they mean on 4G—plus how to replicate our numbers.
+
+### Preempt common HN objections (put near top of post)
+- Apples-to-apples: pinned versions, identical data volume, normalized CSS/icons, consistent throttling/CPU.
+- App scope: mid-complexity, representative; larger-scale deep dive planned (Part 3).
+- Ecosystem matters: acknowledged; this post focuses on performance constraints where bundle size shifts the decision.
+- React Compiler: measured delta; notes on what it cannot remove (hydration/runtime overhead).
+
+### Submission tips
+- Link stack: blog → repo → methods → raw JSON at the top.
+- Post weekday morning PT; respond in comments with extra charts and clarifications.
+- First top-level comment: paste methodology snippet and links to `PERFORMANCE_METRICS_GUIDE.md` and `metrics/summary.json`.
+
+### Extra metric to include before launch
+- Warm navigation: Board → Card details (client-side route) timings to show runtime efficiency beyond cold start.
 

@@ -1,3 +1,135 @@
+# Performance & Bundle Measurement Guide (Canonical Recipe)
+
+This guide standardizes how we measure bundle sizes and performance across all apps to ensure apples‑to‑apples comparisons.
+
+## Environment
+
+- macOS or Linux
+- Node 20.x (use `nvm use 20`)
+- pnpm 9.x or npm 10.x
+- Chrome 128+ (for Lighthouse/INP)
+
+## Versions & Flags
+
+- Pin exact framework/tool versions in each app's lockfile
+- Build with production flags only
+- Ensure Tailwind purge is enabled and icons/assets are treeshaken
+
+## What We Measure
+
+- Client JS (gzipped) for: Home and Board pages
+- Lighthouse Performance, FCP, LCP, INP on the Board page
+- Build time and output size
+- Dev server HMR latency (optional)
+- Warm navigation: Board → Card details (optional)
+
+## Throttling
+
+- Network: "Slow 4G" (Lighthouse preset) and "Regular 4G" for a second run
+- CPU: 4× slowdown (Lighthouse default)
+
+## Commands (per app)
+
+1) Install and build
+
+```bash
+pnpm install # or npm ci
+pnpm build   # or npm run build
+```
+
+2) Start server
+
+```bash
+pnpm start &
+```
+
+3) Record bundle sizes (gzipped route assets)
+
+Use `source-map-explorer` or `rollup-plugin-visualizer` output if available; otherwise compute gz totals for JS emitted for the route.
+
+```bash
+# Example Vite-based apps (SvelteKit/Nuxt/Qwik/SolidStart)
+du -skh dist/assets/*.js
+
+# Example Next.js (App Router)
+du -skh .next/static/chunks/*.js
+```
+
+4) Lighthouse (Board page)
+
+```bash
+chrome-headless-shell \
+  --disable-gpu --remote-debugging-port=9222 &
+
+lighthouse http://localhost:3000/board/1 \
+  --preset=perf \
+  --throttling.rttMs=150 \
+  --throttling.throughputKbps=1600 \
+  --throttling.requestLatencyMs=150 \
+  --throttling.cpuSlowdownMultiplier=4 \
+  --output=json --output-path=./metrics/next-board.json
+```
+
+Repeat for each app; adjust host/port.
+
+## Automation
+
+Run the helper script to build all apps, collect sizes, and run Lighthouse once per app.
+
+```bash
+node scripts/measure-all.mjs
+```
+
+This script should output a single `metrics/summary.json` with:
+
+```json
+{
+  "framework": "sveltekit",
+  "homepage_gz_kb": 24,
+  "board_gz_kb": 40,
+  "lighthouse": { "perf": 99, "fcp_ms": 7, "lcp_ms": 6, "inp_ms": 28 },
+  "build_time_s": 7.3
+}
+```
+
+## Bundle Composition
+
+For composition breakdowns (framework/runtime vs libs vs app), enable:
+
+- Vite apps: `rollup-plugin-visualizer`
+- Next.js: `ANALYZE=true next build` and `next-bundle-analyzer`
+
+Export static HTML reports to `metrics/bundles/` for all apps.
+
+## Data Integrity
+
+- Use the seeded SQLite DB and confirm identical item counts on Board page
+- Clear caches between builds
+- Record commit SHA and lockfile hash per run
+
+## Output Locations
+
+- `metrics/summary.json` (aggregate)
+- `metrics/lh/*.json` (per-run Lighthouse)
+- `metrics/bundles/*` (composition reports)
+
+## Notes
+
+- If Analog is not ready, exclude it from aggregate charts but keep its data separate when available.
+
+## 5‑minute reproduce
+
+For a fast end-to-end run on all ready apps:
+
+```bash
+git clone https://github.com/<you>/kanban-comparison
+cd kanban-comparison
+pnpm i --filter ./kanban-* --parallel
+node scripts/measure-all.mjs
+cat metrics/summary.json | jq
+```
+
+This will build each app, measure route bundles, run Lighthouse on the Board page with standardized throttling/CPU, and emit aggregate JSON plus bundle composition reports.
 # Performance Metrics Collection Guide
 
 This document contains step-by-step instructions for collecting bundle size and performance metrics for all kanban apps in this repository.

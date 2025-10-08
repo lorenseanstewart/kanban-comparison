@@ -6,6 +6,7 @@ import { CardSchema } from '../../utils/validation'
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
+    console.log('POST /api/cards (CREATE) - Received body:', body)
 
     if (!body.boardId) {
       throw createError({

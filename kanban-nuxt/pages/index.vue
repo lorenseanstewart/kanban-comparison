@@ -1,22 +1,16 @@
 <script setup lang="ts">
-// Lazy load the modal component
-const AddBoardModal = defineAsyncComponent({
-  loader: () => import('~/components/AddBoardModal.vue'),
-})
+import AddBoardModal from '~/components/AddBoardModal.vue';
+import BoardOverview from '~/components/BoardOverview.vue';
 
-interface BoardSummary {
-  id: string
-  title: string
-  description: string | null
-  cardCount: number
-  listCount: number
-}
-
-const { $fetch } = useNuxtApp()
-
-const { data: boards, refresh } = await useAsyncData('boards', () =>
-  $fetch<BoardSummary[]>('/api/boards')
-)
+const { data: boards, pending, error } = await useAsyncData(
+  'boards',
+  () => $fetch('/api/boards'),
+  {
+    dedupe: 'defer',
+    default: () => [],
+    getCachedData: (key) => useNuxtData(key).data.value,
+  }
+);
 
 const showAddBoardModal = ref(false)
 
@@ -74,6 +68,7 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
         v-for="board in boards"
         :key="board.id"
         :to="`/board/${board.id}`"
+        @click="console.log('Navigating to board:', board.id)"
         class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
       >
         <div class="card-body">
@@ -85,9 +80,12 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
             No description
           </p>
           <div class="card-actions justify-end">
-            <span class="btn btn-secondary btn-sm shadow-lg">
+            <button 
+              class="btn btn-secondary btn-sm shadow-lg"
+              @click="() => { console.log('Button clicked for board:', board.id); navigateTo(`/board/${board.id}`); }"
+            >
               Open board
-            </span>
+            </button>
           </div>
         </div>
       </NuxtLink>

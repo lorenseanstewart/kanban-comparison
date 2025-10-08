@@ -45,6 +45,10 @@ export default defineNuxtConfig({
   ],
 
   nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: ['/'],
+    },
     compressPublicAssets: true,
     experimental: {
       asyncContext: true,
@@ -73,6 +77,9 @@ export default defineNuxtConfig({
   vite: {
     build: {
       rollupOptions: {
+        treeshake: {
+          preset: 'recommended', // Enable aggressive tree-shaking
+        },
         output: {
           manualChunks: {
             'vuedraggable': ['vuedraggable'],
@@ -90,6 +97,9 @@ export default defineNuxtConfig({
       },
     },
     optimizeDeps: {
+      esbuildOptions: {
+        treeShaking: true,
+      },
       include: ['vuedraggable', '@formkit/auto-animate/vue'],
     },
   },
@@ -98,6 +108,7 @@ export default defineNuxtConfig({
     payloadExtraction: false,
     viewTransition: true,
     headNext: true,
+    componentIslands: true, // Enable code-splitting for components
   },
 
   features: {

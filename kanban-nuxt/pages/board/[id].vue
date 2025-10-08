@@ -1,67 +1,41 @@
 <script setup lang="ts">
-// Lazy load heavy dependencies with explicit chunk names
-const draggable = defineAsyncComponent({
-  loader: () => import('vuedraggable'),
-})
-const BoardOverview = defineAsyncComponent({
-  loader: () => import('~/components/BoardOverview.vue'),
-})
-const Card = defineAsyncComponent({
-  loader: () => import('~/components/Card.vue'),
-})
-const AddCardModal = defineAsyncComponent({
-  loader: () => import('~/components/AddCardModal.vue'),
-})
+// Remove unused import
+// import { useDraggable } from '@vueuse/components';
 
-import { useAutoAnimate } from '@formkit/auto-animate/vue'
-import type { Tag, User, Comment } from '../../drizzle/schema'
+// Re-add dynamic import for draggable
+import draggable from 'vuedraggable';
 
-interface BoardCard {
-  id: string
-  title: string
-  description: string | null
-  assigneeId: string | null
-  position: number
-  completed: boolean
-  tags: Tag[]
-  comments: Comment[]
-}
+// Keep useAutoAnimate
+import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
-interface BoardList {
-  id: string
-  title: string
-  cards: BoardCard[]
-}
+// Dynamically import heavy components for code-splitting
+const BarChart = defineAsyncComponent(() => import('~/components/charts/BarChart.vue'));
+const PieChart = defineAsyncComponent(() => import('~/components/charts/PieChart.vue'));
 
-interface BoardDetails {
-  board: {
-    id: string
-    title: string
-    description: string | null
+const route = useRoute();
+// const store = useBoardsStore();
+
+const { data: serverData, pending, error, refresh } = await useAsyncData(
+  `board-${route.params.id}`,
+  () => $fetch(`/api/boards/${route.params.id}`),
+  {
+    // Cache for 60 seconds
+    dedupe: 'defer',
+    default: () => null,
+    getCachedData: (key) => useNuxtData(key).data.value,
   }
-  lists: BoardList[]
-  users: User[]
-  tags: Tag[]
-}
-
-const route = useRoute()
-const boardId = route.params.id as string
-
-const { $fetch } = useNuxtApp()
-
-const { data: initialBoard, refresh } = await useAsyncData(
-  () => `board-${boardId}`,
-  () => $fetch<BoardDetails>(`/api/boards/${boardId}`),
-  { server: true }
-)
+);
 
 // Local mutable copy for optimistic updates
-const board = ref<BoardDetails | null>(initialBoard.value)
+const board = ref(null);
 
-// Sync local state with server data when initialBoard changes
-watch(initialBoard, (newBoard) => {
-  board.value = newBoard
-})
+// Initialize from server data
+board.value = serverData.value;
+
+// Sync local state with server data when serverData changes
+watch(serverData, (newBoard) => {
+  board.value = newBoard;
+});
 
 const showAddCardModal = ref(false)
 const dragOverListId = ref<string | null>(null)
@@ -69,6 +43,25 @@ const draggedCard = ref<{ id: string; fromListId: string } | null>(null)
 
 // Auto-animate for smooth transitions
 const [listAnimateRef] = useAutoAnimate()
+
+const animateRefs = ref(new Map());
+
+// In onMounted or after board is loaded, create for each list
+watch(board, (newBoard) => {
+  if (newBoard) {
+    newBoard.lists.forEach((list) => {
+      if (!animateRefs.value.has(list.id)) {
+        const [refFn] = useAutoAnimate();
+        animateRefs.value.set(list.id, refFn);
+      }
+    });
+  }
+}, { immediate: true });
+
+// Helper function to get animate ref for a list
+function getAnimateRef(listId: string) {
+  return animateRefs.value.get(listId);
+}
 
 function onDragStart(listId: string, cardId: string) {
   draggedCard.value = { id: cardId, fromListId: listId }
@@ -199,23 +192,23 @@ async function handleCardAdd(cardData: {
               </div>
             </header>
 
-            <draggable
-              v-model="list.cards"
-              item-key="id"
-              :group="{ name: 'cards', pull: true, put: true }"
-              :class="[
-                'min-h-[200px] transition-all duration-200',
-                dragOverListId === list.id
-                  ? 'ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]'
-                  : ''
-              ]"
-              @start="onDragStart(list.id, $event.item?.__draggable_context?.element?.id ?? '')"
-              @end="onDragEnd(list.id, $event)"
-              @dragover="onDragOver(list.id)"
-              @dragleave="onDragLeave"
-            >
-              <template #item="{ element }">
-                <div :ref="listAnimateRef" class="space-y-3">
+            <div :ref="getAnimateRef(list.id)" class="space-y-3 min-h-[200px]">
+              <draggable
+                v-model="list.cards"
+                item-key="id"
+                :group="{ name: 'cards', pull: true, put: true }"
+                :class="[
+                  'transition-all duration-200',
+                  dragOverListId === list.id
+                    ? 'ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]'
+                    : ''
+                ]"
+                @start="onDragStart(list.id, $event.item?.__draggable_context?.element?.id ?? '')"
+                @end="onDragEnd(list.id, $event)"
+                @dragover="onDragOver(list.id)"
+                @dragleave="onDragLeave"
+              >
+                <template #item="{ element }">
                   <Card
                     :card="element"
                     :users="board.users"
@@ -223,9 +216,9 @@ async function handleCardAdd(cardData: {
                     :all-tags="board.tags"
                     @card-update="handleCardUpdate"
                   />
-                </div>
-              </template>
-            </draggable>
+                </template>
+              </draggable>
+            </div>
             <div
               v-if="list.cards.length === 0"
               class="alert alert-info text-sm"

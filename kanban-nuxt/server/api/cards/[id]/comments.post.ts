@@ -24,13 +24,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const commentId = crypto.randomUUID()
-    const createdAt = new Date().toISOString()
+    const createdAt = new Date()
 
     await db.insert(comments).values({
       id: commentId,
-      content: result.output.content,
+      text: result.output.content,
       cardId: result.output.cardId,
-      authorId: result.output.userId,
+      userId: result.output.userId,
       createdAt,
     })
 
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
         userId: result.output.userId,
         text: result.output.content,
         cardId: result.output.cardId,
-        createdAt,
+        createdAt: createdAt.toISOString(),
       },
     }
   } catch (error: any) {

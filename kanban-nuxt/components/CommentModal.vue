@@ -24,8 +24,6 @@ const emit = defineEmits<{
 
 const selectedUserId = ref(props.users[0]?.id || '')
 
-const { $fetch } = useNuxtApp()
-
 const error = ref<string | null>(null)
 const isSubmitting = ref(false)
 
@@ -35,7 +33,7 @@ async function handleSubmit(e: Event) {
   const formData = new FormData(form)
 
   const userId = formData.get('userId') as string
-  const text = formData.get('text') as string
+  const content = formData.get('content') as string
 
   error.value = null
   isSubmitting.value = true
@@ -45,7 +43,7 @@ async function handleSubmit(e: Event) {
       `/api/cards/${props.card.id}/comments`,
       {
         method: 'POST',
-        body: { userId, text },
+        body: { userId, content },
       }
     )
 
@@ -135,7 +133,7 @@ async function handleSubmit(e: Event) {
             <span class="label-text">Your comment</span>
           </label>
           <textarea
-            name="text"
+            name="content"
             class="textarea textarea-bordered h-24 w-full"
             placeholder="Write your comment..."
             required
