@@ -43,7 +43,7 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 | **Next.js** | ~122 kB | ~148 kB | ✅ Complete |
 | **Next.js + Compiler** | ~123 kB | ~153 kB | ✅ Complete
 | **Nuxt** | ~132kb | ~139kb | ✅ Complete |
-| **Analog** | ~117kb | ~159kb | ⚠️ Planned |
+| **Analog** | ~117kb | ~159kb | ✅ Complete |
 | **SolidStart** | ~30 kB | ~40 kB | ✅ Complete |
 | **SvelteKit** | ~24 kB | ~40 kB | ✅ Complete |
 | **Qwik City** | ~45kb | ~61kb | ✅ Complete |

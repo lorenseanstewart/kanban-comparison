@@ -1,9 +1,8 @@
-[] create analog app
-[] table for web vitals
+[] performance script
 
 [xx] nextjs review
 [xx] nuxt review
 [xx] solid review
 [xx] svelte review
 [xx] qwik review
-[] analog review
+[XX] analog review

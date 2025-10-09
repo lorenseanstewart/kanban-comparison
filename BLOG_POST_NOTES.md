@@ -1,6 +1,6 @@
 # Blog Post Ideas: Proving "React-by-Default" Has Real Costs
 
-Title: **"React-by-Default, Tested: Same App, Six Builds, 3x Smaller Bundles"**
+Title: **"React-by-Default, Tested: Same App, Seven Builds, 3x Smaller Bundles"**
 
 ---
 
