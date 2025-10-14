@@ -1,12 +1,11 @@
 import { component$, useSignal, $, useTask$, useComputed$ } from "@builder.io/qwik";
-import { routeLoader$, routeAction$, Link, valibot$ } from "@builder.io/qwik-city";
+import { routeLoader$, routeAction$, Link } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { getBoards } from "~/db/queries";
 import type { BoardSummary } from "~/db/queries";
 import { db } from "~/db/index";
 import { boards, lists } from "~/lib/db/schema";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
-import { BoardSchema } from "~/lib/validation";
 
 export const useBoards = routeLoader$(async () => {
   return await getBoards();
@@ -23,8 +22,8 @@ export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
 
       await db.insert(boards).values({
         id: boardId,
-        title: data.title,
-        description: data.description ?? null,
+        title: data.title as string,
+        description: (data.description as string | undefined) ?? null,
       });
 
       // Create 4 default lists
@@ -49,8 +48,7 @@ export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
         error: error instanceof Error ? error.message : "Failed to create board. Please try again.",
       };
     }
-  },
-  valibot$(BoardSchema)
+  }
 );
 
 export default component$(() => {

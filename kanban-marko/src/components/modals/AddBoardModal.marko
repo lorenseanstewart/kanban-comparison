@@ -1,0 +1,139 @@
+export interface Input {
+  onBoardAdd?: (board: {
+    id: string;
+    title: string;
+    description: string | null;
+  }) => void;
+}
+
+<let/isOpen=false>
+<let/error=null>
+<let/isSubmitting=false>
+
+<button
+  type="button"
+  class="btn btn-primary"
+  onClick=() => {
+    isOpen = true;
+  }>
+  Add Board
+</button>
+
+<if=isOpen>
+  <dialog
+    class="modal modal-open !mt-0"
+    onClick=(e) => {
+      if (e.target === e.currentTarget) isOpen = false;
+    }>
+    <div class="modal-backdrop bg-black/70"/>
+    <div class="modal-box bg-base-200 dark:bg-base-300">
+      <form onSubmit=async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget as HTMLFormElement;
+        const formData = new FormData(form);
+
+        const title = formData.get("title");
+        const description = formData.get("description");
+
+        error = null;
+        isSubmitting = true;
+
+        try {
+          const response = await fetch("/api/boards/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, description: description || null }),
+          });
+
+          const result = await response.json();
+
+          if (!result.success) {
+            error = result.error || "An error occurred";
+            isSubmitting = false;
+            return;
+          }
+
+          if (input.onBoardAdd && result.data) {
+            input.onBoardAdd({
+              id: result.data.id,
+              title: result.data.title,
+              description: result.data.description,
+            });
+          }
+
+          isOpen = false;
+          form.reset();
+
+          if (result.data) {
+            window.location.href = `/board/${result.data.id}`;
+          }
+        } catch (err) {
+          error = "An unexpected error occurred. Please try again." as any;
+        } finally {
+          isSubmitting = false;
+        }
+      }>
+        <button
+          type="button"
+          class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          onClick=() => {
+            isOpen = false;
+          }>
+          ✕
+        </button>
+        <h3 class="font-bold text-lg mb-4">
+          Add New Board
+        </h3>
+
+        <if=error>
+          <div class="alert alert-error mb-4">
+            <span>${error}</span>
+          </div>
+        </if>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">
+              Title
+            </span>
+          </label>
+          <input
+            type="text"
+            name="title"
+            class="input input-bordered w-full"
+            placeholder="Enter board title"
+            required
+            disabled=isSubmitting>
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">
+              Description
+            </span>
+          </label>
+          <textarea
+            name="description"
+            class="textarea textarea-bordered h-24 w-full"
+            placeholder="Enter board description (optional)"
+            disabled=isSubmitting/>
+        </div>
+
+        <div class="modal-action">
+          <button
+            type="button"
+            class="btn btn-ghost"
+            onClick=() => {
+              isOpen = false;
+            }
+            disabled=isSubmitting>
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" disabled=isSubmitting>
+            ${isSubmitting ? "Adding..." : "Add Board"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+</if>

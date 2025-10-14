@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
     await db.insert(comments).values({
       id: commentId,
-      text: result.output.content,
+      text: result.output.text,
       cardId: result.output.cardId,
       userId: result.output.userId,
       createdAt,
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
       comment: {
         id: commentId,
         userId: result.output.userId,
-        text: result.output.content,
+        text: result.output.text,
         cardId: result.output.cardId,
         createdAt: createdAt.toISOString(),
       },

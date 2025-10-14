@@ -20,6 +20,7 @@
 	let selectedTagIds = $state(new Set<string>(card.tags.map((t) => t.id)));
 	let error = $state<string | null>(null);
 	let isSubmitting = $state(false);
+	let isDeleting = $state(false);
 
 	// Reset selected tags when card changes
 	$effect(() => {
@@ -40,6 +41,40 @@
 		selectedTagIds = new Set(card.tags.map((t) => t.id));
 		error = null;
 		onClose();
+	}
+
+	async function handleDelete() {
+		if (!confirm('Are you sure you want to delete this card?')) {
+			return;
+		}
+
+		isDeleting = true;
+		error = null;
+
+		try {
+			const formData = new FormData();
+			formData.append('cardId', card.id);
+
+			const response = await fetch('?/deleteCard', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success' && result.data?.success) {
+				handleClose();
+				await invalidate('app:board');
+			} else if (result.type === 'failure' && result.data?.error) {
+				error = result.data.error;
+			} else {
+				error = 'Failed to delete card';
+			}
+		} catch (err) {
+			error = 'Failed to delete card. Please try again.';
+		} finally {
+			isDeleting = false;
+		}
 	}
 </script>
 
@@ -84,10 +119,17 @@
 					type="button"
 					class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 					onclick={handleClose}
+					disabled={isSubmitting || isDeleting}
 				>
 					✕
 				</button>
 				<h3 class="font-bold text-lg mb-4">Edit Card</h3>
+
+				{#if error}
+					<div class="alert alert-error mb-4">
+						<span>{error}</span>
+					</div>
+				{/if}
 
 				<input type="hidden" name="cardId" value={card.id} />
 
@@ -102,6 +144,7 @@
 						class="input input-bordered w-full"
 						value={card.title}
 						required
+						disabled={isSubmitting || isDeleting}
 					/>
 				</div>
 
@@ -114,6 +157,7 @@
 						id="edit-card-description-{card.id}"
 						class="textarea textarea-bordered h-24 w-full"
 						value={card.description || ''}
+						disabled={isSubmitting || isDeleting}
 					></textarea>
 				</div>
 
@@ -121,7 +165,12 @@
 					<label class="label" for="edit-card-assignee-{card.id}">
 						<span class="label-text">Assignee</span>
 					</label>
-					<select name="assigneeId" id="edit-card-assignee-{card.id}" class="select select-bordered w-full">
+					<select
+						name="assigneeId"
+						id="edit-card-assignee-{card.id}"
+						class="select select-bordered w-full"
+						disabled={isSubmitting || isDeleting}
+					>
 						<option value="">Unassigned</option>
 						{#each users as user (user.id)}
 							<option value={user.id} selected={user.id === card.assigneeId}>
@@ -146,6 +195,7 @@
 									? `background-color: ${tag.color}; border-color: ${tag.color};`
 									: `color: ${tag.color}; border-color: ${tag.color};`}
 								onclick={() => toggleTag(tag.id)}
+								disabled={isSubmitting || isDeleting}
 							>
 								{tag.name}
 							</button>
@@ -153,13 +203,28 @@
 					</div>
 				</div>
 
-				<div class="modal-action">
-					<button type="button" class="btn btn-ghost" onclick={handleClose}>
-						Cancel
+				<div class="modal-action justify-between">
+					<button
+						type="button"
+						class="btn btn-error"
+						onclick={handleDelete}
+						disabled={isSubmitting || isDeleting}
+					>
+						{isDeleting ? 'Deleting...' : 'Delete Card'}
 					</button>
-					<button type="submit" class="btn btn-primary">
-						Save Changes
-					</button>
+					<div class="flex gap-2">
+						<button
+							type="button"
+							class="btn btn-ghost"
+							onclick={handleClose}
+							disabled={isSubmitting || isDeleting}
+						>
+							Cancel
+						</button>
+						<button type="submit" class="btn btn-primary" disabled={isSubmitting || isDeleting}>
+							{isSubmitting ? 'Saving...' : 'Save Changes'}
+						</button>
+					</div>
 				</div>
 			</form>
 		</div>

@@ -7,7 +7,7 @@ interface AddCardModalProps {
   users: UsersList;
   tags: TagsList;
   isOpen: Signal<boolean>;
-  action: ActionStore<{ success: boolean; cardId?: string; error?: string }, Record<string, any>, true>;
+  action: ActionStore<{ success: boolean; cardId?: string; error?: string }, Record<string, any>, any>;
   onCardAdd?: QRL<(card: {
     id: string;
     title: string;

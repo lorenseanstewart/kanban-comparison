@@ -18,11 +18,7 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
   if (boards.value) {
     boards.value = [
       ...boards.value,
-      {
-        ...boardData,
-        cardCount: 0,
-        listCount: 0,
-      },
+      boardData,
     ]
   }
   showAddBoardModal.value = false

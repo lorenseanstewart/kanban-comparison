@@ -33,7 +33,7 @@ async function handleSubmit(e: Event) {
   const formData = new FormData(form)
 
   const userId = formData.get('userId') as string
-  const content = formData.get('content') as string
+  const text = formData.get('text') as string
 
   error.value = null
   isSubmitting.value = true
@@ -43,7 +43,7 @@ async function handleSubmit(e: Event) {
       `/api/cards/${props.card.id}/comments`,
       {
         method: 'POST',
-        body: { userId, content },
+        body: { userId, text },
       }
     )
 
@@ -133,18 +133,25 @@ async function handleSubmit(e: Event) {
             <span class="label-text">Your comment</span>
           </label>
           <textarea
-            name="content"
+            name="text"
             class="textarea textarea-bordered h-24 w-full"
             placeholder="Write your comment..."
             required
           />
         </div>
 
+        <div v-if="error" class="alert alert-error mt-4">
+          <span>{{ error }}</span>
+        </div>
+
         <div class="modal-action">
-          <button type="button" class="btn btn-ghost" @click="emit('close')">
+          <button type="button" class="btn btn-ghost" @click="emit('close')" :disabled="isSubmitting">
             Close
           </button>
-          <button type="submit" class="btn btn-primary">Add Comment</button>
+          <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+            <span v-if="isSubmitting" class="loading loading-spinner"></span>
+            {{ isSubmitting ? 'Adding...' : 'Add Comment' }}
+          </button>
         </div>
       </form>
     </div>

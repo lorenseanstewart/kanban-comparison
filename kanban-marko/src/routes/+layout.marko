@@ -1,0 +1,17 @@
+import "../styles.css";
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kanban Board - Marko">
+    <title>${$global.meta.pageTitle || "Kanban Board"}</title>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-8">
+    <div class="container mx-auto max-w-7xl">
+      <${input.content}/>
+    </div>
+  </body>
+</html>

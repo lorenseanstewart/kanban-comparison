@@ -1,5 +1,3 @@
-"use server";
-
 import { eq, max } from "drizzle-orm";
 import { db } from "./db";
 import { cards, cardTags, comments, lists } from "../../drizzle/schema";
@@ -36,6 +34,7 @@ const validateCardCreate = (formData: FormData) =>
   });
 
 export const updateCardAction = action(async (formData: FormData): Promise<CardActionResponse> => {
+  "use server";
   const validation = validateCardUpdate(formData);
   if (!validation.success) {
     const issue = validation.issues[0];
@@ -68,6 +67,7 @@ export const updateCardAction = action(async (formData: FormData): Promise<CardA
 }, "cards:update");
 
 export const addCommentAction = action(async (formData: FormData): Promise<CardActionResponse> => {
+  "use server";
   const validation = validateComment(formData);
   if (!validation.success) {
     const issue = validation.issues[0];
@@ -89,6 +89,7 @@ export const addCommentAction = action(async (formData: FormData): Promise<CardA
 }, "cards:add-comment");
 
 export const createCardAction = action(async (formData: FormData): Promise<CardActionResponse> => {
+  "use server";
   const boardId = formData.get("boardId") as string | null;
   if (!boardId) {
     return { success: false, error: "Board ID is required" };
@@ -146,3 +147,22 @@ export const createCardAction = action(async (formData: FormData): Promise<CardA
   revalidate(["boards:detail", "boards:list"]);
   return { success: true, data: { id: cardId, listId: todoList.id } };
 }, "cards:create");
+
+export const deleteCardAction = action(async (cardId: string): Promise<CardActionResponse> => {
+  "use server";
+  if (!cardId) {
+    return { success: false, error: "Card ID is required" };
+  }
+
+  try {
+    await db.delete(cards).where(eq(cards.id, cardId));
+    revalidate(["boards:detail", "boards:list"]);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete card:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete card. Please try again."
+    };
+  }
+}, "cards:delete");

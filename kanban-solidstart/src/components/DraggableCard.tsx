@@ -11,7 +11,9 @@ export function DraggableCard(props: {
   users: UsersList | undefined;
   allUsers: UsersList;
   allTags: TagsList;
+  boardId?: string;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
+  onCardDelete?: (cardId: string) => void;
 }) {
   const [isEditModalOpen, setIsEditModalOpen] = createSignal(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = createSignal(false);
@@ -24,6 +26,12 @@ export function DraggableCard(props: {
   const handleUpdate = (updates: Partial<BoardCard>) => {
     if (props.onCardUpdate) {
       props.onCardUpdate(props.card.id, updates);
+    }
+  };
+
+  const handleDelete = (cardId: string) => {
+    if (props.onCardDelete) {
+      props.onCardDelete(cardId);
     }
   };
 
@@ -71,6 +79,8 @@ export function DraggableCard(props: {
         isOpen={isEditModalOpen()}
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleUpdate}
+        onDelete={handleDelete}
+        boardId={props.boardId}
       />
       <CommentModal
         card={props.card}

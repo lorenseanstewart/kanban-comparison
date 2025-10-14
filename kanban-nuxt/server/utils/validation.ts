@@ -41,16 +41,16 @@ export const CardUpdateSchema = v.object({
     )
   ),
   description: v.optional(v.pipe(v.string(), v.maxLength(2000, 'Description must be less than 2000 characters')), null),
-  assigneeId: v.optional(v.pipe(v.string(), v.uuid('Invalid assignee ID')), null),
-  tagIds: v.optional(v.array(v.pipe(v.string(), v.uuid('Invalid tag ID')))),
+  assigneeId: v.optional(v.string(), null),
+  tagIds: v.optional(v.array(v.string())),
 })
 
 export const CommentSchema = v.object({
-  content: v.pipe(
-    v.string('Content is required'),
-    v.minLength(1, 'Comment cannot be empty'),
+  text: v.pipe(
+    v.string('Comment text is required'),
+    v.minLength(1, 'Comment text cannot be empty'),
     v.maxLength(1000, 'Comment must be less than 1000 characters')
   ),
-  cardId: v.pipe(v.string('Card ID is required'), v.uuid('Invalid card ID')),
-  userId: v.pipe(v.string('User ID is required'), v.uuid('Invalid user ID')),
+  cardId: v.string('Card ID is required'),
+  userId: v.string('User ID is required'),
 })

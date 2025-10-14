@@ -1,0 +1,210 @@
+<let/selectedTagIds=new Set(input.card.tags.map(t => t.id))>
+<let/error=null>
+<let/isSubmitting=false>
+<let/isDeleting=false>
+
+<if=input.isOpen>
+  <dialog
+    class="modal modal-open !mt-0"
+    onClick=(e) => {
+      if (e.target === e.currentTarget) input.onClose();
+    }
+  >
+    <div class="modal-backdrop bg-black/70"/>
+    <div class="modal-box bg-base-200 dark:bg-base-300">
+      <form onSubmit=async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const title = formData.get('title');
+        const description = formData.get('description');
+        const assigneeId = formData.get('assigneeId');
+        const cardId = formData.get('cardId');
+
+        const body = {
+          cardId,
+          title,
+          description: description || null,
+          assigneeId: assigneeId || null,
+          tagIds: Array.from(selectedTagIds)
+        };
+
+        isSubmitting = true;
+        error = null;
+
+        try {
+          const response = await fetch('/api/cards/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+
+          const result = await response.json();
+
+          if (!result.success) {
+            error = result.error || 'Failed to update card';
+            isSubmitting = false;
+            return;
+          }
+
+          if (input.onCardUpdate) {
+            input.onCardUpdate({
+              cardId,
+              title,
+              description: description || null,
+              assigneeId: assigneeId || null,
+              tagIds: Array.from(selectedTagIds)
+            });
+          }
+
+          input.onClose();
+        } catch (err) {
+          error = 'An unexpected error occurred. Please try again.';
+        } finally {
+          isSubmitting = false;
+        }
+      }>
+        <button
+          type="button"
+          class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          onClick=input.onClose
+        >
+          ✕
+        </button>
+        <h3 class="font-bold text-lg mb-4">Edit Card</h3>
+
+        <if=error>
+          <div class="alert alert-error mb-4">
+            <span>${error}</span>
+          </div>
+        </if>
+
+        <input type="hidden" name="cardId" value=input.card.id/>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">Title</span>
+          </label>
+          <input
+            type="text"
+            name="title"
+            class="input input-bordered w-full"
+            value=input.card.title
+            required
+            disabled=isSubmitting
+          />
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">Description</span>
+          </label>
+          <textarea
+            name="description"
+            class="textarea textarea-bordered h-24 w-full"
+            disabled=isSubmitting
+          >${input.card.description || ''}</textarea>
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">Assignee</span>
+          </label>
+          <select
+            name="assigneeId"
+            class="select select-bordered w-full"
+            disabled=isSubmitting
+          >
+            <option value="" selected=(input.card.assigneeId === null)>Unassigned</option>
+            <for|user| of=input.users>
+              <option key=user.id value=user.id selected=(input.card.assigneeId === user.id)>
+                ${user.name}
+              </option>
+            </for>
+          </select>
+        </div>
+
+        <div class="form-control w-full mb-4">
+          <label class="label">
+            <span class="label-text">Tags</span>
+          </label>
+          <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+            <for|tag| of=input.tags>
+              <button
+                key=tag.id
+                type="button"
+                class=`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
+                  selectedTagIds.has(tag.id) ? 'text-white' : 'badge-outline'
+                }`
+                style=selectedTagIds.has(tag.id) ? `background-color: ${tag.color}; border-color: ${tag.color}` : `color: ${tag.color}; border-color: ${tag.color}`
+                onClick=() => {
+                  const newSet = new Set(selectedTagIds);
+                  if (newSet.has(tag.id)) {
+                    newSet.delete(tag.id);
+                  } else {
+                    newSet.add(tag.id);
+                  }
+                  selectedTagIds = newSet;
+                }
+              >
+                ${tag.name}
+              </button>
+            </for>
+          </div>
+        </div>
+
+        <div class="modal-action justify-between">
+          <button
+            type="button"
+            class="btn btn-error"
+            onClick=async () => {
+              if (!confirm('Are you sure you want to delete this card?')) {
+                return;
+              }
+
+              isDeleting = true;
+              error = null;
+
+              try {
+                const response = await fetch('/api/cards/delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ cardId: input.card.id })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                  error = result.error || 'Failed to delete card';
+                  isDeleting = false;
+                  return;
+                }
+
+                if (input.onCardDelete) {
+                  input.onCardDelete(input.card.id);
+                }
+
+                input.onClose();
+              } catch (err) {
+                error = 'An unexpected error occurred. Please try again.';
+                isDeleting = false;
+              }
+            }
+            disabled=(isSubmitting || isDeleting)
+          >
+            ${isDeleting ? 'Deleting...' : 'Delete Card'}
+          </button>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-ghost" onClick=input.onClose disabled=(isSubmitting || isDeleting)>
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" disabled=(isSubmitting || isDeleting)>
+              ${isSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </dialog>
+</if>

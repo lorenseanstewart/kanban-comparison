@@ -124,6 +124,24 @@ export default function BoardPage() {
     );
   };
 
+  // Handle card deletion
+  const handleCardDelete = (cardId: string) => {
+    if (!board) return;
+
+    setBoard(
+      produce((draft) => {
+        if (!draft) return;
+        for (const list of draft.lists) {
+          const cardIndex = list.cards.findIndex((c) => c.id === cardId);
+          if (cardIndex !== -1) {
+            list.cards.splice(cardIndex, 1);
+            break;
+          }
+        }
+      })
+    );
+  };
+
   return (
     <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
       <div class="breadcrumbs text-sm">
@@ -196,7 +214,9 @@ export default function BoardPage() {
                                 users={allUsers()}
                                 allUsers={effectiveUsers()}
                                 allTags={effectiveTags()}
+                                boardId={params.id}
                                 onCardUpdate={handleCardUpdate}
+                                onCardDelete={handleCardDelete}
                               />
                             </ErrorBoundary>
                           )}

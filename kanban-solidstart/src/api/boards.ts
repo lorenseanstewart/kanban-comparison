@@ -1,5 +1,3 @@
-"use server";
-
 import { eq, inArray, asc } from "drizzle-orm";
 import { db } from "./db";
 import {
@@ -50,6 +48,7 @@ export type BoardCardWithList = BoardCard & { listId: string };
 export type BoardComment = BoardCard["comments"][number] & { cardId: string };
 
 export async function getBoards(): Promise<BoardSummary[]> {
+  "use server";
   const rows = await db
     .select({
       id: boards.id,
@@ -62,6 +61,7 @@ export async function getBoards(): Promise<BoardSummary[]> {
 }
 
 export async function getBoard(boardId: string): Promise<BoardDetails | null> {
+  "use server";
   const board = await db
     .select({
       id: boards.id,
@@ -193,6 +193,7 @@ export async function getBoard(boardId: string): Promise<BoardDetails | null> {
 }
 
 export async function getUsers() {
+  "use server";
   return db
     .select({ id: users.id, name: users.name })
     .from(users)
@@ -200,6 +201,7 @@ export async function getUsers() {
 }
 
 export async function getTags() {
+  "use server";
   return db
     .select({ id: tags.id, name: tags.name, color: tags.color })
     .from(tags)

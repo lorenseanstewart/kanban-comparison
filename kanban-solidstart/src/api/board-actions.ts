@@ -1,5 +1,3 @@
-"use server";
-
 import { db } from "./db";
 import { boards, lists } from "../../drizzle/schema";
 import { revalidate, action } from "@solidjs/router";
@@ -7,6 +5,7 @@ import * as v from "valibot";
 import { BoardSchema } from "../lib/validation";
 
 export const createBoardAction = action(async (formData: FormData) => {
+  "use server";
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
 

@@ -1,0 +1,148 @@
+<let/selectedUserId=(input.users[0]?.id || '')>
+<let/isSubmitting=false>
+<let/error=null>
+
+<if=input.isOpen>
+  <dialog
+    class="modal modal-open !mt-0"
+    onClick=(e) => {
+      if (e.target === e.currentTarget) input.onClose();
+    }
+  >
+    <div class="modal-backdrop bg-black/70"/>
+    <div class="modal-box bg-base-200 dark:bg-base-300 max-w-2xl">
+      <button
+        type="button"
+        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        onClick=input.onClose
+      >
+        ✕
+      </button>
+
+      <h3 class="font-bold text-lg mb-4">Comments</h3>
+
+      <if=error>
+        <div class="alert alert-error mb-4">
+          <span>${error}</span>
+        </div>
+      </if>
+
+      <!-- Existing Comments -->
+      <div class="mb-6 max-h-96 overflow-y-auto">
+        <if=input.card.comments.length === 0>
+          <div class="text-center py-8 text-base-content/60">
+            No comments yet. Be the first to add one!
+          </div>
+        </if>
+        <else>
+          <div class="space-y-3">
+            <for|comment| of=input.card.comments>
+              <div key=comment.id class="bg-base-100 dark:bg-base-200 rounded-lg p-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-semibold text-base-content">
+                    ${input.users.find(u => u.id === comment.userId)?.name || 'Unknown'}
+                  </span>
+                  <span class="text-xs text-base-content/50">
+                    ${new Date(comment.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p class="text-sm text-base-content/80">${comment.text}</p>
+              </div>
+            </for>
+          </div>
+        </else>
+      </div>
+
+      <!-- Add Comment Form -->
+      <form onSubmit=async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const userId = formData.get('userId');
+        const text = formData.get('text');
+        const cardId = formData.get('cardId');
+
+        isSubmitting = true;
+        error = null;
+
+        try {
+          const response = await fetch('/api/comments/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cardId, userId, text })
+          });
+
+          const result = await response.json();
+
+          if (!result.success) {
+            error = result.error || 'Failed to add comment';
+            isSubmitting = false;
+            return;
+          }
+
+          if (input.onCommentAdd) {
+            input.onCommentAdd({ userId, text });
+          }
+
+          form.reset();
+          selectedUserId = input.users[0]?.id || '';
+          input.onClose();
+        } catch (err) {
+          error = 'An unexpected error occurred. Please try again.';
+        } finally {
+          isSubmitting = false;
+        }
+      }>
+        <input type="hidden" name="cardId" value=input.card.id/>
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Comment as</span>
+          </label>
+          <select
+            name="userId"
+            class="select select-bordered w-full"
+            value=selectedUserId
+            onChange=(e) => { selectedUserId = e.target.value; }
+            disabled=isSubmitting
+          >
+            <for|user| of=input.users>
+              <option key=user.id value=user.id>
+                ${user.name}
+              </option>
+            </for>
+          </select>
+        </div>
+
+        <div class="form-control w-full mt-4">
+          <label class="label">
+            <span class="label-text">Your comment</span>
+          </label>
+          <textarea
+            name="text"
+            class="textarea textarea-bordered h-24 w-full"
+            placeholder="Write your comment..."
+            required
+            disabled=isSubmitting
+          />
+        </div>
+
+        <div class="modal-action">
+          <button type="button" class="btn btn-ghost" onClick=input.onClose disabled=isSubmitting>
+            Close
+          </button>
+          <button type="submit" class="btn btn-primary" disabled=isSubmitting>
+            <if=isSubmitting>
+              <span class="loading loading-spinner"/>
+              Adding...
+            </if>
+            <else>
+              Add Comment
+            </else>
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+</if>

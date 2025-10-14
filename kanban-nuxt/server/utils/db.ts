@@ -14,4 +14,9 @@ const projectRoot = join(__dirname, '../..')
 const dbPath = join(projectRoot, 'kanban.db')
 
 const sqlite = new Database(dbPath)
+
+// Enable WAL mode for better concurrency
+sqlite.pragma('journal_mode = WAL')
+sqlite.pragma('busy_timeout = 5000')
+
 export const db = drizzle(sqlite, { schema })

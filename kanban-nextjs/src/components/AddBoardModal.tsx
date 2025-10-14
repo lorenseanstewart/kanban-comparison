@@ -19,9 +19,6 @@ export function AddBoardModal({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-
     setError(null);
     setIsSubmitting(true);
 
@@ -30,7 +27,7 @@ export function AddBoardModal({
       const result = await createBoard(formData);
 
       if (!result.success) {
-        setError(result.error);
+        setError(result.error || "An error occurred");
         setIsSubmitting(false);
         return;
       }
@@ -40,14 +37,14 @@ export function AddBoardModal({
         onBoardAdd({
           id: result.data.id,
           title: result.data.title,
-          description: result.data.description,
+          description: result.data.description ?? null,
         });
       }
 
       setIsOpen(false);
       form.reset();
       router.refresh();
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

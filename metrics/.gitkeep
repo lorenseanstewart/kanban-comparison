@@ -1,0 +1,21 @@
+# Metrics Output Directory
+
+This directory contains generated performance metrics and comparison data.
+
+## Generated Files
+
+After running the measurement scripts, you'll find:
+
+- `bundle-analysis.json` - Detailed bundle breakdown
+- `bundle-summary.json` - Bundle size summary
+- `lighthouse-results.json` - Full Lighthouse reports
+- `lighthouse-summary.json` - Lighthouse metrics summary
+- `bundle-comparison.md` - Markdown tables for bundle sizes
+- `lighthouse-comparison.md` - Markdown tables for performance
+- `combined-comparison.md` - Everything combined
+- `quick-reference.md` - TL;DR summary
+- `chart-data.json` - Chart-ready JSON
+
+## Ignore Patterns
+
+These files are gitignored by default since they're generated.

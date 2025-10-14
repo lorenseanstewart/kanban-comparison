@@ -1,0 +1,158 @@
+---
+import type { BoardDetails, UsersList } from '../lib/api';
+import CardList from './CardList.astro';
+
+interface Props {
+  board: BoardDetails;
+  users: UsersList;
+}
+
+const { board, users } = Astro.props;
+---
+
+<section id="board-cards-section" class="flex gap-7 overflow-x-auto pb-8">
+  {board.lists.length === 0 ? (
+    <div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+      <div class="card-body items-center text-center">
+        <h2 class="card-title text-secondary">No lists yet</h2>
+        <p class="text-base-content/60">
+          Add a list to begin organizing work on this board.
+        </p>
+      </div>
+    </div>
+  ) : (
+    board.lists.map((list) => (
+      <CardList list={list} users={users} />
+    ))
+  )}
+</section>
+
+<script>
+  import { dragAndDrop } from '@formkit/drag-and-drop';
+  import { animations } from '@formkit/drag-and-drop';
+
+  // Track if drag-and-drop has been initialized
+  let isInitialized = false;
+
+  function initializeDragAndDrop() {
+    // Only initialize once - don't re-initialize after HTMX swaps
+    // The library maintains its own state and will handle DOM updates
+    if (isInitialized) {
+      console.log('Drag and drop already initialized, skipping');
+      return;
+    }
+
+    console.log('Initializing drag and drop');
+    isInitialized = true;
+
+    const lists = Array.from(document.querySelectorAll('.card-list'));
+
+    // Initialize all lists with the group config at once
+    const parents = lists.map(listEl => {
+      // Add hover state listeners
+      listEl.addEventListener('dragover', (e) => {
+        listEl.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
+      });
+
+      listEl.addEventListener('dragleave', (e) => {
+        // Only remove if we're actually leaving the list (not just moving to a child)
+        if (e.target === listEl) {
+          listEl.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
+        }
+      });
+
+      listEl.addEventListener('drop', () => {
+        listEl.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
+      });
+
+      listEl.addEventListener('dragend', () => {
+        // Clean up all hover states when drag ends
+        document.querySelectorAll('.card-list').forEach((l) => {
+          l.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
+        });
+      });
+
+      return {
+        el: listEl,
+        config: {
+          plugins: [animations()],
+          onDrop: async (event) => {
+          console.log('Drop event triggered');
+
+          // Get all lists and their cards
+          const allLists = Array.from(document.querySelectorAll('.card-list'));
+          const updates = [];
+
+          allLists.forEach((listEl) => {
+            const listId = listEl.dataset.listId;
+            const cards = Array.from(listEl.querySelectorAll('.card'));
+
+            cards.forEach((cardEl, index) => {
+              const cardId = cardEl.dataset.cardId;
+              updates.push({
+                cardId,
+                listId,
+                position: index,
+              });
+            });
+          });
+
+          console.log('Updates to send:', updates);
+
+          // Send updates to server
+          try {
+            const response = await fetch('/api/drag-drop', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ updates }),
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+              console.error('Failed to update card positions');
+              // Reload page to restore correct state
+              window.location.reload();
+            }
+          } catch (error) {
+            console.error('Error updating card positions:', error);
+            // Reload page to restore correct state
+            window.location.reload();
+          }
+        },
+        }
+      };
+    });
+
+    // Initialize all lists with drag-and-drop using the Marko pattern
+    for (const { el, config } of parents) {
+      dragAndDrop({
+        parent: el,
+        getValues: () => {
+          // Return HTMLElements directly, not objects
+          return Array.from(el.querySelectorAll('.card'));
+        },
+        setValues: (values) => {
+          // The DOM is already updated by the library
+        },
+        config: {
+          ...config,
+          group: 'board',
+          sortable: true,
+          dropZone: true,
+        }
+      });
+    }
+
+    console.log('Initialized', parents.length, 'lists with drag-and-drop');
+  }
+
+  // Initialize on load only
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDragAndDrop);
+  } else {
+    initializeDragAndDrop();
+  }
+</script>

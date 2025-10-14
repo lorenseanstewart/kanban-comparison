@@ -1,5 +1,5 @@
 import { component$, useSignal, $, useTask$, createContextId, useContextProvider, type Signal, useComputed$ } from "@builder.io/qwik";
-import { routeLoader$, routeAction$, Link, valibot$ } from "@builder.io/qwik-city";
+import { routeLoader$, routeAction$, Link } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { eq, max } from "drizzle-orm";
 import { getBoard, getUsers, getTags } from "~/db/queries";
@@ -10,9 +10,6 @@ import { AddCardModal } from "~/components/modals/AddCardModal";
 import { db } from "~/db/index";
 import { cards, cardTags, comments, lists } from "~/lib/db/schema";
 import {
-  CardSchema,
-  CardUpdateSchema,
-  CommentSchema,
   MoveCardSchema,
   UpdateCardPositionSchema,
 } from "~/lib/validation";
@@ -74,17 +71,18 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
       await db.insert(cards).values({
         id: cardId,
         listId: todoList.id,
-        title: data.title,
-        description: data.description ?? null,
-        assigneeId: data.assigneeId ?? null,
+        title: data.title as string,
+        description: (data.description as string | undefined) ?? null,
+        assigneeId: (data.assigneeId as string | undefined) ?? null,
         position: nextPosition,
         completed: false,
       });
 
       // Add tags if any
-      if (data.tagIds && data.tagIds.length > 0) {
+      const tagIds = data.tagIds as string[] | undefined;
+      if (tagIds && tagIds.length > 0) {
         await db.insert(cardTags).values(
-          data.tagIds.map((tagId) => ({
+          tagIds.map((tagId: string) => ({
             cardId,
             tagId,
           }))
@@ -102,8 +100,7 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
         error: error instanceof Error ? error.message : "Failed to create card. Please try again.",
       };
     }
-  },
-  valibot$(CardSchema)
+  }
 );
 
 // Update Card Action
@@ -114,19 +111,20 @@ export const useUpdateCardAction = routeAction$<ActionResult>(
       await db
         .update(cards)
         .set({
-          title: data.title,
-          description: data.description ?? null,
-          assigneeId: data.assigneeId ?? null,
+          title: data.title as string,
+          description: (data.description as string | undefined) ?? null,
+          assigneeId: (data.assigneeId as string | undefined) ?? null,
         })
-        .where(eq(cards.id, data.cardId));
+        .where(eq(cards.id, data.cardId as string));
 
       // Update tags - delete existing and insert new ones
-      await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId));
+      await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId as string));
 
-      if (data.tagIds && data.tagIds.length > 0) {
+      const tagIds = data.tagIds as string[] | undefined;
+      if (tagIds && tagIds.length > 0) {
         await db.insert(cardTags).values(
-          data.tagIds.map((tagId) => ({
-            cardId: data.cardId,
+          tagIds.map((tagId: string) => ({
+            cardId: data.cardId as string,
             tagId,
           }))
         );
@@ -142,13 +140,12 @@ export const useUpdateCardAction = routeAction$<ActionResult>(
         error: error instanceof Error ? error.message : "Failed to update card. Please try again.",
       };
     }
-  },
-  valibot$(CardUpdateSchema)
+  }
 );
 
 // Delete Card Action
 export const useDeleteCardAction = routeAction$<ActionResult>(
-  async (data, requestEvent) => {
+  async (data) => {
     try {
       const cardId = (data as Record<string, string>).cardId;
 
@@ -287,9 +284,9 @@ export const useCreateCommentAction = routeAction$<ActionResult>(
 
       await db.insert(comments).values({
         id: commentId,
-        cardId: data.cardId,
-        userId: data.userId,
-        text: data.text,
+        cardId: data.cardId as string,
+        userId: data.userId as string,
+        text: data.text as string,
       });
 
       return {
@@ -303,8 +300,7 @@ export const useCreateCommentAction = routeAction$<ActionResult>(
         error: error instanceof Error ? error.message : "Failed to add comment. Please try again.",
       };
     }
-  },
-  valibot$(CommentSchema)
+  }
 );
 
 // Move Card Action (for drag and drop)
@@ -548,10 +544,12 @@ export default component$(() => {
 
       <div class="space-y-8">
         {/* Board Overview with Charts */}
-        <BoardOverview
-          key={JSON.stringify(boardOverviewKey.value)}
-          data={currentBoard.value}
-        />
+        {currentBoard.value && (
+          <BoardOverview
+            key={JSON.stringify(boardOverviewKey.value)}
+            data={currentBoard.value}
+          />
+        )}
 
         {/* Add Card Button */}
         <div class="flex justify-start mb-4">

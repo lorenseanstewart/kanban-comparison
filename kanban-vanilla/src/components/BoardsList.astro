@@ -1,0 +1,25 @@
+---
+import type { Board } from '../lib/api';
+import BoardCard from './BoardCard.astro';
+
+interface Props {
+  boards: Board[];
+}
+
+const { boards } = Astro.props;
+---
+
+<section id="boards-list" class="grid gap-8 md:grid-cols-2">
+  {boards.length === 0 ? (
+    <div class="card bg-base-200 dark:bg-base-300 shadow-xl">
+      <div class="card-body items-center text-center">
+        <h2 class="card-title text-secondary">No boards yet</h2>
+        <p class="text-base-content/60">
+          Create your first board to get started.
+        </p>
+      </div>
+    </div>
+  ) : (
+    boards.map((board) => <BoardCard board={board} />)
+  )}
+</section>

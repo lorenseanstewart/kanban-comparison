@@ -140,7 +140,12 @@
 						Close
 					</button>
 					<button type="submit" class="btn btn-primary" disabled={isSubmitting}>
-						{isSubmitting ? 'Adding...' : 'Add Comment'}
+						{#if isSubmitting}
+							<span class="loading loading-spinner"></span>
+							Adding...
+						{:else}
+							Add Comment
+						{/if}
 					</button>
 				</div>
 			</form>

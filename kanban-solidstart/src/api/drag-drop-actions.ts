@@ -1,5 +1,3 @@
-"use server";
-
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { cards } from "../../drizzle/schema";
@@ -9,6 +7,7 @@ const normalizeListId = (listId: string) =>
   listId.startsWith("list-") ? listId : listId.replace(/^card-/, "");
 
 export const updateCardListAction = action(async (cardId: string, targetId: string) => {
+  "use server";
   const normalizedTarget = normalizeListId(targetId);
 
   try {
@@ -26,6 +25,7 @@ export const updateCardListAction = action(async (cardId: string, targetId: stri
 }, "cards:move-list");
 
 export const updateCardPositionsAction = action(async (cardIds: string[]) => {
+  "use server";
   try {
     await db.transaction((tx) => {
       cardIds.forEach((cardId, index) => {

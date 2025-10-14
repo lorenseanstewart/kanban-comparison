@@ -9,7 +9,9 @@ export function CardList(props: {
   users: UsersList | undefined;
   allUsers: UsersList;
   allTags: TagsList;
+  boardId?: string;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
+  onCardDelete?: (cardId: string) => void;
 }) {
   const { list, users } = props;
   const [mounted, setMounted] = createSignal(false);
@@ -37,7 +39,9 @@ export function CardList(props: {
           users={availableUsers()}
           allUsers={props.allUsers}
           allTags={props.allTags}
+          boardId={props.boardId}
           onCardUpdate={props.onCardUpdate}
+          onCardDelete={props.onCardDelete}
         />
       )}
     </For>

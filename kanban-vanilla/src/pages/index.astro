@@ -1,0 +1,59 @@
+---
+import { getBoards } from "../lib/api";
+import BoardsList from "../components/BoardsList.astro";
+import AddBoardModal from "../components/AddBoardModal.astro";
+import Plus from "../components/icons/Plus.astro";
+import "../styles/global.css";
+
+const boards = await getBoards();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Kanban Board</title>
+  </head>
+  <script>
+    import htmx from 'htmx.org';
+    window.htmx = htmx;
+  </script>
+  <body>
+    <div
+      data-theme="pastel"
+      class="min-h-screen bg-base-300 text-base-content p-4 md:p-8"
+    >
+      <main
+        class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl"
+      >
+        <header class="text-center space-y-3">
+          <p class="text-sm uppercase tracking-wide text-secondary">
+            Your workspace
+          </p>
+          <h1 class="text-4xl font-black text-primary">Boards</h1>
+          <p class="text-base text-base-content/60">
+            Choose a board to jump into your Kanban flow.
+          </p>
+        </header>
+
+        <div class="flex justify-end">
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="document.getElementById('add-board-modal').showModal()"
+          >
+            Add Board
+          </button>
+        </div>
+
+        <BoardsList boards={boards} />
+      </main>
+
+      <AddBoardModal />
+    </div>
+  </body>
+</html>

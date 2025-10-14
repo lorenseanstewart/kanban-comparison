@@ -1,7 +1,7 @@
 import { createSignal, Show, For, createMemo, createEffect } from "solid-js";
 import type { BoardCard, UsersList, TagsList } from "~/api/boards";
-import { updateCardAction } from "~/api/card-actions";
-import { useSubmission } from "@solidjs/router";
+import { updateCardAction, deleteCardAction } from "~/api/card-actions";
+import { useSubmission, useNavigate } from "@solidjs/router";
 
 export function CardEditModal(props: {
   card: BoardCard;
@@ -10,11 +10,15 @@ export function CardEditModal(props: {
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: (updatedCard: Partial<BoardCard>) => void;
+  onDelete?: (cardId: string) => void;
+  boardId?: string;
 }) {
+  const navigate = useNavigate();
   const [selectedTagIds, setSelectedTagIds] = createSignal<Set<string>>(
     new Set(props.card.tags.map((t) => t.id))
   );
   const submission = useSubmission(updateCardAction);
+  const deleteSubmission = useSubmission(deleteCardAction);
 
   createEffect(() => {
     const result = submission.result;
@@ -35,6 +39,18 @@ export function CardEditModal(props: {
     props.onClose();
   });
 
+  createEffect(() => {
+    const result = deleteSubmission.result;
+    if (!result?.success) return;
+
+    if (props.onDelete) {
+      props.onDelete(props.card.id);
+    }
+
+    deleteSubmission.clear();
+    props.onClose();
+  });
+
   const toggleTag = (tagId: string) => {
     const newSet = new Set(selectedTagIds());
     if (newSet.has(tagId)) {
@@ -45,8 +61,15 @@ export function CardEditModal(props: {
     setSelectedTagIds(newSet);
   };
 
-  const errorMessage = createMemo(() => submission.error?.error ?? submission.error);
-  const pending = () => submission.pending;
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this card?")) {
+      return;
+    }
+    await deleteCardAction(props.card.id);
+  };
+
+  const errorMessage = createMemo(() => submission.error?.error ?? submission.error ?? deleteSubmission.error?.error ?? deleteSubmission.error);
+  const pending = () => submission.pending || deleteSubmission.pending;
 
   return (
     <Show when={props.isOpen}>
@@ -155,18 +178,28 @@ export function CardEditModal(props: {
               </For>
             </div>
 
-            <div class="modal-action">
+            <div class="modal-action justify-between">
               <button
                 type="button"
-                class="btn btn-ghost"
-                onClick={props.onClose}
+                class="btn btn-error"
+                onClick={handleDelete}
                 disabled={pending()}
               >
-                Cancel
+                {deleteSubmission.pending ? "Deleting..." : "Delete Card"}
               </button>
-              <button type="submit" class="btn btn-primary" disabled={pending()}>
-                {pending() ? "Saving..." : "Save Changes"}
-              </button>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  onClick={props.onClose}
+                  disabled={pending()}
+                >
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" disabled={pending()}>
+                  {submission.pending ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
             </div>
           </form>
         </div>

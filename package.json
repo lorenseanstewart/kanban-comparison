@@ -1,0 +1,31 @@
+{
+  "name": "kanban-comparison",
+  "version": "1.0.0",
+  "description": "Framework comparison project: Same app built in 7 frameworks",
+  "private": true,
+  "scripts": {
+    "measure:bundles": "tsx scripts/performance/measure-bundles.ts",
+    "measure:lighthouse": "tsx scripts/performance/lighthouse-all.ts",
+    "generate:charts": "tsx scripts/performance/generate-charts.ts",
+    "measure:all": "npm run measure:bundles && npm run measure:lighthouse && npm run generate:charts",
+    "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done"
+  },
+  "keywords": [
+    "react",
+    "vue",
+    "svelte",
+    "solid",
+    "qwik",
+    "angular",
+    "framework-comparison",
+    "performance"
+  ],
+  "author": "Loren Stewart",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-marko": "^3.3.2",
+    "tsx": "^4.7.0"
+  }
+}

@@ -1,0 +1,77 @@
+---
+import { getBoard, getUsers, getTags } from '../../lib/api';
+import BoardOverview from '../../components/BoardOverview.astro';
+import BoardCardsSection from '../../components/BoardCardsSection.astro';
+import AddCardModal from '../../components/AddCardModal.astro';
+import CardEditModal from '../../components/CardEditModal.astro';
+import CommentModal from '../../components/CommentModal.astro';
+import Plus from '../../components/icons/Plus.astro';
+import '../../styles/global.css';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/');
+}
+
+const board = await getBoard(id);
+
+if (!board) {
+  return Astro.redirect('/');
+}
+
+const users = await getUsers();
+const tags = await getTags();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{board.title} | Kanban Board</title>
+  </head>
+  <script>
+    import htmx from 'htmx.org';
+    window.htmx = htmx;
+  </script>
+  <body data-theme="pastel" class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
+    <main class="w-full max-w-7xl mx-auto p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs text-sm">
+        <ul>
+          <li>
+            <a href="/" class="link link-hover">Boards</a>
+          </li>
+          <li>
+            <span class="text-base-content/60">{board.title}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="space-y-8">
+        <!-- Board Overview -->
+        <BoardOverview data={board} />
+
+        <!-- Add Card Button -->
+        <div class="flex justify-start mb-4">
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="document.getElementById('add-card-modal').showModal()"
+          >
+            Add Card
+          </button>
+        </div>
+
+        <!-- Card Lists -->
+        <BoardCardsSection board={board} users={users} />
+      </div>
+    </main>
+
+    <!-- Modals -->
+    <AddCardModal boardId={board.id} users={users} tags={tags} />
+    <CardEditModal board={board} users={users} tags={tags} />
+    <CommentModal board={board} users={users} />
+  </body>
+</html>

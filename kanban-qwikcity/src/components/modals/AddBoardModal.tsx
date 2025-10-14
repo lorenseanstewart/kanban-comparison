@@ -3,7 +3,7 @@ import { type ActionStore } from "@builder.io/qwik-city";
 
 interface AddBoardModalProps {
   isOpen: Signal<boolean>;
-  action: ActionStore<{ success: boolean; boardId?: string; error?: string }, Record<string, any>, true>;
+  action: ActionStore<{ success: boolean; boardId?: string; error?: string }, Record<string, any>, any>;
   onBoardAdd?: QRL<(board: { id: string; title: string; description: string | null }) => void>;
 }
 

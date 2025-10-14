@@ -241,5 +241,23 @@ export const actions = {
 			console.error('Failed to update card positions:', err);
 			return fail(500, { error: 'Failed to reorder cards. Please try again.' });
 		}
+	},
+
+	deleteCard: async ({ request }) => {
+		try {
+			const formData = await request.formData();
+			const cardId = formData.get('cardId') as string;
+
+			if (!cardId) {
+				return fail(400, { error: 'Card ID is required' });
+			}
+
+			await db.delete(cards).where(eq(cards.id, cardId));
+
+			return { success: true };
+		} catch (err) {
+			console.error('Failed to delete card:', err);
+			return fail(500, { error: 'Failed to delete card. Please try again.' });
+		}
 	}
 } satisfies Actions;

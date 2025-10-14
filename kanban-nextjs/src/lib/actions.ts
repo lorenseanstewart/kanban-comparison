@@ -70,7 +70,7 @@ export async function updateCard(formData: FormData) {
 
     if (!result.success) {
       const firstIssue = result.issues[0];
-      throw new Error(firstIssue.message);
+      return { success: false, error: firstIssue.message };
     }
 
     // Use a transaction to update card and tags atomically
@@ -102,9 +102,10 @@ export async function updateCard(formData: FormData) {
 
     revalidatePath("/board/[id]");
     revalidatePath("/");
+    return { success: true };
   } catch (error) {
     console.error("Failed to update card:", error);
-    throw new Error("Failed to update card. Please try again.");
+    return { success: false, error: "Failed to update card. Please try again." };
   }
 }
 
@@ -123,7 +124,7 @@ export async function addComment(formData: FormData) {
 
     if (!result.success) {
       const firstIssue = result.issues[0];
-      throw new Error(firstIssue.message);
+      return { success: false, error: firstIssue.message };
     }
 
     const commentId = crypto.randomUUID();
@@ -136,9 +137,10 @@ export async function addComment(formData: FormData) {
     });
 
     revalidatePath("/board/[id]");
+    return { success: true };
   } catch (error) {
     console.error("Failed to add comment:", error);
-    throw new Error("Failed to add comment. Please try again.");
+    return { success: false, error: "Failed to add comment. Please try again." };
   }
 }
 
@@ -264,5 +266,24 @@ export async function updateCardPositions(cardIds: string[]) {
   } catch (error) {
     console.error("Failed to update card positions:", error);
     throw new Error("Failed to reorder cards. Please try again.");
+  }
+}
+
+export async function deleteCard(cardId: string) {
+  try {
+    if (!cardId) {
+      return { success: false, error: "Card ID is required" };
+    }
+
+    await db.delete(cards).where(eq(cards.id, cardId));
+
+    revalidatePath("/board/[id]");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete card:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete card. Please try again."
+    };
   }
 }

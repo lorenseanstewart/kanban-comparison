@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { UsersList, TagsList } from "@/lib/api";
 import { createCard } from "@/lib/actions";
 import { useRouter } from "next/navigation";
@@ -49,7 +49,7 @@ export function AddCardModal({
     setSelectedTagIds(newSet);
   };
 
-  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -74,7 +74,7 @@ export function AddCardModal({
       const result = await createCard(formData);
 
       if (!result.success) {
-        setError(result.error);
+        setError(result.error || "An error occurred");
         setIsSubmitting(false);
         return;
       }
@@ -94,12 +94,12 @@ export function AddCardModal({
       form.reset();
       setSelectedTagIds(new Set<string>());
       router.refresh();
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedTagIds, onCardAdd, onClose, router]);
+  };
 
   if (!isOpen) return null;
 

@@ -1,0 +1,30 @@
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body p-4">
+    <h3 class="card-title text-sm text-base-content mb-4">${input.title}</h3>
+
+    <div class="grid gap-4" style=`grid-template-columns: repeat(${input.data.length}, 1fr)`>
+      <for|item, index| of=input.data>
+        <div class="flex flex-col items-center gap-2">
+          <!-- Bar container - grows from bottom -->
+          <div class="w-full flex flex-col justify-end" style="height: 150px">
+            <div
+              class="w-full rounded-t transition-all duration-500 ease-out"
+              style=`height: ${(() => {
+                const maxValue = Math.max(...input.data.map(i => i.value), 1);
+                return (item.value / maxValue) * 100;
+              })()}%; background-color: ${input.colors[index % input.colors.length]}`
+            >
+              <div class="text-xs text-white font-semibold text-center pt-1">
+                ${item.value}
+              </div>
+            </div>
+          </div>
+          <!-- Label below bar -->
+          <div class="text-xs text-base-content text-center font-medium pt-3">
+            ${item.label}
+          </div>
+        </div>
+      </for>
+    </div>
+  </div>
+</div>

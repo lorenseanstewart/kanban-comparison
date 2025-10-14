@@ -18,6 +18,8 @@ export function CommentModal({
   onCommentAdd?: (comment: { userId: string; text: string }) => void;
 }) {
   const [selectedUserId, setSelectedUserId] = useState(users[0]?.id || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,19 +29,34 @@ export function CommentModal({
     const userId = formData.get("userId") as string;
     const text = formData.get("text") as string;
 
-    // Optimistically update the UI
-    if (onCommentAdd) {
-      onCommentAdd({ userId, text });
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Persist to server first
+      const result = await addComment(formData);
+
+      if (!result.success) {
+        setError(result.error || "Failed to add comment");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Update the UI after successful server update
+      if (onCommentAdd) {
+        onCommentAdd({ userId, text });
+      }
+
+      // Reset form
+      form.reset();
+      setSelectedUserId(users[0]?.id || "");
+
+      onClose();
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onClose();
-
-    // Reset form
-    form.reset();
-    setSelectedUserId(users[0]?.id || "");
-
-    // Persist to server in background
-    await addComment(formData);
   };
 
   if (!isOpen) return null;
@@ -62,6 +79,12 @@ export function CommentModal({
         </button>
 
         <h3 className="font-bold text-lg mb-4">Comments</h3>
+
+        {error && (
+          <div className="alert alert-error mb-4">
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Existing Comments */}
         <div className="mb-6 max-h-96 overflow-y-auto">
@@ -107,6 +130,7 @@ export function CommentModal({
               className="select select-bordered w-full"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.currentTarget.value)}
+              disabled={isSubmitting}
             >
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
@@ -125,15 +149,23 @@ export function CommentModal({
               className="textarea textarea-bordered h-24 w-full"
               placeholder="Write your comment..."
               required
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="modal-action">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={isSubmitting}>
               Close
             </button>
-            <button type="submit" className="btn btn-primary">
-              Add Comment
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <span className="loading loading-spinner"></span>
+                  Adding...
+                </>
+              ) : (
+                "Add Comment"
+              )}
             </button>
           </div>
         </form>

@@ -62,7 +62,7 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
         // Persist to database
         try {
           await updateCardPositions(reorderResult.reorderedIds);
-        } catch (error) {
+        } catch {
           revertToServerState();
         }
       } else {
@@ -72,7 +72,7 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
         // Persist to database
         try {
           await updateCardList(result.cardId, result.targetListId);
-        } catch (error) {
+        } catch {
           revertToServerState();
         }
       }

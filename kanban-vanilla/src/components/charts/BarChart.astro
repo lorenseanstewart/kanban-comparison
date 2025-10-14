@@ -1,0 +1,84 @@
+---
+interface Props {
+  data: Array<{ label: string; value: number }>;
+  colors: string[];
+  title: string;
+}
+
+const { data, colors, title } = Astro.props;
+const maxValue = Math.max(...data.map((item) => item.value), 1);
+---
+
+<div class="card bg-base-100 shadow-lg">
+  <div class="card-body p-4">
+    <h3 class="card-title text-sm text-base-content mb-4">{title}</h3>
+
+    <!-- Pure CSS Grid layout -->
+    <div
+      class="grid gap-4"
+      style={`grid-template-columns: repeat(${data.length}, 1fr);`}
+    >
+      {
+        data.map((item, index) => {
+          const heightPercent = (item.value / maxValue) * 100;
+          const color = colors[index % colors.length];
+
+          return (
+            <div class="flex flex-col items-center gap-2">
+              <!-- Bar container - grows from bottom -->
+              <div
+                class="w-full flex flex-col justify-end"
+                style="height: 150px;"
+              >
+                <div
+                  class="bar-column w-full rounded-t"
+                  style={`height: 0%; background-color: ${color};`}
+                  data-height={heightPercent}
+                >
+                  <div class="text-xs text-white font-semibold text-center pt-1">
+                    {item.value}
+                  </div>
+                </div>
+              </div>
+              <!-- Label below bar -->
+              <div class="text-xs text-base-content text-center font-medium pt-3">
+                {item.label}
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  // Animate bars on load
+  function animateBars() {
+    const bars = document.querySelectorAll('.bar-column');
+    bars.forEach((bar) => {
+      const heightPercent = bar.getAttribute('data-height');
+      if (heightPercent) {
+        // Set initial state
+        (bar as HTMLElement).style.transition = 'none';
+        (bar as HTMLElement).style.height = '0%';
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+          (bar as HTMLElement).style.transition = 'height 500ms ease-out';
+          (bar as HTMLElement).style.height = `${heightPercent}%`;
+        });
+      }
+    });
+  }
+
+  // Run on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', animateBars);
+  } else {
+    animateBars();
+  }
+
+  // Re-run after HTMX swaps (if using HTMX)
+  document.body.addEventListener('htmx:afterSwap', animateBars);
+</script>

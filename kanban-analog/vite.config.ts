@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: ['es2020'],
     minify: 'esbuild',
-    cssMinify: true,
+    cssMinify: 'esbuild', // Use esbuild for CSS minification instead of lightningcss
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -27,6 +27,9 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+  },
+  css: {
+    transformer: 'postcss', // Use PostCSS instead of lightningcss for better DaisyUI compatibility
   },
   resolve: {
     mainFields: ['module'],

@@ -1,0 +1,54 @@
+---
+// No props needed - this is a global modal
+---
+
+<dialog id="add-board-modal" class="modal">
+  <div class="modal-backdrop bg-black/70"></div>
+  <div class="modal-box bg-base-200 dark:bg-base-300">
+    <form method="dialog">
+      <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="document.getElementById('add-board-modal').close()">✕</button>
+    </form>
+
+    <h3 class="font-bold text-lg mb-4">Add New Board</h3>
+
+    <form
+      hx-post="/api/boards-list"
+      hx-target="#boards-list"
+      hx-swap="outerHTML"
+      hx-on::after-request="if(event.detail.successful){document.getElementById('add-board-modal').close();this.reset()}"
+    >
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Title</span>
+        </label>
+        <input
+          type="text"
+          name="title"
+          class="input input-bordered w-full"
+          placeholder="Enter board title"
+          required
+        />
+      </div>
+
+      <div class="form-control w-full mb-4">
+        <label class="label">
+          <span class="label-text">Description</span>
+        </label>
+        <textarea
+          name="description"
+          class="textarea textarea-bordered h-24 w-full"
+          placeholder="Enter board description (optional)"
+        ></textarea>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-board-modal').close()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Add Board
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>

@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { injectLoad, RouteMeta } from '@analogjs/router';
@@ -26,7 +26,26 @@ export const routeMeta: RouteMeta = {
     AddCardModalComponent,
   ],
   template: `
-    @if (board(); as boardData) {
+    @if (errorLoading()) {
+      <main class="w-full max-w-2xl mx-auto p-8 space-y-6 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+        <div class="card bg-error/10">
+          <div class="card-body items-center text-center">
+            <h1 class="card-title text-2xl text-error">Board Error</h1>
+            <p class="text-base-content/70">
+              {{ errorMessage() || 'Failed to load this board. It may not exist or there was an error.' }}
+            </p>
+            <div class="card-actions justify-center gap-4 mt-4">
+              <button (click)="retry()" class="btn btn-primary">
+                Try Again
+              </button>
+              <a routerLink="/" class="btn btn-ghost">
+                Back to Boards
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+    } @else if (board(); as boardData) {
       <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
         <div class="breadcrumbs text-sm">
           <ul>
@@ -106,10 +125,36 @@ export default class BoardPageComponent {
     requireSync: true,
   });
 
-  board = signal<BoardDetails | null>(this.data()?.board || null);
-  allUsers = signal<UsersList>(this.data()?.allUsers || []);
-  allTags = signal<TagsList>(this.data()?.allTags || []);
+  board = signal<BoardDetails | null>(null);
+  allUsers = signal<UsersList>([]);
+  allTags = signal<TagsList>([]);
   isAddCardModalOpen = signal(false);
+  errorLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+
+  constructor() {
+    effect(() => {
+      try {
+        const loadedData = this.data();
+        if (!loadedData?.board) {
+          this.errorLoading.set(true);
+          this.errorMessage.set('Board not found');
+        } else {
+          this.board.set(loadedData.board);
+          this.allUsers.set(loadedData.allUsers);
+          this.allTags.set(loadedData.allTags);
+          this.errorLoading.set(false);
+        }
+      } catch (error) {
+        this.errorLoading.set(true);
+        this.errorMessage.set(error instanceof Error ? error.message : 'Failed to load board');
+      }
+    });
+  }
+
+  retry() {
+    window.location.reload();
+  }
 
   handleDrop(event: CdkDragDrop<BoardCard[]>) {
     const board = this.board();

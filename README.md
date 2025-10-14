@@ -1,18 +1,19 @@
 # Kanban Board Comparison: Proving "React-by-Default" Has Real Costs
 
-This repository is a **follow-up proof of concept** to the blog post ["React Won by Default – And It's Killing Frontend Innovation"](link-to-post).
+This repository is a **follow-up proof of concept** to the blog post ["React Won by Default – And It's Killing Frontend Innovation"](https://www.lorenstew.art/blog/react-won-by-default). The blog post that discusses this repo and acts as a Part Two to the "Reacy Won by Default" can be found [here](https://www.lorenstew.art/blog/react-won-by-default).
 
-That post argued React's dominance stifles innovation. This repo **proves it with data**.
+The first post argued React's dominance stifles innovation. This second post along with this repo **proves it with data**.
 
-By building the same real-world Kanban app across **7 framework implementations**, we measure the actual costs of "React-by-default":
+By building the same real-world Kanban app across **8 framework implementations**, we measure the actual costs of "React-by-default":
 
 1. ✅ **Next.js 15** (standard) - Virtual DOM baseline
 2. ✅ **Next.js 15 + React Compiler** - Can optimization close the gap?
 3. ✅ **Nuxt 4** - Vue 3 reactive refs + SSR-first DX
-4. ⚠️ **Analog** - Angular meta-framework with signals (planned)
+4. ✅ **Analog** - Angular meta-framework with signals
 5. ✅ **SolidStart** - Fine-grained reactivity (signals)
 6. ✅ **SvelteKit** - Compiler-first approach (Svelte 5 runes)
 7. ✅ **Qwik City** - Resumability (no hydration)
+8. ✅ **Marko** - Streaming SSR + fine-grained reactivity
 
 All apps share the same SQLite database, features, and UI. **Identical functionality, measurable differences.**
 
@@ -29,60 +30,164 @@ All apps share the same SQLite database, features, and UI. **Identical functiona
 | **Mutations** | Server Actions | API routes (`server/api/*`) | `ApiService` + RxJS | Server functions | Form actions | Server actions |
 | **Database** | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 |
 | **Styling** | Tailwind CSS v3 + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI | Tailwind CSS + DaisyUI |
-| **Drag & Drop** | @dnd-kit/core, @dnd-kit/sortable | vuedraggable | Angular CDK | @thisbeyond/solid-dnd | Native HTML5 | Native HTML5 |
+| **Drag & Drop** | @dnd-kit/core, @dnd-kit/sortable | vuedraggable | @angular/cdk | @thisbeyond/solid-dnd | svelte-dnd-action | Native HTML5 |
 | **Build Tool** | Turbopack | Vite | Vite + Angular | Vinxi | Vite | Vite + Qwik optimizer |
 
 ---
 
 ## Bundle Size Comparison
 
-**Production builds (gzipped):**
+**Production builds (JS transferred - gzipped):**
 
 | Framework | Homepage | Board Page | Status |
 |-----------|----------|------------|--------|
-| **Next.js** | ~122 kB | ~148 kB | ✅ Complete |
-| **Next.js + Compiler** | ~123 kB | ~153 kB | ✅ Complete
-| **Nuxt** | ~132kb | ~139kb | ✅ Complete |
-| **Analog** | ~117kb | ~159kb | ✅ Complete |
-| **SolidStart** | ~30 kB | ~40 kB | ✅ Complete |
-| **SvelteKit** | ~24 kB | ~40 kB | ✅ Complete |
-| **Qwik City** | ~45kb | ~61kb | ✅ Complete |
+| **Marko** | 7 kB | 29 kB | ✅ Complete |
+| **SolidStart** | 30 kB | 41 kB | ✅ Complete |
+| **SvelteKit** | 42 kB | 59 kB | ✅ Complete |
+| **Qwik City** | 44 kB | 59 kB | ✅ Complete |
+| **Next.js + Compiler** | 120 kB | 153 kB | ✅ Complete |
+| **Next.js** | 124 kB | 153 kB | ✅ Complete |
+| **Nuxt** | 131 kB | 132 kB | ✅ Complete |
+| **Analog** | 138 kB | 150 kB | ✅ Complete |
 
+**Key Takeaways**:
+- **Marko** is the clear winner at just 7 kB for the home page — **~18x smaller than Next.js**
+- **SolidStart** comes in second at 30 kB — **~4x smaller than Next.js**
+- **SvelteKit** and **Qwik** follow closely at ~42-44 kB — still **~3x smaller than Next.js**
+- React Compiler optimization saves ~4 kB but doesn't fundamentally change the bundle size picture
+- Compile-time optimization (Svelte, Marko), resumability (Qwik), and fine-grained reactivity (Solid) all eliminate Virtual DOM overhead
 
-**Key Takeaway**: Both SolidStart and SvelteKit are **3-4x smaller** than Next.js. Compile-time optimization (Svelte) and fine-grained reactivity (Solid) both eliminate Virtual DOM overhead.
-
-**Pattern Confirmed**: Rethinking core assumptions (Virtual DOM, hydration) yields **3-4x bundle size improvements**, not incremental gains.
+**Pattern Confirmed**: Rethinking core assumptions (Virtual DOM, hydration) yields **3-18x bundle size improvements**, not incremental gains.
 
 **Why This Matters**: For teams serving mobile professionals (real estate agents, field workers, healthcare staff) on cellular connections, 108 kB = 1.5-2 seconds on 4G. That's the difference between confident and apologetic when a buyer is watching.
 
-### Measurement Methodology (summary)
+---
 
-- Client JS bundle sizes reported are gzipped totals for the route under test
-- Measurements run with pinned versions and consistent build flags across apps
-- Performance captured with consistent throttling/CPU settings
-- Full reproducible recipe and bundle composition steps: see `PERFORMANCE_METRICS_GUIDE.md`
+## Lighthouse Performance Scores
 
-> Fairness constraints (apples-to-apples): pinned framework/tool versions, identical data volume on the Board page, normalized CSS/icon handling (treeshake/purge), consistent throttling and CPU slowdown.
+**Mobile performance scores (averaged over 5 runs):**
 
-Quick reproduce (5 minutes):
+### Homepage
 
-```bash
-# build and measure all apps → writes metrics/summary.json and bundle reports
-node scripts/measure-all.mjs
-```
+| Framework | Score | FCP (ms) | LCP (ms) | TBT (ms) | CLS | SI (ms) | Bundle Size |
+|-----------|-------|----------|----------|----------|-----|---------|-------------|
+| **Marko** | 100 | 69 | 69 | 0 | 0 | 86 | 7 kB |
+| **Qwik** | 100 | 80 | 80 | 0 | 0 | 80 | 44 kB |
+| **SvelteKit** | 100 | 140 | 140 | 0 | 0 | 169 | 42 kB |
+| **SolidStart** | 100 | 282 | 282 | 0 | 0 | 315 | 30 kB |
+| **Analog** | 100 | 44 | 44 | 0 | 0 | 44 | 138 kB |
+| **Next.js** | 100 | 568 | 568 | 0 | 0 | 596 | 124 kB |
+| **Nuxt** | 98 | 1,777 | 1,777 | 0 | 0 | 1,778 | 131 kB |
+| **Next.js + Compiler** | 98 | 1,366 | 1,366 | 0 | 0 | 1,384 | 120 kB |
+
+### Board Page
+
+| Framework | Score | FCP (ms) | LCP (ms) | TBT (ms) | CLS | SI (ms) | Bundle Size |
+|-----------|-------|----------|----------|----------|-----|---------|-------------|
+| **Marko** | 100 | 53 | 53 | 0 | 0 | 65 | 29 kB |
+| **SolidStart** | 100 | 60 | 60 | 0 | 0 | 101 | 41 kB |
+| **SvelteKit** | 100 | 66 | 66 | 0 | 0 | 97 | 59 kB |
+| **Analog** | 100 | 325 | 325 | 0 | 0 | 333 | 150 kB |
+| **Qwik** | 100 | 521 | 521 | 0 | 0 | 529 | 59 kB |
+| **Nuxt** | 98 | 1,579 | 1,579 | 0 | 0 | 1,586 | 132 kB |
+| **Next.js** | 97 | 2,157 | 2,157 | 0 | 0 | 2,163 | 153 kB |
+| **Next.js + Compiler** | 97 | 2,163 | 2,163 | 0 | 0 | 2,169 | 153 kB |
+
+**Key Metrics**:
+- **FCP** (First Contentful Paint): When the first content appears
+- **LCP** (Largest Contentful Paint): When the main content is visible
+- **TBT** (Total Blocking Time): How long the main thread is blocked
+- **CLS** (Cumulative Layout Shift): Visual stability (0 = perfect)
+- **SI** (Speed Index): How quickly content is visually displayed
+
+**Performance Insights**:
+- **Marko** achieves the fastest board page load (53ms FCP) with the smallest bundle (29 kB)
+- **SolidStart** and **SvelteKit** deliver exceptional sub-70ms board page loads
+- **Qwik** provides sub-100ms homepage loads with resumability
+- **Analog** shows surprisingly fast metrics despite larger bundles (Angular optimization at work)
+- React-based frameworks show **40x slower** FCP on complex pages (board page: ~2,100ms vs ~53ms)
+- All non-React frameworks achieve perfect 100 scores on the board page
 
 ---
 
-## Performance Metrics of Board Page (run locally)
+### Measurement Methodology
 
-| Metric | Next.js | Next.js + Compiler | Nuxt | Analog | SolidStart | SvelteKit | Qwik |
-|--------|---------|-------------------|------|--------|------------|-----------|------|
-| Lighthouse Performance | 98% | 98% | TBD | TBD | 100% | 99% | TBD |
-| First Contentful Paint | 18ms | 17ms | TBD | TBD | 59ms | 7ms | TBD |
-| Largest Contentful Paint | 8ms | 9ms | TBD | TBD | 6ms | 6ms | TBD |
-| Interaction to Next Paint | 24-40ms | 24-40ms | TBD | TBD | 24-40ms | 24-40ms | TBD |
+**What we measure:**
+- Client JS bundle sizes (gzipped) transferred over the network
+- Measured using Chrome Lighthouse with mobile emulation
+- Throttling disabled to focus purely on bundle size, not network speed
+- Two pages tested: Homepage (board list) and Board Page (full kanban board)
 
-**Key Takeaway**: All are fast in optimal conditions, but smaller bundles win on cellular networks where every KB matters.
+**How to reproduce:**
+
+1. **Build all apps:**
+```bash
+npm run build:all
+```
+
+2. **Measure a single framework:**
+```bash
+# Replace with exact framework name (see options below)
+tsx scripts/measure-single.ts "SvelteKit"
+```
+
+Available framework names (case-sensitive):
+- `"Next.js"`
+- `"Next.js + Compiler"`
+- `"Nuxt"`
+- `"Analog"`
+- `"SolidStart"`
+- `"SvelteKit"`
+- `"Qwik"`
+- `"Marko"`
+
+The script outputs JSON with bundle measurements:
+```json
+[
+  {
+    "framework": "SvelteKit",
+    "page": "home",
+    "jsTransferred": 42534,
+    "jsUncompressed": 85216,
+    "totalRequests": 16,
+    "timestamp": "2025-10-09T23:35:25.083Z"
+  },
+  {
+    "framework": "SvelteKit",
+    "page": "board",
+    "jsTransferred": 60055,
+    "jsUncompressed": 138354,
+    "totalRequests": 16,
+    "timestamp": "2025-10-09T23:35:45.087Z"
+  }
+]
+```
+
+**Fairness constraints (apples-to-apples):**
+- Pinned framework/tool versions
+- Identical data volume on the Board page
+- Normalized CSS/icon handling (treeshake/purge)
+- Same features and functionality across all apps
+
+---
+
+## Performance Metrics of Board Page (Mobile - Lighthouse)
+
+| Metric | Marko | SolidStart | SvelteKit | Qwik | Analog | Nuxt | Next.js | Next.js + Compiler |
+|--------|-------|------------|-----------|------|--------|------|---------|-------------------|
+| Lighthouse Performance Score | **100** | **100** | **100** | **100** | **100** | 98 | 97 | 97 |
+| First Contentful Paint (FCP) | **53ms** | **60ms** | **66ms** | 521ms | 325ms | 1,579ms | 2,157ms | 2,163ms |
+| Largest Contentful Paint (LCP) | **53ms** | **60ms** | **66ms** | 521ms | 325ms | 1,579ms | 2,157ms | 2,163ms |
+| Total Blocking Time (TBT) | **0ms** | **0ms** | **0ms** | **0ms** | **0ms** | **0ms** | **0ms** | **0ms** |
+| Cumulative Layout Shift (CLS) | **0** | **0** | **0** | **0** | **0** | **0** | **0** | **0** |
+| Speed Index (SI) | **65ms** | **101ms** | **97ms** | 529ms | 333ms | 1,586ms | 2,163ms | 2,169ms |
+
+**Key Takeaways**:
+- **Marko** achieves the fastest paint times (53ms FCP) - **40x faster than Next.js**
+- **SolidStart and SvelteKit** follow closely (60-66ms) - **35x faster than Next.js**
+- All frameworks achieve perfect stability (0 CLS, 0 TBT)
+- React frameworks take **2+ seconds** for FCP vs **sub-100ms** for compile-first and fine-grained reactive frameworks
+- Smaller bundles directly correlate with faster paint times
 
 ---
 
@@ -94,33 +199,36 @@ node scripts/measure-all.mjs
 - **Server Actions**: Form submissions and mutations use async server functions
 - **Optimistic Updates**: Managed via React hooks (`useState`, `useEffect`)
 - **Cache Invalidation**: `revalidatePath()` clears Next.js cache after mutations
+- **Drag-and-Drop**: Uses `@dnd-kit/core` and `@dnd-kit/sortable` libraries
 
 ### SolidStart
 - **Fine-grained Reactivity**: Signals and effects provide granular updates without re-rendering
 - **Server Functions**: `"use server"` directive for server-side logic
 - **Cache Integration**: `cache()` and `revalidate()` for data freshness
 - **Optimistic Updates**: Managed via SolidJS stores and signals
-- **Native Drag-and-Drop**: Uses `@thisbeyond/solid-dnd` library
+- **Drag-and-Drop**: Uses `@thisbeyond/solid-dnd` library
 
 ### SvelteKit
 - **Runes**: Svelte 5's compile-time reactivity (`$state`, `$derived`, `$effect`)
 - **Load Functions**: Server-side data loading per route with automatic caching
 - **Form Actions**: Progressive enhancement for form submissions with `enhance`
-- **Compiler-First**: Minimal runtime overhead—most framework code compiled away
+- **Compiler-First**: Minimal runtime overhead; most framework code compiled away
 - **Optimistic Updates**: Managed via `$state` runes with automatic reactivity
-- **Drag-and-Drop**: Uses `svelte-dnd-action` library with built-in FLIP animations
+- **Drag-and-Drop**: Uses `svelte-dnd-action` library with FLIP animations
 
 ### Nuxt 4
 - **Vue 3 Reactivity**: Reactive refs (`ref()`, `reactive()`) with automatic dependency tracking
 - **Composables**: `useAsyncData` and `useFetch` for SSR-aware data fetching with caching
 - **Server Routes**: API routes in `server/api/*` with `defineEventHandler`
 - **Auto-imports**: Components, composables, and utilities auto-imported
+- **Optimistic Updates**: Managed via reactive refs and watchers
 - **Drag-and-Drop**: Uses `vuedraggable` component wrapper
 
-### Analog (Planned)
+### Analog
 - **Angular Signals**: Modern signals API reducing RxJS boilerplate
 - **Dependency Injection**: Angular's powerful DI system for services
 - **Server Routes**: Vite-powered server routes with Angular integration
+- **Optimistic Updates**: Managed via Angular signals and RxJS
 - **Drag-and-Drop**: Angular CDK for feature-rich drag-and-drop
 - **TypeScript-First**: Strong typing throughout with Angular's compiler
 
@@ -130,6 +238,7 @@ node scripts/measure-all.mjs
 - **Fine-grained Lazy Loading**: Component-level code splitting with `$()`
 - **Signals**: Fine-grained reactivity without Virtual DOM
 - **Serialization**: Everything must be serializable for resumability
+- **Drag-and-Drop**: Native HTML5 drag & drop with serializable handlers
 
 ---
 
@@ -428,12 +537,12 @@ Compare template syntax vs JSX:
 
 ### 5. **Drag & Drop**
 Compare library integration approaches:
-- **React**: `@dnd-kit` (most popular ecosystem)
-- **Vue/Nuxt**: `vuedraggable` component wrapper
-- **Solid**: `@thisbeyond/solid-dnd` (similar API to dnd-kit)
-- **Svelte**: Native HTML5 drag & drop (lightest)
-- **Qwik**: Native with serializable handlers
-- **Angular**: Angular CDK (most feature-rich, heaviest)
+- **Next.js**: `@dnd-kit/core` and `@dnd-kit/sortable` (most popular React ecosystem)
+- **Nuxt**: `vuedraggable` component wrapper
+- **SolidStart**: `@thisbeyond/solid-dnd` (similar API to dnd-kit)
+- **SvelteKit**: `svelte-dnd-action` with FLIP animations
+- **Qwik**: Native HTML5 with serializable handlers (no library needed)
+- **Analog**: `@angular/cdk` (most feature-rich)
 
 **Files**: Board page drag-drop implementation
 

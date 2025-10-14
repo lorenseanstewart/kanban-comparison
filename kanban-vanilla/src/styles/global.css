@@ -1,0 +1,20 @@
+@import "charts.css/dist/charts.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom drag-drop styles */
+.dragging {
+  opacity: 0.25;
+}
+
+.drag-over {
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+
+/* View transitions */
+@view-transition {
+  navigation: auto;
+}

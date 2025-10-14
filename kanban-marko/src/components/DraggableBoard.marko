@@ -1,0 +1,501 @@
+import {
+  createDragDropState,
+  initializeDragAndDrop,
+} from "../lib/drag-drop/index";
+import type { BoardDetails, UsersList, TagsList, BoardCard } from "../lib/api";
+import type { User } from "../../drizzle/schema";
+import AddCardModal from "./modals/AddCardModal.marko";
+import CardEditModal from "./modals/CardEditModal.marko";
+import CommentModal from "./modals/CommentModal.marko";
+export interface Input {
+  initialBoard: BoardDetails;
+  allUsers: UsersList;
+  allTags: TagsList;
+}
+
+<let/board: BoardDetails=input.initialBoard>
+<let/isAddCardModalOpen=false>
+<let/isCardEditModalOpen=false>
+<let/isCommentModalOpen=false>
+<let/selectedCard=null as BoardCard | null>
+<let/dragOverListId=null as string | null>
+
+<script>
+  // Create drag-and-drop state
+  const dragDropState = createDragDropState();
+
+  // Helper to update board state
+  const setBoard = (newBoard: BoardDetails) => {
+    board = newBoard;
+  };
+
+  // Helper to update drag over state
+  const setDragOverListId = (id: string | null) => {
+    dragOverListId = id;
+  };
+
+  // Initialize on mount
+  if (typeof document !== "undefined") {
+    queueMicrotask(() => {
+      initializeDragAndDrop(dragDropState, board, setBoard, setDragOverListId);
+    });
+  }
+
+  // Re-initialize when board data changes (e.g., when cards are added)
+  if (board && typeof document !== "undefined") {
+    queueMicrotask(() => {
+      initializeDragAndDrop(dragDropState, board, setBoard, setDragOverListId);
+    });
+  }
+</script>
+
+<main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+  <div class="breadcrumbs text-sm">
+    <ul>
+      <li>
+        <a href="/" class="link link-hover">
+          Boards
+        </a>
+      </li>
+      <li>
+        <span class="text-base-content/60">
+          ${board.title}
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="space-y-8">
+    <section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
+      <div class="space-y-3">
+        <div class="badge badge-secondary badge-outline">
+          Board overview
+        </div>
+        <h1 class="text-4xl font-black text-primary">
+          ${board.title}
+        </h1>
+        <if=board.description>
+          <p class="text-base text-base-content/60 max-w-2xl">
+            ${board.description}
+          </p>
+        </if>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
+        <!-- Charts will update when board state changes -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body p-4">
+            <h3 class="card-title text-sm text-base-content mb-4">
+              Cards per List
+            </h3>
+            <div
+              class="grid gap-4"
+              style=`grid-template-columns: repeat(${board.lists.length}, 1fr)`>
+              <for|list, index| of=board.lists>
+                <div class="flex flex-col items-center gap-2">
+                  <div
+                    class="w-full flex flex-col justify-end"
+                    style="height: 150px">
+                    <div
+                      class="w-full rounded-t transition-all duration-500 ease-out"
+                      style=`height: ${(() => {
+                        const maxValue = Math.max(
+                          ...board.lists.map(
+                            (l: BoardDetails["lists"][number]) =>
+                              l.cards.length,
+                          ),
+                          1,
+                        );
+                        return (list.cards.length / maxValue) * 100;
+                      })()}%; background-color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][index % 4]}`>
+                      <div class="text-xs text-white font-semibold text-center pt-1">
+                        ${list.cards.length}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-xs text-base-content text-center font-medium pt-3">
+                    ${list.title}
+                  </div>
+                </div>
+              </for>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body p-4 flex flex-col items-center">
+            <h3 class="card-title text-sm text-base-content mb-2 w-full">
+              Distribution
+            </h3>
+            <table
+              class="charts-css pie mx-auto mb-3"
+              style="height: 120px; width: 120px; --labels-size: 0">
+              <tbody>
+                <for|list, index| of=board.lists.map(
+                  (list: BoardDetails["lists"][number], idx: number) => {
+                    const totalValue = board.lists.reduce(
+                      (sum: number, l: BoardDetails["lists"][number]) =>
+                        sum + l.cards.length,
+                      0,
+                    );
+                    let startValue = 0;
+                    for (let i = 0; i < idx; i++) {
+                      startValue += board.lists[i].cards.length / totalValue;
+                    }
+                    const endValue =
+                      startValue +
+                      (totalValue > 0 ? list.cards.length / totalValue : 0);
+                    return { ...list, startValue, endValue, idx };
+                  },
+                )>
+                  <tr>
+                    <td style=`--start: ${list.startValue}; --end: ${list.endValue}; --color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][list.idx % 4]}`/>
+                  </tr>
+                </for>
+              </tbody>
+            </table>
+            <div class="flex flex-col gap-1 w-full">
+              <for|list, index| of=board.lists>
+                <div class="flex items-center gap-2 justify-between">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                      style=`background-color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][index % 4]}`/>
+                    <span class="text-xs text-base-content">
+                      ${list.title}
+                    </span>
+                  </div>
+                  <span class="text-xs font-semibold text-base-content">
+                    ${(() => {
+                      const totalValue = board.lists.reduce(
+                        (sum: number, l: BoardDetails["lists"][number]) =>
+                          sum + l.cards.length,
+                        0,
+                      );
+                      const percentage =
+                        totalValue > 0
+                          ? (list.cards.length / totalValue) * 100
+                          : 0;
+                      return percentage.toFixed(0);
+                    })()}%
+                  </span>
+                </div>
+              </for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex justify-start mb-4">
+      <button
+        type="button"
+        class="btn btn-primary"
+        onClick=() => {
+          isAddCardModalOpen = true;
+        }>
+        Add Card
+      </button>
+    </div>
+
+    <section class="flex gap-7 overflow-x-auto pb-8">
+      <if=(board.lists.length === 0)>
+        <div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+          <div class="card-body items-center text-center">
+            <h2 class="card-title text-secondary">
+              No lists yet
+            </h2>
+            <p class="text-base-content/60">
+              Add a list to begin organizing work on this board.
+            </p>
+          </div>
+        </div>
+      </if>
+      <else>
+        <for|list| of=board.lists>
+          <article
+            class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl"
+            data-list-id=list.id>
+            <div class="card-body gap-4">
+              <header class="flex items-center justify-between">
+                <h2 class="card-title text-base-content">
+                  ${list.title}
+                </h2>
+                <div class="badge badge-primary badge-outline badge-lg shadow">
+                  ${list.cards.length} cards
+                </div>
+              </header>
+
+              <div
+                class=`min-h-[200px] space-y-3 transition-all duration-200 rounded-lg ${dragOverListId === list.id ? "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]" : ""}`
+                data-drop-zone>
+                <if=(list.cards.length === 0)>
+                  <div class="alert alert-info text-sm">
+                    <span>No cards yet</span>
+                  </div>
+                </if>
+                <for|card| of=list.cards>
+                  <div
+                    data-card-id=card.id
+                    class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out">
+                    <div class="card-body gap-3 p-4">
+                      <div class="flex items-start justify-between gap-2">
+                        <h3 class="card-title text-lg text-base-content">
+                          ${card.title}
+                        </h3>
+                        <if=card.completed>
+                          <span class="badge badge-success badge-outline">
+                            Done
+                          </span>
+                        </if>
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-xs btn-circle"
+                          onClick=() => {
+                            selectedCard = card;
+                            isCardEditModalOpen = true;
+                          }>
+                          <svg
+                            class="cursor-pointer"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 18 18"
+                            fill="none">
+                            <path
+                              fill="#cccccc"
+                              d="M13.2916 0.0012207L17.9987 4.70833L15 7.707L10.2929 2.99993L13.2916 0.0012207ZM13.2916 1.41543L11.7071 2.99993L15 6.29282L16.5845 4.70833L13.2916 1.41543ZM8.879 4.41382L13.5861 9.1209L4.70711 17.9999H0V13.2928L8.879 4.41382ZM1 13.707V16.9999H4.29289L12.1719 9.1209L8.879 5.82804L1 13.707Z"/>
+                          </svg>
+                        </button>
+                      </div>
+
+                      <if=card.assigneeId>
+                        <div class="badge badge-outline badge-secondary badge-sm">
+                          Assigned to ${input.allUsers?.find(
+                            (u: User) => u.id === card.assigneeId,
+                          )?.name ?? "Unassigned"}
+                        </div>
+                      </if>
+
+                      <if=card.description>
+                        <p class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2">
+                          ${card.description}
+                        </p>
+                      </if>
+
+                      <if=(card.tags.length > 0)>
+                        <div class="flex flex-wrap gap-2.5 rounded-xl px-3 py-2 bg-base-200 dark:bg-base-100">
+                          <for|tag| of=card.tags>
+                            <span
+                              class="badge border-0 shadow font-semibold text-white"
+                              style=`background-color: ${tag.color}`>
+                              ${tag.name}
+                            </span>
+                          </for>
+                        </div>
+                      </if>
+
+                      <if(card.comments && card.comments.length === 0)>
+                        <div class="flex items-center justify-between">
+                          <p class="text-xs font-semibold text-base-content/50">
+                            Comments
+                          </p>
+                          <button
+                            type="button"
+                            class="btn btn-ghost btn-xs btn-circle"
+                            onClick=() => {
+                              selectedCard = card;
+                              isCommentModalOpen = true;
+                            }>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="w-4 h-4">
+                              <line x1="12" y1="5" x2="12" y2="19"/>
+                              <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </if>
+                      <else>
+                        <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
+                          <div class="flex items-center justify-between">
+                            <p class="text-xs font-semibold text-base-content/50">
+                              Comments
+                            </p>
+                            <button
+                              type="button"
+                              class="btn btn-ghost btn-xs btn-circle"
+                              onClick=() => {
+                                selectedCard = card;
+                                isCommentModalOpen = true;
+                              }>
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="w-4 h-4">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                              </svg>
+                            </button>
+                          </div>
+                          <ul class="space-y-1 text-sm text-base-content/70">
+                            <for|comment| of=card.comments>
+                              <li>
+                                <span class="font-semibold text-base-content">
+                                  ${input.allUsers?.find(
+                                    (u) => u.id === comment.userId,
+                                  )?.name ?? "Unknown"}:
+                                </span>
+                                ${" "}${comment.text}
+                              </li>
+                            </for>
+                          </ul>
+                        </div>
+                      </else>
+                    </div>
+                  </div>
+                </for>
+              </div>
+            </div>
+          </article>
+        </for>
+      </else>
+    </section>
+  </div>
+</main>
+<!-- Modals -->
+<AddCardModal
+  isOpen=isAddCardModalOpen
+  boardId=board.id
+  users=input.allUsers
+  tags=input.allTags
+  onClose=() => {
+    isAddCardModalOpen = false;
+  }
+  onCardAdd=(newCard: {
+    id: string;
+    title: string;
+    description: string | null;
+    assigneeId: string | null;
+    tagIds?: string[];
+  }) => {
+    board = {
+      ...board,
+      lists: board.lists.map((list: BoardDetails["lists"][number]) => {
+        if (list.title === "Todo") {
+          return {
+            ...list,
+            cards: [
+              ...list.cards,
+              {
+                id: newCard.id,
+                title: newCard.title,
+                description: newCard.description,
+                position: list.cards.length + 1,
+                completed: false,
+                assigneeId: newCard.assigneeId,
+                comments: [],
+                tags:
+                  input.allTags.filter((tag: TagsList[number]) =>
+                    newCard.tagIds?.includes(tag.id),
+                  ) || [],
+              },
+            ],
+          };
+        }
+        return list;
+      }),
+    };
+  }/>
+
+<if=selectedCard>
+  <CardEditModal
+    isOpen=isCardEditModalOpen
+    card=selectedCard
+    users=input.allUsers
+    tags=input.allTags
+    onClose=() => {
+      isCardEditModalOpen = false;
+      selectedCard = null;
+    }
+    onCardUpdate=(updatedData: {
+      cardId: string;
+      title: string;
+      description: string | null;
+      assigneeId: string | null;
+      tagIds?: string[];
+    }) => {
+      board = {
+        ...board,
+        lists: board.lists.map((list: BoardDetails["lists"][number]) => ({
+          ...list,
+          cards: list.cards.map((card: BoardCard) => {
+            if (card.id === updatedData.cardId) {
+              return {
+                ...card,
+                title: updatedData.title,
+                description: updatedData.description,
+                assigneeId: updatedData.assigneeId,
+                tags:
+                  input.allTags.filter((tag: TagsList[number]) =>
+                    updatedData.tagIds?.includes(tag.id),
+                  ) || [],
+              };
+            }
+            return card;
+          }),
+        })),
+      };
+    }
+    onCardDelete=(cardId: string) => {
+      board = {
+        ...board,
+        lists: board.lists.map((list: BoardDetails["lists"][number]) => ({
+          ...list,
+          cards: list.cards.filter((card) => card.id !== cardId),
+        })),
+      };
+    }/>
+
+  <CommentModal
+    isOpen=isCommentModalOpen
+    card=selectedCard
+    users=input.allUsers
+    onClose=() => {
+      isCommentModalOpen = false;
+      selectedCard = null;
+    }
+    onCommentAdd=(data: { userId: string; text: string }) => {
+      board = {
+        ...board,
+        lists: board.lists.map((list: BoardDetails["lists"][number]) => ({
+          ...list,
+          cards: list.cards.map((card: BoardCard) => {
+            if (card.id === selectedCard?.id) {
+              return {
+                ...card,
+                comments: [
+                  ...card.comments,
+                  {
+                    id: crypto.randomUUID(),
+                    userId: data.userId,
+                    text: data.text,
+                    createdAt: new Date(),
+                  },
+                ],
+              };
+            }
+            return card;
+          }),
+        })),
+      };
+    }/>
+</if>

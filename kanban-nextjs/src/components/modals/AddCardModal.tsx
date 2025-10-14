@@ -74,7 +74,7 @@ export function AddCardModal({
       const result = await createCard(formData);
 
       if (!result.success) {
-        setError(result.error);
+        setError(result.error || "An error occurred");
         setIsSubmitting(false);
         return;
       }
@@ -94,7 +94,7 @@ export function AddCardModal({
       form.reset();
       setSelectedTagIds(new Set<string>());
       router.refresh();
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

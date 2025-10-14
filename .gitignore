@@ -67,3 +67,8 @@ Thumbs.db
 drizzle/db.sqlite
 *.sqlite
 *.sqlite-*
+
+# Performance metrics (generated files)
+metrics/*.json
+metrics/*.md
+!metrics/.gitkeep
