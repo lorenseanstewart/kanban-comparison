@@ -52,13 +52,14 @@ export default function BoardPage() {
   const effectiveUsers = createMemo(() => allUsers() || []);
   const effectiveTags = createMemo(() => allTags() || []);
 
-  const [board, setBoard] = createStore<BoardDetails | null>(null);
+  // Initialize board with boardData to avoid hydration mismatch
+  const [board, setBoard] = createStore<BoardDetails | null>(boardData() ?? null);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = createStore({ open: false });
 
   // Sync local state with server data
   createEffect(() => {
     const data = boardData();
-    if (data) {
+    if (data && data !== board) {
       setBoard(data);
     }
   });
@@ -168,8 +169,7 @@ export default function BoardPage() {
       </div>
 
       <ErrorBoundary>
-        <Show
-          when={board}
+        <Suspense
           fallback={
             <div class="flex justify-center py-16">
               <span
@@ -179,68 +179,76 @@ export default function BoardPage() {
             </div>
           }
         >
-          {(data) => (
-            <>
-              <ErrorBoundary>
-                <DragDropBoard
-                  onDragEnd={handleDragEnd}
-                  board={() => board}
-                >
-                  <div class="space-y-8">
-                    <ErrorBoundary>
-                      <BoardOverview data={data()} />
-                    </ErrorBoundary>
+          <Show when={boardData()}>
+            {(data) => (
+              <>
+                <ErrorBoundary>
+                  <DragDropBoard
+                    onDragEnd={handleDragEnd}
+                    board={() => board}
+                  >
+                    <div class="space-y-8">
+                      <ErrorBoundary>
+                        <Show when={board}>
+                          {(boardState) => <BoardOverview data={boardState()} />}
+                        </Show>
+                      </ErrorBoundary>
 
-                    <div class="flex justify-start mb-4">
-                      <button
-                        type="button"
-                        class="btn btn-primary"
-                        onClick={() => setIsAddCardModalOpen("open", true)}
-                      >
-                        Add Card
-                      </button>
-                    </div>
-
-                    <section class="flex gap-7 overflow-x-auto pb-8">
-                      <Suspense fallback={<CardListFallback />}>
-                        <For
-                          each={data().lists}
-                          fallback={<CardListFallback />}
+                      <div class="flex justify-start mb-4">
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          onClick={() => setIsAddCardModalOpen("open", true)}
                         >
-                          {(list) => (
-                            <ErrorBoundary>
-                              <CardList
-                                list={list}
-                                users={allUsers()}
-                                allUsers={effectiveUsers()}
-                                allTags={effectiveTags()}
-                                boardId={params.id}
-                                onCardUpdate={handleCardUpdate}
-                                onCardDelete={handleCardDelete}
-                              />
-                            </ErrorBoundary>
+                          Add Card
+                        </button>
+                      </div>
+
+                      <section class="flex gap-7 overflow-x-auto pb-8">
+                        <Show when={board}>
+                          {(boardState) => (
+                            <For
+                              each={boardState().lists}
+                              fallback={<CardListFallback />}
+                            >
+                              {(list) => (
+                                <ErrorBoundary>
+                                  <CardList
+                                    list={list}
+                                    users={effectiveUsers()}
+                                    allUsers={effectiveUsers()}
+                                    allTags={effectiveTags()}
+                                    boardId={params.id}
+                                    onCardUpdate={handleCardUpdate}
+                                    onCardDelete={handleCardDelete}
+                                  />
+                                </ErrorBoundary>
+                              )}
+                            </For>
                           )}
-                        </For>
-                      </Suspense>
-                    </section>
-                  </div>
-                </DragDropBoard>
-              </ErrorBoundary>
-              <ErrorBoundary>
-                <Suspense fallback={null}>
-                  <AddCardModal
-                    boardId={data().id}
-                    users={effectiveUsers()}
-                    tags={effectiveTags()}
-                    isOpen={isAddCardModalOpen.open}
-                    onClose={() => setIsAddCardModalOpen("open", false)}
-                    onCardAdd={handleCardAdd}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            </>
-          )}
-        </Show>
+                        </Show>
+                      </section>
+                    </div>
+                  </DragDropBoard>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <Show when={board}>
+                    {(boardState) => (
+                      <AddCardModal
+                        boardId={boardState().id}
+                        users={effectiveUsers()}
+                        tags={effectiveTags()}
+                        isOpen={isAddCardModalOpen.open}
+                        onClose={() => setIsAddCardModalOpen("open", false)}
+                        onCardAdd={handleCardAdd}
+                      />
+                    )}
+                  </Show>
+                </ErrorBoundary>
+              </>
+            )}
+          </Show>
+        </Suspense>
       </ErrorBoundary>
     </main>
   );

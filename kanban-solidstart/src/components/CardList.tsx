@@ -22,7 +22,7 @@ export function CardList(props: {
 
   const availableUsers = createMemo(() => users ?? []);
 
-  const cardIds = () => list.cards.map((card) => card.id);
+  const cardIds = () => list.cards.map((card) => `card-${card.id}`);
 
   const cardList = () => (
     <For

@@ -25,9 +25,11 @@ export function DragDropBoard(props: {
     const currentBoard = props.board();
 
     if (currentBoard && cardId.startsWith('card-')) {
+      // Remove the 'card-' prefix to get the actual card ID
+      const actualCardId = cardId.replace('card-', '');
       // Find the card in the board data
       for (const list of currentBoard.lists) {
-        const card = list.cards.find(c => c.id === cardId);
+        const card = list.cards.find(c => c.id === actualCardId);
         if (card) {
           setActiveCard(card);
           break;

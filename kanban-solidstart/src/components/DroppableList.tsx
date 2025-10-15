@@ -24,7 +24,7 @@ function DroppableContent(props: {
   listId: string;
   children: JSX.Element;
 }) {
-  const droppable = createDroppable(props.listId);
+  const droppable = createDroppable(`list-${props.listId}`);
 
   return (
     <div

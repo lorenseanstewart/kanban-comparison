@@ -99,7 +99,7 @@ function DraggableContent(props: {
   onEdit: () => void;
   onOpenComments: () => void;
 }) {
-  const sortable = createSortable(props.card.id);
+  const sortable = createSortable(`card-${props.card.id}`);
 
   return (
     <div

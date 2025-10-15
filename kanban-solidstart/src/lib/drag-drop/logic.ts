@@ -22,12 +22,13 @@ export function resolveTargetListId(
   board: BoardDetails
 ): string | null {
   if (droppableId.startsWith("list-")) {
-    return droppableId;
+    return droppableId.replace("list-", "");
   }
 
   if (droppableId.startsWith("card-")) {
+    const actualCardId = droppableId.replace("card-", "");
     const targetList = board.lists.find((list) =>
-      list.cards.some((card) => card.id === droppableId)
+      list.cards.some((card) => card.id === actualCardId)
     );
     return targetList?.id ?? null;
   }
@@ -57,8 +58,11 @@ export function parseDragEvent(
   droppableId: string,
   board: BoardDetails
 ): DragDropResult | null {
+  // Strip the 'card-' prefix if present
+  const actualCardId = cardId.startsWith('card-') ? cardId.replace('card-', '') : cardId;
+
   const sourceList = board.lists.find((list) =>
-    list.cards.some((card) => card.id === cardId)
+    list.cards.some((card) => card.id === actualCardId)
   );
 
   if (!sourceList) return null;
@@ -66,11 +70,11 @@ export function parseDragEvent(
   const targetListId = resolveTargetListId(droppableId, board);
   if (!targetListId) return null;
 
-  const card = sourceList.cards.find((c) => c.id === cardId);
+  const card = sourceList.cards.find((c) => c.id === actualCardId);
   if (!card) return null;
 
   return {
-    cardId,
+    cardId: actualCardId,
     droppableId,
     sourceListId: sourceList.id,
     targetListId,
@@ -99,9 +103,14 @@ export function calculateReorder(
   draggedCardId: string,
   droppedOnCardId: string
 ): ReorderResult | null {
+  // Strip the 'card-' prefix if present
+  const actualDroppedOnCardId = droppedOnCardId.startsWith('card-')
+    ? droppedOnCardId.replace('card-', '')
+    : droppedOnCardId;
+
   const cardIds = cards.map((c) => c.id);
   const oldIndex = cardIds.indexOf(draggedCardId);
-  const newIndex = cardIds.indexOf(droppedOnCardId);
+  const newIndex = cardIds.indexOf(actualDroppedOnCardId);
 
   if (oldIndex === -1 || newIndex === -1) {
     return null;

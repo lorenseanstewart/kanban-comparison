@@ -1,11 +1,10 @@
-import { Show, onMount, createSignal } from "solid-js";
+import { Show, onMount, createSignal, createMemo } from "solid-js";
 import type { BoardDetails } from "~/api/boards";
 import { BarChart } from "./charts/BarChart";
 import { PieChart } from "./charts/PieChart";
 import { ErrorBoundary } from "./ErrorBoundary";
 
 export function BoardOverview(props: { data: BoardDetails }) {
-  const { data } = props;
   const [mounted, setMounted] = createSignal(false);
 
   onMount(() => {
@@ -20,19 +19,21 @@ export function BoardOverview(props: { data: BoardDetails }) {
     "#60a5fa", // blue (info)
   ];
 
-  // Prepare data for charts
-  const chartData = data.lists.map((list) => ({
-    label: list.title,
-    value: list.cards.length,
-  }));
+  // Prepare data for charts - use createMemo to make it reactive
+  const chartData = createMemo(() =>
+    props.data.lists.map((list) => ({
+      label: list.title,
+      value: list.cards.length,
+    }))
+  );
 
   return (
     <section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
       {/* Header Section */}
       <div class="space-y-3">
         <div class="badge badge-secondary badge-outline">Board overview</div>
-        <h1 class="text-4xl font-black text-primary">{data.title}</h1>
-        <Show when={data.description}>
+        <h1 class="text-4xl font-black text-primary">{props.data.title}</h1>
+        <Show when={props.data.description}>
           {(description) => (
             <p class="text-base text-base-content/60 max-w-2xl">
               {description()}
@@ -70,14 +71,14 @@ export function BoardOverview(props: { data: BoardDetails }) {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
           <ErrorBoundary>
             <BarChart
-              data={chartData}
+              data={chartData()}
               colors={pastelColors}
               title="Cards per List"
             />
           </ErrorBoundary>
           <ErrorBoundary>
             <PieChart
-              data={chartData}
+              data={chartData()}
               colors={pastelColors}
               title="Distribution"
             />
