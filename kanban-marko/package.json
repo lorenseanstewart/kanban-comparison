@@ -31,7 +31,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:reset": "rm -f drizzle/db.sqlite drizzle/db.sqlite-shm drizzle/db.sqlite-wal",
     "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:migrate && npm run seed"
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
   }
 }

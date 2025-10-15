@@ -37,7 +37,8 @@ npm run dev
 - `npm run build` - Build production bundle
 - `npm run preview` - Preview production build
 - `npm run start` - Run production server
-- `npm run setup` - Initialize database (migrate + seed)
+- `npm run setup` - Initialize database (reset + migrate + seed)
+- `npm run db:reset` - Delete database files
 - `npm run db:generate` - Generate new migration from schema changes
 - `npm run db:migrate` - Apply pending migrations
 - `npm run db:push` - Push schema changes directly (dev only)
@@ -50,8 +51,7 @@ The app uses SQLite with Drizzle ORM. The database file is located at `drizzle/d
 ### Reset Database
 
 ```bash
-rm -f drizzle/db.sqlite drizzle/db.sqlite-shm drizzle/db.sqlite-wal
-npm run setup
+npm run setup  # This automatically resets, migrates, and seeds
 ```
 
 ### Schema Changes
