@@ -1,0 +1,38 @@
+---
+import type { BoardDetails } from '../lib/api';
+import BarChart from './charts/BarChart.astro';
+import PieChart from './charts/PieChart.astro';
+
+interface Props {
+  board: BoardDetails;
+}
+
+const { board } = Astro.props;
+
+// DaisyUI pastel colors matching the theme
+const pastelColors = [
+  "#fbbf24", // amber (warning)
+  "#f472b6", // pink (secondary)
+  "#a78bfa", // purple (primary)
+  "#60a5fa", // blue (info)
+];
+
+// Prepare data for charts
+const chartData = board.lists.map((list) => ({
+  label: list.title,
+  value: list.cards.length,
+}));
+---
+
+<div id="board-charts" class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start" hx-swap-oob="true">
+  <BarChart
+    data={chartData}
+    colors={pastelColors}
+    title="Cards per List"
+  />
+  <PieChart
+    data={chartData}
+    colors={pastelColors}
+    title="Distribution"
+  />
+</div>

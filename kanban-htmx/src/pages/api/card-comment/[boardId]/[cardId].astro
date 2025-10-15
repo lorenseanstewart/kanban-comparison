@@ -1,0 +1,54 @@
+---
+import { getBoard, getUsers, addComment } from '../../../../lib/api';
+import BoardCardsResponse from '../../../../components/BoardCardsResponse.astro';
+import * as v from 'valibot';
+import { CommentSchema } from '../../../../lib/validation';
+
+const { boardId, cardId } = Astro.params;
+
+if (!boardId || !cardId) {
+  Astro.response.status = 400;
+  return new Response('Board ID and Card ID required', { status: 400 });
+}
+
+// Handle POST - add a comment
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const userId = formData.get('userId') as string;
+    const text = formData.get('text') as string;
+
+    // Validate with Valibot
+    const result = v.safeParse(CommentSchema, {
+      cardId,
+      userId,
+      text,
+    });
+
+    if (!result.success) {
+      Astro.response.status = 400;
+      return new Response(result.issues[0].message, { status: 400 });
+    }
+
+    await addComment(result.output);
+  } catch (error) {
+    console.error('Failed to add comment:', error);
+    Astro.response.status = 500;
+    return new Response('Failed to add comment', { status: 500 });
+  }
+}
+
+// Get updated board and users
+const board = await getBoard(boardId);
+const users = await getUsers();
+
+if (!board) {
+  Astro.response.status = 404;
+  return new Response('Board not found', { status: 404 });
+}
+
+// Set response headers for HTMX
+Astro.response.headers.set('Content-Type', 'text/html');
+---
+
+<BoardCardsResponse board={board} users={users} />

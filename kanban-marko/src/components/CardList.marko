@@ -1,29 +1,37 @@
 import Card from "./Card.marko";
+import type { BoardList, UsersList, TagsList } from "../lib/api";
+export interface Input {
+  list: BoardList;
+  users?: UsersList;
+  allUsers?: UsersList;
+  allTags?: TagsList;
+}
 
 <article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
   <div class="card-body gap-4">
     <header class="flex items-center justify-between">
-      <h2 class="card-title text-base-content">${input.list.title}</h2>
+      <h2 class="card-title text-base-content">
+        ${input.list.title}
+      </h2>
       <div class="badge badge-primary badge-outline badge-lg shadow">
         ${input.list.cards.length} cards
       </div>
     </header>
 
     <div class="min-h-[200px]">
-      <if=input.list.cards.length === 0>
+      <if=(input.list.cards.length === 0)>
         <div class="alert alert-info text-sm">
           <span>No cards yet</span>
         </div>
       </if>
       <else>
         <div class="space-y-3">
-          <for|card| of=input.list.cards>
+          <for|card| of=(input.list.cards)>
             <Card
               card=card
               users=input.users
               allUsers=input.allUsers
-              allTags=input.allTags
-            />
+              allTags=input.allTags/>
           </for>
         </div>
       </else>

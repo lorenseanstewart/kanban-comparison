@@ -5,9 +5,9 @@ import { BoardPageClient } from "./BoardPageClient";
 export default async function BoardPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   const [boardData, allUsers, allTags] = await Promise.all([
     getBoard(id),

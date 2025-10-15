@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { BoardDetails, BoardCard, UsersList, TagsList } from "@/lib/api";
 import { BoardOverview } from "@/components/BoardOverview";
 import { CardList } from "@/components/CardList";
+import { EmptyList } from "@/components/EmptyList";
 import { DragDropBoard } from "@/components/DragDropBoard";
 import { AddCardModal } from "@/components/modals/AddCardModal";
 import { useBoardDragDrop } from "@/lib/drag-drop/hooks";
@@ -112,7 +113,10 @@ export function BoardPageClient({
       <div className="breadcrumbs text-sm">
         <ul>
           <li>
-            <Link href="/" className="link link-hover">
+            <Link
+              href="/"
+              className="link link-hover"
+            >
               Boards
             </Link>
           </li>
@@ -122,45 +126,40 @@ export function BoardPageClient({
         </ul>
       </div>
 
-      <DragDropBoard onDragEnd={handleDragEnd} board={board}>
-        <div className="space-y-8">
-          <BoardOverview data={board} />
+      <div className="space-y-8">
+        <BoardOverview data={board} />
 
-          <div className="flex justify-start mb-4">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setIsAddCardModalOpen(true)}
-            >
-              Add Card
-            </button>
-          </div>
+        <div className="flex justify-start mb-4">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setIsAddCardModalOpen(true)}
+          >
+            Add Card
+          </button>
+        </div>
 
-          <section className="flex gap-7 overflow-x-auto pb-8">
+        <DragDropBoard
+          onDragEnd={handleDragEnd}
+          board={board}
+        >
+          <div className="flex gap-7 overflow-x-auto pb-8">
             {board.lists.length === 0 ? (
-              <div className="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
-                <div className="card-body items-center text-center">
-                  <h2 className="card-title text-secondary">No lists yet</h2>
-                  <p className="text-base-content/60">
-                    Add a list to begin organizing work on this board.
-                  </p>
-                </div>
-              </div>
+              <EmptyList />
             ) : (
               board.lists.map((list) => (
                 <CardList
                   key={list.id}
                   list={list}
-                  users={allUsers}
                   allUsers={allUsers}
                   allTags={allTags}
                   onCardUpdate={handleCardUpdate}
                 />
               ))
             )}
-          </section>
-        </div>
-      </DragDropBoard>
+          </div>
+        </DragDropBoard>
+      </div>
 
       <AddCardModal
         boardId={board.id}

@@ -1,4 +1,5 @@
 import { dragAndDrop, remapNodes } from "@formkit/drag-and-drop";
+import { animations } from "@formkit/drag-and-drop";
 import autoAnimate from "@formkit/auto-animate";
 import type { BoardDetails } from "../api";
 
@@ -16,7 +17,7 @@ export function createDragDropState(): DragDropState {
 
 export function initializeDragAndDrop(
   state: DragDropState,
-  board: BoardDetails,
+  getBoard: () => BoardDetails,
   setBoard: (board: BoardDetails) => void,
   setDragOverListId: (id: string | null) => void
 ) {
@@ -24,18 +25,25 @@ export function initializeDragAndDrop(
   if (state.isUpdatingFromDrag) return;
 
   const listContainers = document.querySelectorAll("[data-drop-zone]");
+  console.log("Initializing drag and drop for", listContainers.length, "drop zones");
 
   listContainers.forEach((container: Element) => {
     const listElement = container.closest("[data-list-id]");
     const listId = listElement?.getAttribute("data-list-id");
 
-    if (!listId) return;
+    if (!listId) {
+      console.warn("No list ID found for container", container);
+      return;
+    }
 
     // If already initialized, remap the nodes to pick up new cards
     if (state.dropZoneRefs.has(listId)) {
+      console.log("Remapping nodes for list", listId);
       remapNodes(container as HTMLElement);
       return;
     }
+
+    console.log("Setting up drag and drop for list", listId);
 
     // Mark as initialized
     state.dropZoneRefs.set(listId, container);
@@ -76,7 +84,7 @@ export function initializeDragAndDrop(
     container.addEventListener("dragleave", handleDragLeave as EventListener);
 
     // Also add dragover to all cards in this list so they trigger the parent's hover state
-    const cards = container.querySelectorAll("[data-card-id]");
+    const cards = container.querySelectorAll("[data-draggable-card]");
     cards.forEach((card) => {
       card.addEventListener("dragover", handleDragOver);
     });
@@ -85,28 +93,37 @@ export function initializeDragAndDrop(
       parent: container as HTMLElement,
 
       getValues: () => {
-        const cardElements = container.querySelectorAll(
-          "[data-card-id]"
-        ) as NodeListOf<HTMLElement>;
-        return Array.from(cardElements);
+        // Return all direct children - library needs exact match
+        const children = Array.from(container.children);
+        console.log("getValues for list", listId, "found", children.length, "children");
+        return children;
       },
 
-      setValues: (values) => {
+      setValues: () => {
         // The library handles DOM updates automatically
+        // This function is required but can be empty
       },
 
       config: {
         group: "board",
         sortable: true,
         dropZone: true,
+        plugins: [animations()],
 
         handleEnd: () => {
           // Clear hover state when drag ends
+          console.log("Drag ended");
           setDragOverListId(null);
+
+          // Reset z-index on all cards to fix modal layering issues
+          document.querySelectorAll("[data-draggable-card]").forEach((card) => {
+            (card as HTMLElement).style.zIndex = "";
+          });
         },
 
         // Handle reordering within the same list
         onSort: async ({ values }) => {
+          console.log("onSort triggered for list", listId, "with", values.length, "items");
           const cardIds = values
             .map((el) => (el as HTMLElement).getAttribute("data-card-id"))
             .filter((id): id is string => id !== null);
@@ -114,9 +131,11 @@ export function initializeDragAndDrop(
           // Update client state to reflect the new order
           state.isUpdatingFromDrag = true;
 
+          // Get the current board state
+          const currentBoard = getBoard();
           const updatedBoard: BoardDetails = {
-            ...board,
-            lists: board.lists.map((list) => {
+            ...currentBoard,
+            lists: currentBoard.lists.map((list) => {
               if (list.id === currentListId) {
                 // Reorder cards based on the new cardIds order
                 const reorderedCards = cardIds
@@ -158,6 +177,7 @@ export function initializeDragAndDrop(
 
         // Handle moving cards between lists
         onTransfer: async ({ sourceParent, targetParent, draggedNodes }) => {
+          console.log("onTransfer triggered");
           let sourceListEl: HTMLElement | null = sourceParent.el.parentElement;
           while (sourceListEl && !sourceListEl.hasAttribute("data-list-id")) {
             sourceListEl = sourceListEl.parentElement;
@@ -172,17 +192,24 @@ export function initializeDragAndDrop(
           const targetListId = targetListEl?.getAttribute("data-list-id");
           const cardId = draggedNodes[0]?.el.getAttribute("data-card-id");
 
-          if (!cardId || !targetListId || !sourceListId) return;
+          console.log("Transfer from", sourceListId, "to", targetListId, "card", cardId);
+
+          if (!cardId || !targetListId || !sourceListId) {
+            console.warn("Missing required IDs for transfer");
+            return;
+          }
 
           // Update client state to sync with the DOM that the library already moved
           state.isUpdatingFromDrag = true;
 
+          // Get the current board state
+          const currentBoard = getBoard();
           // Find the card data and move it between lists in state
           let movedCard: BoardDetails["lists"][number]["cards"][number] | null =
             null;
           let updatedBoard: BoardDetails = {
-            ...board,
-            lists: board.lists.map((list) => {
+            ...currentBoard,
+            lists: currentBoard.lists.map((list) => {
               if (list.id === sourceListId) {
                 // Remove card from source list
                 const cardToMove = list.cards.find((c) => c.id === cardId);

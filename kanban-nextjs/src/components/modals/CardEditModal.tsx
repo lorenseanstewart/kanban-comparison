@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { BoardCard, UsersList, TagsList } from "@/lib/api";
-import { updateCard, deleteCard } from "@/lib/actions";
-import { useRouter } from "next/navigation";
+import { updateCard } from "@/lib/actions";
 
 export function CardEditModal({
   card,
@@ -12,7 +11,6 @@ export function CardEditModal({
   isOpen,
   onClose,
   onUpdate,
-  onDelete,
 }: {
   card: BoardCard;
   users: UsersList;
@@ -20,21 +18,14 @@ export function CardEditModal({
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: (updatedCard: Partial<BoardCard>) => void;
-  onDelete?: (cardId: string) => void;
 }) {
-  const router = useRouter();
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
     new Set(card.tags.map((t) => t.id))
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Reset selected tags when card changes
   useEffect(() => {
     setSelectedTagIds(new Set(card.tags.map((t) => t.id)));
-    setError(null);
-    setIsDeleting(false);
   }, [card]);
 
   const toggleTag = (tagId: string) => {
@@ -61,66 +52,21 @@ export function CardEditModal({
       formData.append("tagIds", tagId);
     });
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // Persist to server
-      const result = await updateCard(formData);
-
-      if (!result.success) {
-        setError(result.error || "Failed to update card");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Update the UI after successful server update
-      if (onUpdate) {
-        const updatedTags = tags.filter((tag) => selectedTagIds.has(tag.id));
-        onUpdate({
-          title,
-          description: description || null,
-          assigneeId: assigneeId || null,
-          tags: updatedTags,
-        });
-      }
-
-      onClose();
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this card?")) {
-      return;
+    // Optimistically update the UI
+    if (onUpdate) {
+      const updatedTags = tags.filter((tag) => selectedTagIds.has(tag.id));
+      onUpdate({
+        title,
+        description: description || null,
+        assigneeId: assigneeId || null,
+        tags: updatedTags,
+      });
     }
 
-    setIsDeleting(true);
-    setError(null);
+    onClose();
 
-    try {
-      const result = await deleteCard(card.id);
-
-      if (!result.success) {
-        setError(result.error || "Failed to delete card");
-        setIsDeleting(false);
-        return;
-      }
-
-      // Notify parent component
-      if (onDelete) {
-        onDelete(card.id);
-      }
-
-      onClose();
-      router.refresh();
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
-      setIsDeleting(false);
-    }
+    // Persist to server in background
+    await updateCard(formData);
   };
 
   if (!isOpen) return null;
@@ -144,12 +90,6 @@ export function CardEditModal({
           </button>
           <h3 className="font-bold text-lg mb-4">Edit Card</h3>
 
-          {error && (
-            <div className="alert alert-error mb-4">
-              <span>{error}</span>
-            </div>
-          )}
-
           <input type="hidden" name="cardId" value={card.id} />
 
           <div className="form-control w-full mb-4">
@@ -162,7 +102,6 @@ export function CardEditModal({
               className="input input-bordered w-full"
               defaultValue={card.title}
               required
-              disabled={isSubmitting}
             />
           </div>
 
@@ -174,7 +113,6 @@ export function CardEditModal({
               name="description"
               className="textarea textarea-bordered h-24 w-full"
               defaultValue={card.description || ""}
-              disabled={isSubmitting}
             />
           </div>
 
@@ -186,7 +124,6 @@ export function CardEditModal({
               name="assigneeId"
               className="select select-bordered w-full"
               defaultValue={card.assigneeId || ""}
-              disabled={isSubmitting}
             >
               <option value="">Unassigned</option>
               {users.map((user) => (
@@ -228,23 +165,13 @@ export function CardEditModal({
             </div>
           </div>
 
-          <div className="modal-action justify-between">
-            <button
-              type="button"
-              className="btn btn-error"
-              onClick={handleDelete}
-              disabled={isSubmitting || isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete Card"}
+          <div className="modal-action">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>
+              Cancel
             </button>
-            <div className="flex gap-2">
-              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={isSubmitting || isDeleting}>
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting || isDeleting}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
+            <button type="submit" className="btn btn-primary">
+              Save Changes
+            </button>
           </div>
         </form>
       </div>

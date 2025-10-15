@@ -1,48 +1,58 @@
-<let/selectedTagIds=new Set()>
-<let/error=null>
+import type { UsersList, TagsList } from "../../lib/api";
+import { createCard } from "../../lib/client/cards";
+export interface Input {
+  isOpen: boolean;
+  boardId: string;
+  users: UsersList;
+  tags: TagsList;
+  onClose: () => void;
+  onCardAdd?: (data: {
+    id: string;
+    title: string;
+    description: string | null;
+    assigneeId: string | null;
+    tagIds: string[];
+  }) => void;
+}
+
+<let/selectedTagIds=([] as string[])>
+<let/error="">
 <let/isSubmitting=false>
 
 <if=input.isOpen>
   <dialog
-    class="modal modal-open !mt-0"
+    class="modal modal-open !mt-0 !z-[9999]"
     onClick=(e) => {
       if (e.target === e.currentTarget) input.onClose();
-    }
-  >
+    }>
     <div class="modal-backdrop bg-black/70"/>
-    <div class="modal-box bg-base-200 dark:bg-base-300">
+    <div class="modal-box bg-base-200 dark:bg-base-300 relative z-10">
       <form onSubmit=async (e) => {
         e.preventDefault();
-        const form = e.target;
+        const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
 
-        const title = formData.get('title');
-        const description = formData.get('description');
-        const assigneeId = formData.get('assigneeId');
-        const boardId = formData.get('boardId');
+        const title = formData.get("title") as string;
+        const description = formData.get("description") as string;
+        const assigneeId = formData.get("assigneeId") as string;
+        const boardId = formData.get("boardId") as string;
 
         const body = {
           boardId,
           title,
           description: description || null,
           assigneeId: assigneeId || null,
-          tagIds: Array.from(selectedTagIds)
+          tagIds: selectedTagIds,
         };
 
-        error = null;
+        error = "";
         isSubmitting = true;
 
         try {
-          const response = await fetch('/api/cards/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          });
-
-          const result = await response.json();
+          const result = await createCard(body);
 
           if (!result.success) {
-            error = result.error || 'An error occurred';
+            error = result.error || "An error occurred";
             isSubmitting = false;
             return;
           }
@@ -53,15 +63,15 @@
               title,
               description: description || null,
               assigneeId: assigneeId || null,
-              tagIds: Array.from(selectedTagIds)
+              tagIds: selectedTagIds,
             });
           }
 
           form.reset();
-          selectedTagIds = new Set();
+          selectedTagIds = [];
           input.onClose();
         } catch (err) {
-          error = 'An unexpected error occurred. Please try again.';
+          error = "An unexpected error occurred. Please try again.";
         } finally {
           isSubmitting = false;
         }
@@ -69,11 +79,12 @@
         <button
           type="button"
           class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-          onClick=input.onClose
-        >
+          onClick=input.onClose>
           ✕
         </button>
-        <h3 class="font-bold text-lg mb-4">Add New Card</h3>
+        <h3 class="font-bold text-lg mb-4">
+          Add New Card
+        </h3>
 
         <if=error>
           <div class="alert alert-error mb-4">
@@ -81,11 +92,13 @@
           </div>
         </if>
 
-        <input type="hidden" name="boardId" value=input.boardId/>
+        <input type="hidden" name="boardId" value=input.boardId>
 
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Title</span>
+            <span class="label-text">
+              Title
+            </span>
           </label>
           <input
             type="text"
@@ -93,30 +106,37 @@
             class="input input-bordered w-full"
             placeholder="Enter card title"
             required
-            disabled=isSubmitting
-          />
+            disabled=isSubmitting>
         </div>
 
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Description</span>
+            <span class="label-text">
+              Description
+            </span>
           </label>
           <textarea
             name="description"
             class="textarea textarea-bordered h-24 w-full"
             placeholder="Enter card description (optional)"
-            disabled=isSubmitting
-          />
+            disabled=isSubmitting/>
         </div>
 
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Assignee</span>
+            <span class="label-text">
+              Assignee
+            </span>
           </label>
-          <select name="assigneeId" class="select select-bordered w-full" disabled=isSubmitting>
-            <option value="">Unassigned</option>
-            <for|user| of=input.users>
-              <option key=user.id value=user.id>
+          <select
+            name="assigneeId"
+            class="select select-bordered w-full"
+            disabled=isSubmitting>
+            <option value="">
+              Unassigned
+            </option>
+            <for|user| of=input.users by=(user) => user.id>
+              <option value=user.id>
                 ${user.name}
               </option>
             </for>
@@ -125,27 +145,26 @@
 
         <div class="form-control w-full mb-4">
           <label class="label">
-            <span class="label-text">Tags</span>
+            <span class="label-text">
+              Tags
+            </span>
           </label>
           <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-            <for|tag| of=input.tags>
+            <for|tag| of=input.tags by=(tag) => tag.id>
               <button
-                key=tag.id
                 type="button"
-                class=`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
-                  selectedTagIds.has(tag.id) ? 'text-white' : 'badge-outline'
-                }`
-                style=selectedTagIds.has(tag.id) ? `background-color: ${tag.color}; border-color: ${tag.color}` : `color: ${tag.color}; border-color: ${tag.color}`
+                class=`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${selectedTagIds.includes(tag.id) ? "text-white" : "badge-outline"}`
+                style=(
+                  selectedTagIds.includes(tag.id)
+                    ? `background-color: ${tag.color}; border-color: ${tag.color}`
+                    : `color: ${tag.color}; border-color: ${tag.color}`
+                )
                 onClick=() => {
-                  const newSet = new Set(selectedTagIds);
-                  if (newSet.has(tag.id)) {
-                    newSet.delete(tag.id);
-                  } else {
-                    newSet.add(tag.id);
-                  }
-                  selectedTagIds = newSet;
-                }
-              >
+                  const isSelected = selectedTagIds.includes(tag.id);
+                  selectedTagIds = isSelected
+                    ? selectedTagIds.filter((id) => id !== tag.id)
+                    : [...selectedTagIds, tag.id];
+                }>
                 ${tag.name}
               </button>
             </for>
@@ -153,11 +172,15 @@
         </div>
 
         <div class="modal-action">
-          <button type="button" class="btn btn-ghost" onClick=input.onClose disabled=isSubmitting>
+          <button
+            type="button"
+            class="btn btn-ghost"
+            onClick=input.onClose
+            disabled=isSubmitting>
             Cancel
           </button>
           <button type="submit" class="btn btn-primary" disabled=isSubmitting>
-            ${isSubmitting ? 'Adding...' : 'Add Card'}
+            ${isSubmitting ? "Adding..." : "Add Card"}
           </button>
         </div>
       </form>

@@ -1,6 +1,15 @@
-# Kanban Next.js
+# Kanban Next.js (with React Compiler)
 
-Kanban board built with Next.js 15, Server Actions, and SQLite.
+Experimental variant with **React 19's compiler** enabled for automatic optimization.
+
+## What's Different?
+
+- Enables `experimental.reactCompiler: true` in `next.config.ts`
+- Auto-memoizes renders, computations, and callbacks without manual `useMemo`/`useCallback`
+- Same code as standard Next.js app - compiler optimizes automatically
+- ~3% smaller bundle size
+
+**Note**: Still experimental - not recommended for production.
 
 ## Setup
 
@@ -9,8 +18,6 @@ npm install
 ```
 
 ## Database
-
-Initialize and seed the database:
 
 ```bash
 npx drizzle-kit push
@@ -31,3 +38,8 @@ Open [http://localhost:3000](http://localhost:3000)
 npm run build
 npm start
 ```
+
+## More Info
+
+- [React Compiler Docs](https://react.dev/learn/react-compiler)
+- [Next.js Integration](https://nextjs.org/docs/app/api-reference/next-config-js/reactCompiler)

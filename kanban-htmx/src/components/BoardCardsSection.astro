@@ -1,0 +1,295 @@
+---
+import type { BoardDetails, UsersList } from "../lib/api";
+import CardList from "./CardList.astro";
+
+interface Props {
+  board: BoardDetails;
+  users: UsersList;
+}
+
+const { board, users } = Astro.props;
+---
+
+<section
+  id="board-cards-section"
+  class="flex gap-7 overflow-x-auto pb-8"
+  data-board-id={board.id}
+  hx-post={`/api/board/${board.id}/reorder`}
+  hx-trigger="reorder, cardTransfer"
+  hx-swap="outerHTML"
+  hx-vals="js:{...window.kanban.getDragDropValues(event)}"
+>
+  {
+    board.lists.length === 0 ? (
+      <div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+        <div class="card-body items-center text-center">
+          <h2 class="card-title text-secondary">No lists yet</h2>
+          <p class="text-base-content/60">
+            Add a list to begin organizing work on this board.
+          </p>
+        </div>
+      </div>
+    ) : (
+      board.lists.map((list) => (
+        <CardList
+          list={list}
+          users={users}
+          boardId={board.id}
+        />
+      ))
+    )
+  }
+</section>
+
+<script>
+  import { dragAndDrop } from "@formkit/drag-and-drop";
+  import { animations } from "@formkit/drag-and-drop";
+  import autoAnimate from "@formkit/auto-animate";
+
+  // Create global namespace for kanban functions
+  window.kanban = window.kanban || {};
+
+  // Extract drag-and-drop values for HTMX request
+  window.kanban.getDragDropValues = function (event) {
+    const vals = {};
+    // Only process if event.detail exists (drag-and-drop events)
+    if (!event || !event.detail) return vals;
+
+    if (event.detail.cardIds)
+      vals.cardIds = JSON.stringify(event.detail.cardIds);
+    if (event.detail.listId) vals.listId = event.detail.listId;
+    if (event.detail.cardId) vals.cardId = event.detail.cardId;
+    if (event.detail.sourceListId)
+      vals.sourceListId = event.detail.sourceListId;
+    if (event.detail.targetListId)
+      vals.targetListId = event.detail.targetListId;
+    return vals;
+  };
+
+  // Initialize drag-and-drop functionality
+  window.kanban.initializeDragAndDrop = function () {
+    const dropZones = Array.from(document.querySelectorAll("[data-drop-zone]"));
+
+    // Track which list is being dragged over (shared across all drop zones)
+    let dragOverListId = null;
+
+    // Track if we're in the middle of a transfer to prevent duplicate calls
+    // This must be shared across all drop zones
+    let isTransferring = false;
+    let transferTimeout = null;
+
+    // Initialize drag-and-drop for each drop zone
+    dropZones.forEach((container) => {
+      const listElement = container.closest("[data-list-id]");
+      const listId = listElement?.getAttribute("data-list-id");
+
+      if (!listId) return;
+
+      // Enable auto-animate for smooth card transitions
+      autoAnimate(container);
+
+      // Add hover state listeners with proper boundary checking
+      const handleDragOver = (e) => {
+        e.preventDefault();
+        if (dragOverListId !== listId) {
+          dragOverListId = listId;
+          container.classList.add(
+            "ring-4",
+            "ring-primary",
+            "ring-offset-2",
+            "bg-primary/5",
+            "scale-[1.02]"
+          );
+        }
+      };
+
+      const handleDragLeave = (e) => {
+        // Check if we're actually leaving the container bounds
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX;
+        const y = e.clientY;
+
+        if (
+          x < rect.left ||
+          x >= rect.right ||
+          y < rect.top ||
+          y >= rect.bottom
+        ) {
+          dragOverListId = null;
+          container.classList.remove(
+            "ring-4",
+            "ring-primary",
+            "ring-offset-2",
+            "bg-primary/5",
+            "scale-[1.02]"
+          );
+        }
+      };
+
+      container.addEventListener("dragover", handleDragOver);
+      container.addEventListener("dragleave", handleDragLeave);
+
+      // Also add dragover to all cards so they trigger the parent's hover state
+      const cards = container.querySelectorAll("[data-draggable-card]");
+      cards.forEach((card) => {
+        card.addEventListener("dragover", handleDragOver);
+      });
+
+      // Function to update placeholder visibility based on actual DOM
+      const updatePlaceholder = () => {
+        requestAnimationFrame(() => {
+          const actualCardCount = container.querySelectorAll(
+            "[data-draggable-card]"
+          ).length;
+          const placeholder = container.querySelector(".empty-placeholder");
+          if (placeholder) {
+            placeholder.style.display = actualCardCount > 0 ? "none" : "block";
+          }
+        });
+      };
+
+      // Initialize drag-and-drop with separate handlers for sort and transfer
+      dragAndDrop({
+        parent: container,
+        getValues: () => {
+          // Return all direct children - library needs exact match
+          return Array.from(container.children);
+        },
+        setValues: () => {
+          // The library handles DOM updates automatically
+          // This function is required but can be empty - we just let the library work
+        },
+        config: {
+          group: "board",
+          sortable: true,
+          dropZone: true,
+          plugins: [animations()],
+          handleEnd: () => {
+            // Clear hover state when drag ends
+            dragOverListId = null;
+            document.querySelectorAll("[data-drop-zone]").forEach((zone) => {
+              zone.classList.remove(
+                "ring-4",
+                "ring-primary",
+                "ring-offset-2",
+                "bg-primary/5",
+                "scale-[1.02]"
+              );
+            });
+
+            // Update placeholders for all lists after drag completes
+            document.querySelectorAll("[data-drop-zone]").forEach((zone) => {
+              requestAnimationFrame(() => {
+                const cards = zone.querySelectorAll(
+                  "[data-draggable-card]"
+                ).length;
+                const placeholder = zone.querySelector(".empty-placeholder");
+                if (placeholder) {
+                  placeholder.style.display = cards > 0 ? "none" : "block";
+                }
+              });
+            });
+          },
+          // Handle reordering within the same list
+          onSort: async ({ values }) => {
+            // Skip if we're in the middle of a transfer
+            // (onTransfer handles the persistence)
+            if (isTransferring) {
+              return;
+            }
+
+            const cardIds = values
+              .map((el) => el.getAttribute("data-card-id"))
+              .filter((id) => id !== null);
+
+            // Dispatch custom event with reorder data
+            container.dispatchEvent(
+              new CustomEvent("reorder", {
+                bubbles: true,
+                detail: { cardIds, listId },
+              })
+            );
+          },
+          // Handle moving cards between lists
+          onTransfer: async ({ sourceParent, targetParent, draggedNodes }) => {
+            // Prevent duplicate calls - onTransfer can fire multiple times
+            if (isTransferring) {
+              return;
+            }
+
+            isTransferring = true;
+
+            // Clear any existing timeout
+            if (transferTimeout) {
+              clearTimeout(transferTimeout);
+            }
+
+            let sourceListEl = sourceParent.el.parentElement;
+            while (sourceListEl && !sourceListEl.hasAttribute("data-list-id")) {
+              sourceListEl = sourceListEl.parentElement;
+            }
+
+            let targetListEl = targetParent.el.parentElement;
+            while (targetListEl && !targetListEl.hasAttribute("data-list-id")) {
+              targetListEl = targetListEl.parentElement;
+            }
+
+            const sourceListId = sourceListEl?.getAttribute("data-list-id");
+            const targetListId = targetListEl?.getAttribute("data-list-id");
+            const cardId = draggedNodes[0]?.el.getAttribute("data-card-id");
+
+            if (!cardId || !targetListId || !sourceListId) {
+              isTransferring = false;
+              return;
+            }
+
+            // Dispatch custom event with transfer data
+            targetParent.el.dispatchEvent(
+              new CustomEvent("cardTransfer", {
+                bubbles: true,
+                detail: { cardId, sourceListId, targetListId },
+              })
+            );
+
+            // Reset flag after a short delay
+            transferTimeout = setTimeout(() => {
+              isTransferring = false;
+              transferTimeout = null;
+            }, 200);
+          },
+        },
+      });
+    });
+  };
+
+  // Handler for HTMX after-swap event
+  window.kanban.handleAfterSwap = function (event) {
+    if (event.detail.target.id === "board-cards-section") {
+      window.kanban.initializeDragAndDrop();
+    }
+  };
+
+  // Initialize on load
+  function init() {
+    if (document.readyState === "loading") {
+      document.addEventListener(
+        "DOMContentLoaded",
+        window.kanban.initializeDragAndDrop
+      );
+    } else {
+      window.kanban.initializeDragAndDrop();
+    }
+
+    // Listen for HTMX swaps on the body (persists across swaps)
+    if (document.body) {
+      document.body.addEventListener(
+        "htmx:afterSwap",
+        window.kanban.handleAfterSwap
+      );
+    } else {
+      console.error("document.body not available!");
+    }
+  }
+
+  init();
+</script>

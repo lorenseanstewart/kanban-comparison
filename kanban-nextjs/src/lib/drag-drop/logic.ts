@@ -3,24 +3,22 @@ import type { DragDropResult, ReorderResult } from "./types";
 
 /**
  * Resolves the target list ID from a droppable ID.
- * Handles both direct list drops (e.g., "list-123") and card drops (e.g., "card-456").
+ * Handles both direct list drops (e.g., "list-123") and card drops (card IDs).
  */
 export function resolveTargetListId(
   droppableId: string,
   board: BoardDetails
 ): string | null {
   if (droppableId.startsWith("list-")) {
-    return droppableId;
+    // Strip the "list-" prefix to get the actual list ID
+    return droppableId.substring(5);
   }
 
-  if (droppableId.startsWith("card-")) {
-    const targetList = board.lists.find((list) =>
-      list.cards.some((card) => card.id === droppableId)
-    );
-    return targetList?.id ?? null;
-  }
-
-  return null;
+  // If it's not a list, assume it's a card ID and find which list contains it
+  const targetList = board.lists.find((list) =>
+    list.cards.some((card) => card.id === droppableId)
+  );
+  return targetList?.id ?? null;
 }
 
 /**

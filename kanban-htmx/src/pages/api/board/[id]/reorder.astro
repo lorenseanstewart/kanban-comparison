@@ -1,0 +1,48 @@
+---
+import { getBoard, getUsers, moveCard, reorderCards } from '../../../../lib/api';
+import BoardCardsResponse from '../../../../components/BoardCardsResponse.astro';
+
+if (Astro.request.method !== 'POST') {
+  return new Response('Method not allowed', { status: 405 });
+}
+
+const boardId = Astro.params.id;
+if (!boardId) {
+  return new Response('Board ID required', { status: 400 });
+}
+
+const formData = await Astro.request.formData();
+const cardIds = formData.get('cardIds');
+const listId = formData.get('listId');
+const cardId = formData.get('cardId');
+const targetListId = formData.get('targetListId');
+
+try {
+  // Handle reorder (within same list)
+  if (cardIds && listId) {
+    const parsedCardIds = JSON.parse(cardIds as string) as string[];
+    await reorderCards(parsedCardIds);
+  }
+
+  // Handle transfer (between lists)
+  if (cardId && targetListId) {
+    await moveCard(cardId as string, targetListId as string);
+  }
+} catch (error) {
+  console.error('Failed to update cards:', error);
+  return new Response('Failed to update cards', { status: 500 });
+}
+
+// Fetch fresh data
+const board = await getBoard(boardId);
+const users = await getUsers();
+
+if (!board) {
+  return new Response('Board not found', { status: 404 });
+}
+
+// Set response headers for HTMX
+Astro.response.headers.set('Content-Type', 'text/html');
+---
+
+<BoardCardsResponse board={board} users={users} />

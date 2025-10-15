@@ -1,0 +1,38 @@
+---
+import type { BoardDetails, UsersList } from '../lib/api';
+import BoardCardsSection from './BoardCardsSection.astro';
+import BoardCharts from './BoardCharts.astro';
+
+interface Props {
+  board: BoardDetails;
+  users: UsersList;
+}
+
+const { board, users } = Astro.props;
+---
+
+<!-- Out-of-band swap for charts -->
+<BoardCharts board={board} />
+
+<!-- Out-of-band swaps for card count badges -->
+{board.lists.map((list) => (
+  <div
+    id={`list-${list.id}-badge`}
+    class="badge badge-primary badge-outline badge-lg shadow"
+    hx-swap-oob="true"
+  >
+    {list.cards.length} cards
+  </div>
+))}
+
+<!-- Main board section swap -->
+<BoardCardsSection board={board} users={users} />
+
+<!-- Update global board data after swap -->
+<script define:vars={{ board, users }}>
+  if (!window.kanban) {
+    window.kanban = {};
+  }
+  window.kanban.board = board;
+  window.kanban.users = users;
+</script>

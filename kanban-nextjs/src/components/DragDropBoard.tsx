@@ -41,7 +41,7 @@ export function DragDropBoard({
     const cardId = event.active.id as string;
     const currentBoard = board;
 
-    if (currentBoard && cardId.startsWith("card-")) {
+    if (currentBoard) {
       // Find the card in the board data
       for (const list of currentBoard.lists) {
         const card = list.cards.find((c) => c.id === cardId);
@@ -84,7 +84,7 @@ export function DragDropBoard({
       {children}
       <DragOverlay>
         {activeCard ? (
-          <div className="card bg-base-100 dark:bg-neutral shadow-2xl rotate-3 scale-105">
+          <article className="card bg-base-100 dark:bg-neutral shadow-2xl rotate-3 scale-105">
             <div className="card-body gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="card-title text-lg text-base-content">
@@ -115,7 +115,7 @@ export function DragDropBoard({
                 </div>
               )}
             </div>
-          </div>
+          </article>
         ) : null}
       </DragOverlay>
     </DndContext>

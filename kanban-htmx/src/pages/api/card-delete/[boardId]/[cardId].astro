@@ -1,0 +1,35 @@
+---
+import { getBoard, getUsers, deleteCard } from '../../../../lib/api';
+import BoardCardsResponse from '../../../../components/BoardCardsResponse.astro';
+
+const { boardId, cardId } = Astro.params;
+
+if (!boardId || !cardId) {
+  return new Response('Board ID and Card ID required', { status: 400 });
+}
+
+// Handle DELETE - delete a card
+if (Astro.request.method === 'DELETE') {
+  try {
+    await deleteCard(cardId);
+  } catch (error) {
+    console.error('Failed to delete card:', error);
+    Astro.response.status = 500;
+    return new Response('Failed to delete card', { status: 500 });
+  }
+}
+
+// Get updated board and users
+const board = await getBoard(boardId);
+const users = await getUsers();
+
+if (!board) {
+  Astro.response.status = 404;
+  return new Response('Board not found', { status: 404 });
+}
+
+// Set response headers for HTMX
+Astro.response.headers.set('Content-Type', 'text/html');
+---
+
+<BoardCardsResponse board={board} users={users} />

@@ -1,3 +1,7 @@
+static {
+  var sharedDragDropState = null;
+}
+
 import {
   createDragDropState,
   initializeDragAndDrop,
@@ -7,6 +11,7 @@ import type { User } from "../../drizzle/schema";
 import AddCardModal from "./modals/AddCardModal.marko";
 import CardEditModal from "./modals/CardEditModal.marko";
 import CommentModal from "./modals/CommentModal.marko";
+
 export interface Input {
   initialBoard: BoardDetails;
   allUsers: UsersList;
@@ -20,9 +25,14 @@ export interface Input {
 <let/selectedCard=null as BoardCard | null>
 <let/dragOverListId=null as string | null>
 
-<script>
-  // Create drag-and-drop state
-  const dragDropState = createDragDropState();
+<effect() {
+  // Create shared state once on first run
+  if (!sharedDragDropState) {
+    sharedDragDropState = createDragDropState();
+  }
+
+  // Helper to get current board state (always returns latest)
+  const getBoard = () => board;
 
   // Helper to update board state
   const setBoard = (newBoard: BoardDetails) => {
@@ -34,20 +44,9 @@ export interface Input {
     dragOverListId = id;
   };
 
-  // Initialize on mount
-  if (typeof document !== "undefined") {
-    queueMicrotask(() => {
-      initializeDragAndDrop(dragDropState, board, setBoard, setDragOverListId);
-    });
-  }
-
-  // Re-initialize when board data changes (e.g., when cards are added)
-  if (board && typeof document !== "undefined") {
-    queueMicrotask(() => {
-      initializeDragAndDrop(dragDropState, board, setBoard, setDragOverListId);
-    });
-  }
-</script>
+  // Initialize drag and drop after component mounts and whenever board changes
+  initializeDragAndDrop(sharedDragDropState, getBoard, setBoard, setDragOverListId);
+}/>
 
 <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
   <div class="breadcrumbs text-sm">
@@ -230,13 +229,15 @@ export interface Input {
                 class=`min-h-[200px] space-y-3 transition-all duration-200 rounded-lg ${dragOverListId === list.id ? "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]" : ""}`
                 data-drop-zone>
                 <if=(list.cards.length === 0)>
-                  <div class="alert alert-info text-sm">
+                  <div class="alert alert-info text-sm" draggable="false">
                     <span>No cards yet</span>
                   </div>
                 </if>
                 <for|card| of=list.cards>
                   <div
                     data-card-id=card.id
+                    data-draggable-card
+                    draggable="true"
                     class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out">
                     <div class="card-body gap-3 p-4">
                       <div class="flex items-start justify-between gap-2">
@@ -294,7 +295,7 @@ export interface Input {
                         </div>
                       </if>
 
-                      <if(card.comments && card.comments.length === 0)>
+                      <if=(card.comments && card.comments.length === 0)>
                         <div class="flex items-center justify-between">
                           <p class="text-xs font-semibold text-base-content/50">
                             Comments

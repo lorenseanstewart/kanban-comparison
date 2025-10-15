@@ -5,24 +5,22 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { BoardList, UsersList, TagsList, BoardCard } from "@/lib/api";
+import type { BoardDetails, UsersList, TagsList, BoardCard } from "@/lib/api";
 import { Card } from "./Card";
 
 export function CardList({
   list,
-  users,
   allUsers,
   allTags,
   onCardUpdate,
 }: {
-  list: BoardList;
-  users: UsersList | undefined;
+  list: BoardDetails["lists"][number];
   allUsers: UsersList;
   allTags: TagsList;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
 }) {
   const { setNodeRef, isOver, over } = useDroppable({
-    id: list.id,
+    id: `list-${list.id}`,
   });
 
   const cardIds = list.cards.map((card) => card.id);
@@ -31,7 +29,7 @@ export function CardList({
   const isOverThisList = isOver || (over && cardIds.includes(over.id as string));
 
   return (
-    <article className="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
+    <section className="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
       <div className="card-body gap-4">
         <header className="flex items-center justify-between">
           <h2 className="card-title text-base-content">{list.title}</h2>
@@ -42,7 +40,7 @@ export function CardList({
 
         <div
           ref={setNodeRef}
-          className={`min-h-[200px] transition-all duration-200 ${
+          className={`min-h-[200px] transition-all duration-200 rounded-lg ${
             isOverThisList
               ? "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]"
               : ""
@@ -59,7 +57,6 @@ export function CardList({
                   <Card
                     key={card.id}
                     card={card}
-                    users={users}
                     allUsers={allUsers}
                     allTags={allTags}
                     onCardUpdate={onCardUpdate}
@@ -70,6 +67,6 @@ export function CardList({
           )}
         </div>
       </div>
-    </article>
+    </section>
   );
 }

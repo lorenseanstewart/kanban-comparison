@@ -1,0 +1,37 @@
+---
+import { getBoards, createBoard } from '../../lib/api';
+import BoardsList from '../../components/BoardsList.astro';
+import * as v from 'valibot';
+import { BoardSchema } from '../../lib/validation';
+
+// Handle POST - create a new board
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+
+    // Validate with Valibot
+    const result = v.safeParse(BoardSchema, {
+      title,
+      description: description || null,
+    });
+
+    if (!result.success) {
+      Astro.response.status = 400;
+      return new Response(result.issues[0].message, { status: 400 });
+    }
+
+    await createBoard(result.output);
+  } catch (error) {
+    console.error('Failed to create board:', error);
+    Astro.response.status = 500;
+    return Astro.response;
+  }
+}
+
+// Get updated boards list
+const boards = await getBoards();
+---
+
+<BoardsList boards={boards} />

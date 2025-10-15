@@ -70,7 +70,7 @@ export async function updateCard(formData: FormData) {
 
     if (!result.success) {
       const firstIssue = result.issues[0];
-      return { success: false, error: firstIssue.message };
+      throw new Error(firstIssue.message);
     }
 
     // Use a transaction to update card and tags atomically
@@ -100,12 +100,11 @@ export async function updateCard(formData: FormData) {
       }
     });
 
-    revalidatePath("/board/[id]");
+    revalidatePath("/board/[id]", "page");
     revalidatePath("/");
-    return { success: true };
   } catch (error) {
     console.error("Failed to update card:", error);
-    return { success: false, error: "Failed to update card. Please try again." };
+    throw new Error("Failed to update card. Please try again.");
   }
 }
 
@@ -124,7 +123,7 @@ export async function addComment(formData: FormData) {
 
     if (!result.success) {
       const firstIssue = result.issues[0];
-      return { success: false, error: firstIssue.message };
+      throw new Error(firstIssue.message);
     }
 
     const commentId = crypto.randomUUID();
@@ -136,11 +135,10 @@ export async function addComment(formData: FormData) {
       text: result.output.text,
     });
 
-    revalidatePath("/board/[id]");
-    return { success: true };
+    revalidatePath("/board/[id]", "page");
   } catch (error) {
     console.error("Failed to add comment:", error);
-    return { success: false, error: "Failed to add comment. Please try again." };
+    throw new Error("Failed to add comment. Please try again.");
   }
 }
 
@@ -219,7 +217,7 @@ export async function createCard(formData: FormData) {
       }
     });
 
-    revalidatePath("/board/[id]");
+    revalidatePath("/board/[id]", "page");
     revalidatePath("/");
     return { success: true, data: { id: cardId } };
   } catch (error) {
@@ -241,7 +239,7 @@ export async function updateCardList(cardId: string, newListId: string, newPosit
       .set(updateData)
       .where(eq(cards.id, cardId));
 
-    revalidatePath("/board/[id]");
+    revalidatePath("/board/[id]", "page");
     return { success: true };
   } catch (error) {
     console.error("Failed to update card list:", error);
@@ -261,29 +259,10 @@ export async function updateCardPositions(cardIds: string[]) {
       )
     );
 
-    revalidatePath("/board/[id]");
+    revalidatePath("/board/[id]", "page");
     return { success: true };
   } catch (error) {
     console.error("Failed to update card positions:", error);
     throw new Error("Failed to reorder cards. Please try again.");
-  }
-}
-
-export async function deleteCard(cardId: string) {
-  try {
-    if (!cardId) {
-      return { success: false, error: "Card ID is required" };
-    }
-
-    await db.delete(cards).where(eq(cards.id, cardId));
-
-    revalidatePath("/board/[id]");
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to delete card:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to delete card. Please try again."
-    };
   }
 }

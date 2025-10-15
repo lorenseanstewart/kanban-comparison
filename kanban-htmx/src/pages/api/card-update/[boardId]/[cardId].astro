@@ -1,0 +1,61 @@
+---
+import { getBoard, getUsers, updateCard } from '../../../../lib/api';
+import BoardCardsResponse from '../../../../components/BoardCardsResponse.astro';
+import * as v from 'valibot';
+import { CardUpdateSchema } from '../../../../lib/validation';
+
+const { boardId, cardId } = Astro.params;
+
+if (!boardId || !cardId) {
+  Astro.response.status = 400;
+  return new Response('Board ID and Card ID required', { status: 400 });
+}
+
+// Handle PATCH - update a card
+if (Astro.request.method === 'PATCH') {
+  try {
+    const formData = await Astro.request.formData();
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const assigneeId = formData.get('assigneeId') as string;
+    const tagIds = formData.getAll('tagIds') as string[];
+
+    // Validate with Valibot
+    const result = v.safeParse(CardUpdateSchema, {
+      cardId,
+      title,
+      description: description || null,
+      assigneeId: assigneeId || null,
+      tagIds: tagIds.length > 0 ? tagIds : [],
+    });
+
+    if (!result.success) {
+      Astro.response.status = 400;
+      return new Response(result.issues[0].message, { status: 400 });
+    }
+
+    await updateCard({
+      cardId,
+      ...result.output,
+    });
+  } catch (error) {
+    console.error('Failed to update card:', error);
+    Astro.response.status = 500;
+    return new Response('Failed to update card', { status: 500 });
+  }
+}
+
+// Get updated board and users
+const board = await getBoard(boardId);
+const users = await getUsers();
+
+if (!board) {
+  Astro.response.status = 404;
+  return new Response('Board not found', { status: 404 });
+}
+
+// Set response headers for HTMX
+Astro.response.headers.set('Content-Type', 'text/html');
+---
+
+<BoardCardsResponse board={board} users={users} />
