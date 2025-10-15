@@ -25,25 +25,20 @@ export function initializeDragAndDrop(
   if (state.isUpdatingFromDrag) return;
 
   const listContainers = document.querySelectorAll("[data-drop-zone]");
-  console.log("Initializing drag and drop for", listContainers.length, "drop zones");
 
   listContainers.forEach((container: Element) => {
     const listElement = container.closest("[data-list-id]");
     const listId = listElement?.getAttribute("data-list-id");
 
     if (!listId) {
-      console.warn("No list ID found for container", container);
       return;
     }
 
     // If already initialized, remap the nodes to pick up new cards
     if (state.dropZoneRefs.has(listId)) {
-      console.log("Remapping nodes for list", listId);
       remapNodes(container as HTMLElement);
       return;
     }
-
-    console.log("Setting up drag and drop for list", listId);
 
     // Mark as initialized
     state.dropZoneRefs.set(listId, container);
@@ -94,9 +89,7 @@ export function initializeDragAndDrop(
 
       getValues: () => {
         // Return all direct children - library needs exact match
-        const children = Array.from(container.children);
-        console.log("getValues for list", listId, "found", children.length, "children");
-        return children;
+        return Array.from(container.children);
       },
 
       setValues: () => {
@@ -112,7 +105,6 @@ export function initializeDragAndDrop(
 
         handleEnd: () => {
           // Clear hover state when drag ends
-          console.log("Drag ended");
           setDragOverListId(null);
 
           // Reset z-index on all cards to fix modal layering issues
@@ -123,7 +115,6 @@ export function initializeDragAndDrop(
 
         // Handle reordering within the same list
         onSort: async ({ values }) => {
-          console.log("onSort triggered for list", listId, "with", values.length, "items");
           const cardIds = values
             .map((el) => (el as HTMLElement).getAttribute("data-card-id"))
             .filter((id): id is string => id !== null);
@@ -177,7 +168,6 @@ export function initializeDragAndDrop(
 
         // Handle moving cards between lists
         onTransfer: async ({ sourceParent, targetParent, draggedNodes }) => {
-          console.log("onTransfer triggered");
           let sourceListEl: HTMLElement | null = sourceParent.el.parentElement;
           while (sourceListEl && !sourceListEl.hasAttribute("data-list-id")) {
             sourceListEl = sourceListEl.parentElement;
@@ -192,10 +182,7 @@ export function initializeDragAndDrop(
           const targetListId = targetListEl?.getAttribute("data-list-id");
           const cardId = draggedNodes[0]?.el.getAttribute("data-card-id");
 
-          console.log("Transfer from", sourceListId, "to", targetListId, "card", cardId);
-
           if (!cardId || !targetListId || !sourceListId) {
-            console.warn("Missing required IDs for transfer");
             return;
           }
 
