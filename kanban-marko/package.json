@@ -29,7 +29,7 @@
     "preview": "marko-run preview",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx scripts/migrate-db.ts",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
     "seed": "tsx src/db/seed.ts",
