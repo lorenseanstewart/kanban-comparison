@@ -50,7 +50,7 @@ export function CardList(props: {
   return (
     <section class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
       <div class="card-body gap-4">
-        <header class="flex items-center justify-between">
+        <header class="flex items-center justify-between mb-2">
           <h2 class="card-title text-base-content">{list.title}</h2>
           <div class="badge badge-primary badge-outline badge-lg shadow">
             {list.cards.length} cards
@@ -58,7 +58,7 @@ export function CardList(props: {
         </header>
 
         <DroppableList listId={list.id}>
-          <div class="min-h-[200px]">
+          <div class="min-h-[800px] space-y-3 -mt-4 pt-4">
             <Show when={mounted()} fallback={cardList()}>
               <SortableProvider ids={cardIds()}>{cardList()}</SortableProvider>
             </Show>

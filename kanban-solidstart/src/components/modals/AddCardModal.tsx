@@ -38,7 +38,7 @@ export function AddCardModal(props: {
     }
 
     if (props.onCardAdd) {
-      const input = submission.input as FormData | undefined;
+      const input = submission.input?.[0] as FormData | undefined;
       const title = (input?.get("title") as string) ?? "";
       const description = (input?.get("description") as string) || null;
       const assigneeId = (input?.get("assigneeId") as string) || null;

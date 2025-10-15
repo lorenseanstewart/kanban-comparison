@@ -28,8 +28,8 @@ function DroppableContent(props: {
 
   return (
     <div
-      // @ts-ignore - solid-dnd custom directive
-      use:droppable
+      ref={droppable.ref}
+      class="w-full h-full min-h-[800px] rounded-lg"
       classList={{
         "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02] transition-all duration-200": droppable.isActiveDroppable,
       }}

@@ -59,7 +59,7 @@ export default function BoardPage() {
   // Sync local state with server data
   createEffect(() => {
     const data = boardData();
-    if (data && data !== board) {
+    if (data) {
       setBoard(data);
     }
   });
@@ -73,20 +73,8 @@ export default function BoardPage() {
 
   // Handle optimistic card updates
   const handleCardUpdate = (cardId: string, updates: Partial<BoardCard>) => {
-    if (!board) return;
-
-    setBoard(
-      produce((draft) => {
-        if (!draft) return;
-        for (const list of draft.lists) {
-          const card = list.cards.find((c) => c.id === cardId);
-          if (card) {
-            Object.assign(card, updates);
-            break;
-          }
-        }
-      })
-    );
+    // Optimistic updates disabled - rely on server revalidation
+    // This prevents duplicate card rendering issues
   };
 
   // Handle card creation with server ID

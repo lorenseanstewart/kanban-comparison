@@ -26,7 +26,7 @@ export function CardEditModal(props: {
 
     if (props.onUpdate) {
       const updatedTags = props.tags.filter((tag) => selectedTagIds().has(tag.id));
-      const input = submission.input as FormData | undefined;
+      const input = submission.input?.[0] as FormData | undefined;
       props.onUpdate({
         title: (input?.get("title") as string) ?? props.card.title,
         description: (input?.get("description") as string) || null,
