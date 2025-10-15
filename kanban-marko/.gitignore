@@ -2,3 +2,9 @@ node_modules
 dist
 *.log
 .env
+
+# Database files
+drizzle/db.sqlite
+drizzle/db.sqlite-shm
+drizzle/db.sqlite-wal
+drizzle/migrations/

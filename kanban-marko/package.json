@@ -28,6 +28,10 @@
     "build": "marko-run build",
     "preview": "marko-run preview",
     "start": "node --enable-source-maps ./dist/index.mjs",
-    "seed": "tsx src/db/seed.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "seed": "tsx src/db/seed.ts",
+    "setup": "npm run db:migrate && npm run seed"
   }
 }
