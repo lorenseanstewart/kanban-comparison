@@ -107,20 +107,39 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
 export const useUpdateCardAction = routeAction$<ActionResult>(
   async (data) => {
     try {
+      // Handle assigneeId - convert empty string to null to avoid foreign key constraint
+      const assigneeId = data.assigneeId as string | undefined;
+      const normalizedAssigneeId = assigneeId && assigneeId.trim() !== '' ? assigneeId : null;
+
+      // Handle description - convert empty string to null
+      const description = data.description as string | undefined;
+      const normalizedDescription = description && description.trim() !== '' ? description : null;
+
       // Update card basic fields
       await db
         .update(cards)
         .set({
           title: data.title as string,
-          description: (data.description as string | undefined) ?? null,
-          assigneeId: (data.assigneeId as string | undefined) ?? null,
+          description: normalizedDescription,
+          assigneeId: normalizedAssigneeId,
         })
         .where(eq(cards.id, data.cardId as string));
 
       // Update tags - delete existing and insert new ones
       await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId as string));
 
-      const tagIds = data.tagIds as string[] | undefined;
+      // Parse tagIds - it comes as a JSON string from the form
+      let tagIds: string[] = [];
+      if (data.tagIds) {
+        try {
+          tagIds = typeof data.tagIds === 'string'
+            ? JSON.parse(data.tagIds as string)
+            : data.tagIds as string[];
+        } catch (e) {
+          console.error("Failed to parse tagIds:", e);
+        }
+      }
+
       if (tagIds && tagIds.length > 0) {
         await db.insert(cardTags).values(
           tagIds.map((tagId: string) => ({
@@ -368,6 +387,7 @@ export default component$(() => {
   const moveCardAction = useMoveCardAction();
   const createCardAction = useCreateCardAction();
   const updateCardAction = useUpdateCardAction();
+  const deleteCardAction = useDeleteCardAction();
   const createCommentAction = useCreateCommentAction();
   const boardState = useSignal<BoardDetails | null>(board.value);
   const isAddCardModalOpen = useSignal(false);
@@ -440,6 +460,21 @@ export default component$(() => {
           ? { ...list, cards: [...list.cards, newCard] }
           : list
       ),
+    };
+
+    boardState.value = updatedBoard;
+  });
+
+  // Handle card deletion
+  const handleCardDelete = $((cardId: string) => {
+    if (!boardState.value) return;
+
+    const updatedBoard = {
+      ...boardState.value,
+      lists: boardState.value.lists.map((list) => ({
+        ...list,
+        cards: list.cards.filter((card) => card.id !== cardId),
+      })),
     };
 
     boardState.value = updatedBoard;
@@ -582,8 +617,10 @@ export default component$(() => {
                 allUsers={users.value}
                 allTags={tags.value}
                 onCardUpdate={handleCardUpdate}
+                onCardDelete={handleCardDelete}
                 onCardDrop={handleCardDrop}
                 updateCardAction={updateCardAction}
+                deleteCardAction={deleteCardAction}
                 createCommentAction={createCommentAction}
               />
             ))

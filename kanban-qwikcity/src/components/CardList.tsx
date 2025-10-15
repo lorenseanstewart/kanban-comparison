@@ -10,8 +10,10 @@ interface CardListProps {
   allUsers: UsersList;
   allTags: TagsList;
   onCardUpdate?: QRL<(cardId: string, updates: Partial<BoardCard>) => void>;
+  onCardDelete?: QRL<(cardId: string) => void>;
   onCardDrop?: QRL<(cardId: string, targetListId: string, newPosition: number) => void>;
   updateCardAction?: ActionStore<any, any, true>;
+  deleteCardAction?: ActionStore<any, any, true>;
   createCommentAction?: ActionStore<any, any, true>;
 }
 
@@ -21,8 +23,10 @@ export const CardList = component$<CardListProps>(({
   allUsers,
   allTags,
   onCardUpdate,
+  onCardDelete,
   onCardDrop,
   updateCardAction,
+  deleteCardAction,
   createCommentAction
 }) => {
   const draggedCardId = useContext(DraggedCardContext);
@@ -117,7 +121,9 @@ export const CardList = component$<CardListProps>(({
                   allUsers={allUsers}
                   allTags={allTags}
                   onCardUpdate={onCardUpdate}
+                  onCardDelete={onCardDelete}
                   updateCardAction={updateCardAction}
+                  deleteCardAction={deleteCardAction}
                   createCommentAction={createCommentAction}
                 />
               ))}

@@ -13,11 +13,13 @@ interface CardProps {
   allUsers: UsersList;
   allTags: TagsList;
   onCardUpdate?: QRL<(cardId: string, updates: Partial<BoardCard>) => void>;
+  onCardDelete?: QRL<(cardId: string) => void>;
   updateCardAction?: ActionStore<any, any, true>;
+  deleteCardAction?: ActionStore<any, any, true>;
   createCommentAction?: ActionStore<any, any, true>;
 }
 
-export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onCardUpdate, updateCardAction, createCommentAction }) => {
+export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onCardUpdate, onCardDelete, updateCardAction, deleteCardAction, createCommentAction }) => {
   const isEditModalOpen = useSignal(false);
   const isCommentModalOpen = useSignal(false);
   const draggedCardId = useContext(DraggedCardContext);
@@ -35,6 +37,12 @@ export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onC
   const handleUpdate$ = $((updates: Partial<BoardCard>) => {
     if (onCardUpdate) {
       onCardUpdate(card.id, updates);
+    }
+  });
+
+  const handleDelete$ = $((cardId: string) => {
+    if (onCardDelete) {
+      onCardDelete(cardId);
     }
   });
 
@@ -150,14 +158,16 @@ export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onC
           )}
         </div>
       </article>
-      {updateCardAction && (
+      {updateCardAction && deleteCardAction && (
         <CardEditModal
           card={card}
           users={allUsers}
           tags={allTags}
           isOpen={isEditModalOpen}
           action={updateCardAction}
+          deleteAction={deleteCardAction}
           onUpdate={handleUpdate$}
+          onDelete={handleDelete$}
         />
       )}
       {createCommentAction && (

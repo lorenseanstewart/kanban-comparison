@@ -16,11 +16,13 @@ interface CardEditModalProps {
   tags: TagsList;
   isOpen: Signal<boolean>;
   action: ActionStore<any, any, true>;
+  deleteAction: ActionStore<any, any, true>;
   onUpdate?: QRL<(updatedCard: Partial<BoardCard>) => void>;
+  onDelete?: QRL<(cardId: string) => void>;
 }
 
 export const CardEditModal = component$<CardEditModalProps>(
-  ({ card, users, tags, isOpen, action, onUpdate }) => {
+  ({ card, users, tags, isOpen, action, deleteAction, onUpdate, onDelete }) => {
     const dialogRef = useSignal<HTMLDialogElement>();
     const selectedTagIds = useSignal<Set<string>>(
       new Set(card.tags.map((t) => t.id))
@@ -91,6 +93,23 @@ export const CardEditModal = component$<CardEditModalProps>(
       await action.submit(formData);
 
       // Close modal and reset after submission
+      isOpen.value = false;
+    });
+
+    const handleDelete$ = $(async () => {
+      if (!confirm("Are you sure you want to delete this card?")) {
+        return;
+      }
+
+      // Optimistically update the UI
+      if (onDelete) {
+        onDelete(card.id);
+      }
+
+      // Submit to server action
+      await deleteAction.submit({ cardId: card.id });
+
+      // Close modal
       isOpen.value = false;
     });
 
@@ -195,13 +214,23 @@ export const CardEditModal = component$<CardEditModalProps>(
                   </div>
                 </div>
 
-                <div class="modal-action">
-                  <button type="button" class="btn btn-ghost" onClick$={handleClose$}>
-                    Cancel
+                <div class="modal-action justify-between">
+                  <button
+                    type="button"
+                    class="btn btn-error"
+                    onClick$={handleDelete$}
+                    disabled={action.isRunning || deleteAction.isRunning}
+                  >
+                    {deleteAction.isRunning ? "Deleting..." : "Delete Card"}
                   </button>
-                  <button type="submit" class="btn btn-primary" disabled={action.isRunning}>
-                    {action.isRunning ? "Saving..." : "Save Changes"}
-                  </button>
+                  <div class="flex gap-2">
+                    <button type="button" class="btn btn-ghost" onClick$={handleClose$}>
+                      Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" disabled={action.isRunning || deleteAction.isRunning}>
+                      {action.isRunning ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
                 </div>
 
                 {action.value?.error && (
