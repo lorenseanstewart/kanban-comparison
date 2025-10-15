@@ -54,7 +54,7 @@ export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onC
 
   return (
     <>
-      <div
+      <article
         draggable={true}
         data-id={card.id}
         class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
@@ -149,7 +149,7 @@ export const Card = component$<CardProps>(({ card, users, allUsers, allTags, onC
             </div>
           )}
         </div>
-      </div>
+      </article>
       {updateCardAction && (
         <CardEditModal
           card={card}

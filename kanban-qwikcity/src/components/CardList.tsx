@@ -82,15 +82,8 @@ export const CardList = component$<CardListProps>(({
   });
 
   return (
-    <article
+    <section
       class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl"
-      style={{
-        outline: isDragOver.value ? "3px dashed #3b82f6" : "none",
-        outlineOffset: "2px",
-        backgroundColor: isDragOver.value ? "rgba(59, 130, 246, 0.05)" : "",
-        transition: "outline 0.2s ease, background-color 0.2s ease",
-        margin: isDragOver.value ? "10px" : "0"
-      }}
       onDragOver$={handleDragOver}
       onDragLeave$={handleDragLeave}
       onDrop$={handleDrop}
@@ -103,7 +96,13 @@ export const CardList = component$<CardListProps>(({
           </div>
         </header>
 
-        <div class="drop-zone min-h-[200px] transition-all duration-200">
+        <div
+          class={`drop-zone min-h-[200px] transition-all duration-200 rounded-lg ${
+            isDragOver.value
+              ? "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]"
+              : ""
+          }`}
+        >
           {list.cards.length === 0 ? (
             <div class="alert alert-info text-sm">
               <span>No cards yet</span>
@@ -126,7 +125,7 @@ export const CardList = component$<CardListProps>(({
           )}
         </div>
       </div>
-    </article>
+    </section>
   );
 });
 
