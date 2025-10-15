@@ -3,8 +3,7 @@ dist
 *.log
 .env
 
-# Database files
+# Database files (but keep migrations)
 drizzle/db.sqlite
 drizzle/db.sqlite-shm
 drizzle/db.sqlite-wal
-drizzle/migrations/

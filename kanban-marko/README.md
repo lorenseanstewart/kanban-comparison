@@ -17,11 +17,13 @@ A full-featured Kanban board application built with Marko, featuring drag-and-dr
 
 ```bash
 npm install
-npm run setup  # Runs migrations and seeds the database
+npm run setup  # Applies migrations and seeds the database
 npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
+
+> **Note**: Migration files are included in the repo, so you don't need to generate them.
 
 ### Subsequent Runs
 
