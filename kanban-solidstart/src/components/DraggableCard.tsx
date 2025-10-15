@@ -55,14 +55,14 @@ export function DraggableCard(props: {
       <Show
         when={mounted()}
         fallback={
-          <div class="card bg-base-100 dark:bg-neutral shadow-lg">
+          <article class="card bg-base-100 dark:bg-neutral shadow-lg">
             <CardContent
               card={props.card}
               users={props.users}
               onEdit={() => setIsEditModalOpen(true)}
               onOpenComments={() => setIsCommentModalOpen(true)}
             />
-          </div>
+          </article>
         }
       >
         <DraggableContent
@@ -102,7 +102,7 @@ function DraggableContent(props: {
   const sortable = createSortable(`card-${props.card.id}`);
 
   return (
-    <div
+    <article
       ref={(el) => sortable(el)}
       class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
       classList={{
@@ -116,7 +116,7 @@ function DraggableContent(props: {
         onEdit={props.onEdit}
         onOpenComments={props.onOpenComments}
       />
-    </div>
+    </article>
   );
 }
 
