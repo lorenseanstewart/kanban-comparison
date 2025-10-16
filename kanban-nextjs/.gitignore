@@ -45,7 +45,6 @@ next-env.d.ts
 /drizzle/db.sqlite
 /drizzle/db.sqlite-shm
 /drizzle/db.sqlite-wal
-/drizzle/migrations
 
 # turbopack
 .turbo
