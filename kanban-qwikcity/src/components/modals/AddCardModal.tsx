@@ -1,4 +1,12 @@
-import { component$, useSignal, useTask$, $, type Signal, type QRL, isServer } from "@builder.io/qwik";
+import {
+  component$,
+  useSignal,
+  useTask$,
+  $,
+  type Signal,
+  type QRL,
+  isServer,
+} from "@builder.io/qwik";
 import type { ActionStore } from "@builder.io/qwik-city";
 import type { UsersList, TagsList } from "~/db/queries";
 
@@ -7,14 +15,20 @@ interface AddCardModalProps {
   users: UsersList;
   tags: TagsList;
   isOpen: Signal<boolean>;
-  action: ActionStore<{ success: boolean; cardId?: string; error?: string }, Record<string, any>, any>;
-  onCardAdd?: QRL<(card: {
-    id: string;
-    title: string;
-    description: string | null;
-    assigneeId: string | null;
-    tagIds: string[];
-  }) => void>;
+  action: ActionStore<
+    { success: boolean; cardId?: string; error?: string },
+    Record<string, any>,
+    any
+  >;
+  onCardAdd?: QRL<
+    (card: {
+      id: string;
+      title: string;
+      description: string | null;
+      assigneeId: string | null;
+      tagIds: string[];
+    }) => void
+  >;
 }
 
 export const AddCardModal = component$<AddCardModalProps>(
@@ -23,7 +37,7 @@ export const AddCardModal = component$<AddCardModalProps>(
     const selectedTagIds = useSignal<Set<string>>(new Set());
 
     useTask$(({ track }) => {
-      track(() => isOpen.value);
+      track(isOpen);
 
       if (isServer || !dialogRef.value) {
         return;
@@ -52,7 +66,6 @@ export const AddCardModal = component$<AddCardModalProps>(
     });
 
     const handleSubmit$ = $(async (event: SubmitEvent) => {
-      event.preventDefault();
       const form = event.target as HTMLFormElement;
       const formData = new FormData(form);
 
@@ -96,108 +109,120 @@ export const AddCardModal = component$<AddCardModalProps>(
             }
           }}
         >
-            <div class="modal-backdrop bg-black/70" />
-            <div class="modal-box bg-base-200 dark:bg-base-300">
-              <form method="dialog" preventdefault:submit onSubmit$={handleSubmit$}>
+          <div class="modal-backdrop bg-black/70" />
+          <div class="modal-box bg-base-200 dark:bg-base-300">
+            <form
+              method="dialog"
+              preventdefault:submit
+              onSubmit$={handleSubmit$}
+            >
+              <button
+                type="button"
+                class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                onClick$={handleClose$}
+              >
+                ✕
+              </button>
+              <h3 class="font-bold text-lg mb-4">Add New Card</h3>
+
+              <input type="hidden" name="boardId" value={boardId} />
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Title</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  class="input input-bordered w-full"
+                  placeholder="Enter card title"
+                  required
+                />
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Description</span>
+                </label>
+                <textarea
+                  name="description"
+                  class="textarea textarea-bordered h-24 w-full"
+                  placeholder="Enter card description (optional)"
+                />
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Assignee</span>
+                </label>
+                <select name="assigneeId" class="select select-bordered w-full">
+                  <option value="">Unassigned</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Tags</span>
+                </label>
+                <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
+                        selectedTagIds.value.has(tag.id)
+                          ? "text-white"
+                          : "badge-outline"
+                      }`}
+                      style={
+                        selectedTagIds.value.has(tag.id)
+                          ? {
+                              backgroundColor: tag.color,
+                              borderColor: tag.color,
+                            }
+                          : {
+                              color: tag.color,
+                              borderColor: tag.color,
+                            }
+                      }
+                      onClick$={() => toggleTag$(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div class="modal-action">
                 <button
                   type="button"
-                  class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                  class="btn btn-ghost"
                   onClick$={handleClose$}
                 >
-                  ✕
+                  Cancel
                 </button>
-                <h3 class="font-bold text-lg mb-4">Add New Card</h3>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  disabled={action.isRunning}
+                >
+                  {action.isRunning ? "Creating..." : "Add Card"}
+                </button>
+              </div>
 
-                <input type="hidden" name="boardId" value={boardId} />
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Title</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    class="input input-bordered w-full"
-                    placeholder="Enter card title"
-                    required
-                  />
+              {action.value?.error && (
+                <div class="alert alert-error mt-4">
+                  <span>{action.value.error}</span>
                 </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Description</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    class="textarea textarea-bordered h-24 w-full"
-                    placeholder="Enter card description (optional)"
-                  />
-                </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Assignee</span>
-                  </label>
-                  <select name="assigneeId" class="select select-bordered w-full">
-                    <option value="">Unassigned</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Tags</span>
-                  </label>
-                  <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
-                          selectedTagIds.value.has(tag.id)
-                            ? "text-white"
-                            : "badge-outline"
-                        }`}
-                        style={
-                          selectedTagIds.value.has(tag.id)
-                            ? {
-                                backgroundColor: tag.color,
-                                borderColor: tag.color,
-                              }
-                            : {
-                                color: tag.color,
-                                borderColor: tag.color,
-                              }
-                        }
-                        onClick$={() => toggleTag$(tag.id)}
-                      >
-                        {tag.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div class="modal-action">
-                  <button type="button" class="btn btn-ghost" onClick$={handleClose$}>
-                    Cancel
-                  </button>
-                  <button type="submit" class="btn btn-primary" disabled={action.isRunning}>
-                    {action.isRunning ? "Creating..." : "Add Card"}
-                  </button>
-                </div>
-
-                {action.value?.error && (
-                  <div class="alert alert-error mt-4">
-                    <span>{action.value.error}</span>
-                  </div>
-                )}
-              </form>
-            </div>
-          </dialog>
+              )}
+            </form>
+          </div>
+        </dialog>
       </>
     );
   }

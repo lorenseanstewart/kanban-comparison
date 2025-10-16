@@ -1,4 +1,13 @@
-import { component$, useSignal, $, useTask$, createContextId, useContextProvider, type Signal, useComputed$ } from "@builder.io/qwik";
+import {
+  component$,
+  useSignal,
+  $,
+  useTask$,
+  createContextId,
+  useContextProvider,
+  type Signal,
+  useComputed$,
+} from "@builder.io/qwik";
 import { routeLoader$, routeAction$, Link } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { eq, max } from "drizzle-orm";
@@ -9,13 +18,11 @@ import { CardList } from "~/components/CardList";
 import { AddCardModal } from "~/components/modals/AddCardModal";
 import { db } from "~/db/index";
 import { cards, cardTags, comments, lists } from "~/lib/db/schema";
-import {
-  MoveCardSchema,
-  UpdateCardPositionSchema,
-} from "~/lib/validation";
+import { MoveCardSchema, UpdateCardPositionSchema } from "~/lib/validation";
 import * as v from "valibot";
 
-export const DraggedCardContext = createContextId<Signal<string>>("dragged-card");
+export const DraggedCardContext =
+  createContextId<Signal<string>>("dragged-card");
 
 export const useBoardData = routeLoader$(async (requestEvent) => {
   const boardId = requestEvent.params.id;
@@ -85,7 +92,7 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
           tagIds.map((tagId: string) => ({
             cardId,
             tagId,
-          }))
+          })),
         );
       }
 
@@ -97,98 +104,106 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
       console.error("Failed to create card:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to create card. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create card. Please try again.",
       };
     }
-  }
+  },
 );
 
 // Update Card Action
-export const useUpdateCardAction = routeAction$<ActionResult>(
-  async (data) => {
-    try {
-      // Handle assigneeId - convert empty string to null to avoid foreign key constraint
-      const assigneeId = data.assigneeId as string | undefined;
-      const normalizedAssigneeId = assigneeId && assigneeId.trim() !== '' ? assigneeId : null;
+export const useUpdateCardAction = routeAction$<ActionResult>(async (data) => {
+  try {
+    // Handle assigneeId - convert empty string to null to avoid foreign key constraint
+    const assigneeId = data.assigneeId as string | undefined;
+    const normalizedAssigneeId =
+      assigneeId && assigneeId.trim() !== "" ? assigneeId : null;
 
-      // Handle description - convert empty string to null
-      const description = data.description as string | undefined;
-      const normalizedDescription = description && description.trim() !== '' ? description : null;
+    // Handle description - convert empty string to null
+    const description = data.description as string | undefined;
+    const normalizedDescription =
+      description && description.trim() !== "" ? description : null;
 
-      // Update card basic fields
-      await db
-        .update(cards)
-        .set({
-          title: data.title as string,
-          description: normalizedDescription,
-          assigneeId: normalizedAssigneeId,
-        })
-        .where(eq(cards.id, data.cardId as string));
+    // Update card basic fields
+    await db
+      .update(cards)
+      .set({
+        title: data.title as string,
+        description: normalizedDescription,
+        assigneeId: normalizedAssigneeId,
+      })
+      .where(eq(cards.id, data.cardId as string));
 
-      // Update tags - delete existing and insert new ones
-      await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId as string));
+    // Update tags - delete existing and insert new ones
+    await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId as string));
 
-      // Parse tagIds - it comes as a JSON string from the form
-      let tagIds: string[] = [];
-      if (data.tagIds) {
-        try {
-          tagIds = typeof data.tagIds === 'string'
+    // Parse tagIds - it comes as a JSON string from the form
+    let tagIds: string[] = [];
+    if (data.tagIds) {
+      try {
+        tagIds =
+          typeof data.tagIds === "string"
             ? JSON.parse(data.tagIds as string)
-            : data.tagIds as string[];
-        } catch (e) {
-          console.error("Failed to parse tagIds:", e);
-        }
+            : (data.tagIds as string[]);
+      } catch (e) {
+        console.error("Failed to parse tagIds:", e);
       }
-
-      if (tagIds && tagIds.length > 0) {
-        await db.insert(cardTags).values(
-          tagIds.map((tagId: string) => ({
-            cardId: data.cardId as string,
-            tagId,
-          }))
-        );
-      }
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      console.error("Failed to update card:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Failed to update card. Please try again.",
-      };
     }
+
+    if (tagIds && tagIds.length > 0) {
+      await db.insert(cardTags).values(
+        tagIds.map((tagId: string) => ({
+          cardId: data.cardId as string,
+          tagId,
+        })),
+      );
+    }
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Failed to update card:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update card. Please try again.",
+    };
   }
-);
+});
 
 // Delete Card Action
-export const useDeleteCardAction = routeAction$<ActionResult>(
-  async (data) => {
-    try {
-      const cardId = (data as Record<string, string>).cardId;
+export const useDeleteCardAction = routeAction$<ActionResult>(async (data) => {
+  try {
+    const cardId = (data as Record<string, string>).cardId;
 
-      if (!cardId) {
-        return {
-          success: false,
-          error: "Card ID is required",
-        };
-      }
-
-      await db.delete(cards).where(eq(cards.id, cardId));
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      console.error("Failed to delete card:", error);
+    if (!cardId) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to delete card. Please try again.",
+        error: "Card ID is required",
       };
     }
+
+    await db.delete(cards).where(eq(cards.id, cardId));
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Failed to delete card:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete card. Please try again.",
+    };
   }
-);
+});
 
 // Update Card List Action (move card to different list)
 export const useUpdateCardListAction = routeAction$<ActionResult>(
@@ -217,10 +232,13 @@ export const useUpdateCardListAction = routeAction$<ActionResult>(
       console.error("Failed to update card list:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to move card. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to move card. Please try again.",
       };
     }
-  }
+  },
 );
 
 // Update Card Position Action
@@ -250,10 +268,13 @@ export const useUpdateCardPositionAction = routeAction$<ActionResult>(
       console.error("Failed to update card position:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to reorder card. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to reorder card. Please try again.",
       };
     }
-  }
+  },
 );
 
 // Update Card Tags Action
@@ -262,7 +283,7 @@ export const useUpdateCardTagsAction = routeAction$<ActionResult>(
     try {
       const formData = await requestEvent.request.formData();
       const cardId = formData.get("cardId") as string;
-      const tagIds = JSON.parse(formData.get("tagIds") as string || "[]");
+      const tagIds = JSON.parse((formData.get("tagIds") as string) || "[]");
 
       if (!cardId) {
         return {
@@ -278,7 +299,7 @@ export const useUpdateCardTagsAction = routeAction$<ActionResult>(
           tagIds.map((tagId: string) => ({
             cardId,
             tagId,
-          }))
+          })),
         );
       }
 
@@ -289,10 +310,13 @@ export const useUpdateCardTagsAction = routeAction$<ActionResult>(
       console.error("Failed to update card tags:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to update tags. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update tags. Please try again.",
       };
     }
-  }
+  },
 );
 
 // Create Comment Action
@@ -316,10 +340,13 @@ export const useCreateCommentAction = routeAction$<ActionResult>(
       console.error("Failed to create comment:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to add comment. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add comment. Please try again.",
       };
     }
-  }
+  },
 );
 
 // Move Card Action (for drag and drop)
@@ -333,9 +360,9 @@ export const useMoveCardAction = routeAction$<ActionResult>(
       let newPosition: number;
 
       if (formData instanceof FormData) {
-        cardId = formData.get('cardId') as string;
-        targetListId = formData.get('targetListId') as string;
-        newPosition = parseInt(formData.get('newPosition') as string, 10);
+        cardId = formData.get("cardId") as string;
+        targetListId = formData.get("targetListId") as string;
+        newPosition = parseInt(formData.get("newPosition") as string, 10);
       } else {
         // Direct object submission
         cardId = (formData as any).cardId;
@@ -364,7 +391,7 @@ export const useMoveCardAction = routeAction$<ActionResult>(
       await updateCardListAndPosition(
         payload.cardId,
         payload.listId,
-        payload.newPosition
+        payload.newPosition,
       );
 
       return {
@@ -374,10 +401,13 @@ export const useMoveCardAction = routeAction$<ActionResult>(
       console.error("Failed to move card:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to move card. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to move card. Please try again.",
       };
     }
-  }
+  },
 );
 
 export default component$(() => {
@@ -397,9 +427,9 @@ export default component$(() => {
 
   // Sync local state with server data using useTask$
   useTask$(({ track }) => {
-    track(() => board.value);
-    if (board.value) {
-      boardState.value = board.value;
+    const val = track(board);
+    if (val) {
+      boardState.value = val;
     }
   });
 
@@ -419,7 +449,7 @@ export default component$(() => {
       lists: boardState.value.lists.map((list) => ({
         ...list,
         cards: list.cards.map((card) =>
-          card.id === cardId ? { ...card, ...updates } : card
+          card.id === cardId ? { ...card, ...updates } : card,
         ),
       })),
     };
@@ -428,42 +458,46 @@ export default component$(() => {
   });
 
   // Handle card creation with server-generated ID
-  const handleCardAdd = $((cardData: {
-    id: string;
-    title: string;
-    description: string | null;
-    assigneeId: string | null;
-    tagIds: string[];
-  }) => {
-    if (!boardState.value) return;
+  const handleCardAdd = $(
+    (cardData: {
+      id: string;
+      title: string;
+      description: string | null;
+      assigneeId: string | null;
+      tagIds: string[];
+    }) => {
+      if (!boardState.value) return;
 
-    // Find the Todo list
-    const todoList = boardState.value.lists.find((list) => list.title === "Todo");
-    if (!todoList) return;
+      // Find the Todo list
+      const todoList = boardState.value.lists.find(
+        (list) => list.title === "Todo",
+      );
+      if (!todoList) return;
 
-    // Create new card with server-generated ID
-    const newCard: BoardCard = {
-      id: cardData.id,
-      title: cardData.title,
-      description: cardData.description,
-      assigneeId: cardData.assigneeId,
-      position: todoList.cards.length,
-      completed: false,
-      tags: tags.value.filter((tag) => cardData.tagIds.includes(tag.id)),
-      comments: [],
-    };
+      // Create new card with server-generated ID
+      const newCard: BoardCard = {
+        id: cardData.id,
+        title: cardData.title,
+        description: cardData.description,
+        assigneeId: cardData.assigneeId,
+        position: todoList.cards.length,
+        completed: false,
+        tags: tags.value.filter((tag) => cardData.tagIds.includes(tag.id)),
+        comments: [],
+      };
 
-    const updatedBoard = {
-      ...boardState.value,
-      lists: boardState.value.lists.map((list) =>
-        list.title === "Todo"
-          ? { ...list, cards: [...list.cards, newCard] }
-          : list
-      ),
-    };
+      const updatedBoard = {
+        ...boardState.value,
+        lists: boardState.value.lists.map((list) =>
+          list.title === "Todo"
+            ? { ...list, cards: [...list.cards, newCard] }
+            : list,
+        ),
+      };
 
-    boardState.value = updatedBoard;
-  });
+      boardState.value = updatedBoard;
+    },
+  );
 
   // Handle card deletion
   const handleCardDelete = $((cardId: string) => {
@@ -481,69 +515,73 @@ export default component$(() => {
   });
 
   // Handle card drop with optimistic updates
-  const handleCardDrop = $(async (cardId: string, targetListId: string, newPosition: number) => {
-    if (!boardState.value) {
-      return;
-    }
-
-    const originalState = structuredClone(boardState.value);
-
-    const updatedLists = boardState.value.lists.map((list) => ({
-      ...list,
-      cards: list.cards.filter((card) => card.id !== cardId),
-    }));
-
-    const targetListIndex = updatedLists.findIndex((list) => list.id === targetListId);
-    if (targetListIndex === -1) {
-      return;
-    }
-
-    const movedCard = boardState.value.lists
-      .flatMap((list) => list.cards)
-      .find((card) => card.id === cardId);
-
-    if (!movedCard) {
-      return;
-    }
-
-    const nextTargetCards = updatedLists[targetListIndex].cards
-      .slice(0, newPosition)
-      .concat({ ...movedCard, position: newPosition })
-      .concat(
-        updatedLists[targetListIndex].cards
-          .slice(newPosition)
-          .map((card, idx) => ({
-            ...card,
-            position: newPosition + 1 + idx,
-          }))
-      );
-
-    updatedLists[targetListIndex] = {
-      ...updatedLists[targetListIndex],
-      cards: nextTargetCards,
-    };
-
-    boardState.value = {
-      ...boardState.value,
-      lists: updatedLists,
-    };
-
-    try {
-      const result = await moveCardAction.submit({
-        cardId,
-        targetListId,
-        newPosition,
-      });
-
-      if (!result.value?.success) {
-        boardState.value = originalState;
-        console.error("Failed to move card:", result.value?.error);
+  const handleCardDrop = $(
+    async (cardId: string, targetListId: string, newPosition: number) => {
+      if (!boardState.value) {
+        return;
       }
-    } catch (error) {
-      boardState.value = originalState;
-      console.error("Failed to move card:", error);
-    }
-  });
+
+      const originalState = structuredClone(boardState.value);
+
+      const updatedLists = boardState.value.lists.map((list) => ({
+        ...list,
+        cards: list.cards.filter((card) => card.id !== cardId),
+      }));
+
+      const targetListIndex = updatedLists.findIndex(
+        (list) => list.id === targetListId,
+      );
+      if (targetListIndex === -1) {
+        return;
+      }
+
+      const movedCard = boardState.value.lists
+        .flatMap((list) => list.cards)
+        .find((card) => card.id === cardId);
+
+      if (!movedCard) {
+        return;
+      }
+
+      const nextTargetCards = updatedLists[targetListIndex].cards
+        .slice(0, newPosition)
+        .concat({ ...movedCard, position: newPosition })
+        .concat(
+          updatedLists[targetListIndex].cards
+            .slice(newPosition)
+            .map((card, idx) => ({
+              ...card,
+              position: newPosition + 1 + idx,
+            })),
+        );
+
+      updatedLists[targetListIndex] = {
+        ...updatedLists[targetListIndex],
+        cards: nextTargetCards,
+      };
+
+      boardState.value = {
+        ...boardState.value,
+        lists: updatedLists,
+      };
+
+      try {
+        const result = await moveCardAction.submit({
+          cardId,
+          targetListId,
+          newPosition,
+        });
+
+        if (!result.value?.success) {
+          boardState.value = originalState;
+          console.error("Failed to move card:", result.value?.error);
+        }
+      } catch (error) {
+        boardState.value = originalState;
+        console.error("Failed to move card:", error);
+      }
+    },
+  );
 
   // If board not found, show error
   if (!board.value) {
@@ -591,7 +629,7 @@ export default component$(() => {
           <button
             type="button"
             class="btn btn-primary"
-            onClick$={() => isAddCardModalOpen.value = true}
+            onClick$={() => (isAddCardModalOpen.value = true)}
           >
             Add Card
           </button>
