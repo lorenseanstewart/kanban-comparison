@@ -8,7 +8,12 @@
     "preview": "node server.mjs",
     "preview:astro": "astro preview",
     "astro": "astro",
-    "seed": "tsx src/db/seed.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:push": "drizzle-kit push",
+    "db:reset": "node scripts/reset-db.js",
+    "seed": "tsx src/db/seed.ts",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.6",
