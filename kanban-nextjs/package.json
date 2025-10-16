@@ -7,7 +7,12 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx src/db/seed.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:push": "drizzle-kit push",
+    "db:reset": "node scripts/reset-db.js",
+    "seed": "tsx src/db/seed.ts",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
