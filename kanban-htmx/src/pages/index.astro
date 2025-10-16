@@ -3,7 +3,7 @@ import { getBoards } from "../lib/api";
 import htmxUrl from "../assets/js/htmx.min.js?url";
 import BoardsList from "../components/BoardsList.astro";
 import AddBoardModal from "../components/modals/AddBoardModal.astro";
-import "../styles/global.css";
+import "../assets/app.css";
 
 const boards = await getBoards();
 ---
@@ -29,10 +29,7 @@ const boards = await getBoards();
     </script>
   </head>
   <body>
-    <div
-      data-theme="pastel"
-      class="min-h-screen bg-base-300 text-base-content p-4 md:p-8"
-    >
+    <div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
       <main
         class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl"
       >

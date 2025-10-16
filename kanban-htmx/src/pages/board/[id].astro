@@ -5,7 +5,7 @@ import BoardOverview from "../../components/BoardOverview.astro";
 import BoardCardsSection from "../../components/BoardCardsSection.astro";
 import AddCardModal from "../../components/modals/AddCardModal.astro";
 import CardEditModal from "../../components/modals/CardEditModal.astro";
-import "../../styles/global.css";
+import "../../assets/app.css";
 
 const { id } = Astro.params;
 
@@ -51,10 +51,7 @@ const tags = await getTags();
       window.kanban.openEditCardModal = openEditCardModal;
     </script>
   </head>
-  <body
-    data-theme="pastel"
-    class="min-h-screen bg-base-300 text-base-content p-4 md:p-8"
-  >
+  <body class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
     <main
       class="w-full max-w-7xl mx-auto p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl"
     >
