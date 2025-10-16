@@ -14,9 +14,10 @@ interface CardProps {
   allUsers: UsersList;
   allTags: TagsList;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
+  onCardDelete?: (cardId: string) => void;
 }
 
-export function Card({ card, allUsers, allTags, onCardUpdate }: CardProps) {
+export function Card({ card, allUsers, allTags, onCardUpdate, onCardDelete }: CardProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
@@ -32,6 +33,12 @@ export function Card({ card, allUsers, allTags, onCardUpdate }: CardProps) {
   const handleUpdate = (updates: Partial<BoardCard>) => {
     if (onCardUpdate) {
       onCardUpdate(card.id, updates);
+    }
+  };
+
+  const handleDelete = () => {
+    if (onCardDelete) {
+      onCardDelete(card.id);
     }
   };
 
@@ -164,6 +171,7 @@ export function Card({ card, allUsers, allTags, onCardUpdate }: CardProps) {
       isOpen={isEditModalOpen}
       onClose={() => setIsEditModalOpen(false)}
       onUpdate={handleUpdate}
+      onDelete={handleDelete}
     />
     <CommentModal
       card={card}

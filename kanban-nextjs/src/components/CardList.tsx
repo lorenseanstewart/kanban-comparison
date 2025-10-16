@@ -13,11 +13,13 @@ export function CardList({
   allUsers,
   allTags,
   onCardUpdate,
+  onCardDelete,
 }: {
   list: BoardDetails["lists"][number];
   allUsers: UsersList;
   allTags: TagsList;
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
+  onCardDelete?: (cardId: string) => void;
 }) {
   const { setNodeRef, isOver, over } = useDroppable({
     id: `list-${list.id}`,
@@ -60,6 +62,7 @@ export function CardList({
                     allUsers={allUsers}
                     allTags={allTags}
                     onCardUpdate={onCardUpdate}
+                    onCardDelete={onCardDelete}
                   />
                 ))}
               </div>

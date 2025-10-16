@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { BoardCard, UsersList, TagsList } from "@/lib/api";
-import { updateCard } from "@/lib/actions";
+import { updateCard, deleteCard } from "@/lib/actions";
 
 export function CardEditModal({
   card,
@@ -11,6 +11,7 @@ export function CardEditModal({
   isOpen,
   onClose,
   onUpdate,
+  onDelete,
 }: {
   card: BoardCard;
   users: UsersList;
@@ -18,10 +19,12 @@ export function CardEditModal({
   isOpen: boolean;
   onClose: () => void;
   onUpdate?: (updatedCard: Partial<BoardCard>) => void;
+  onDelete?: () => void;
 }) {
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
     new Set(card.tags.map((t) => t.id))
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Reset selected tags when card changes
   useEffect(() => {
@@ -36,6 +39,31 @@ export function CardEditModal({
       newSet.add(tagId);
     }
     setSelectedTagIds(newSet);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this card?")) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteCard(card.id);
+
+      if (result.success) {
+        if (onDelete) {
+          onDelete();
+        }
+        onClose();
+      } else {
+        alert(result.error || "Failed to delete card");
+        setIsDeleting(false);
+      }
+    } catch (error) {
+      alert("Failed to delete card. Please try again.");
+      setIsDeleting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -165,13 +193,23 @@ export function CardEditModal({
             </div>
           </div>
 
-          <div className="modal-action">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
-              Cancel
+          <div className="modal-action justify-between">
+            <button
+              type="button"
+              className="btn btn-error"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete Card"}
             </button>
-            <button type="submit" className="btn btn-primary">
-              Save Changes
-            </button>
+            <div className="flex gap-2">
+              <button type="button" className="btn btn-ghost" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Save Changes
+              </button>
+            </div>
           </div>
         </form>
       </div>

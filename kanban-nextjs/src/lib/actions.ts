@@ -266,3 +266,23 @@ export async function updateCardPositions(cardIds: string[]) {
     throw new Error("Failed to reorder cards. Please try again.");
   }
 }
+
+export async function deleteCard(cardId: string) {
+  try {
+    if (!cardId) {
+      return { success: false, error: "Card ID is required" };
+    }
+
+    await db.delete(cards).where(eq(cards.id, cardId));
+
+    revalidatePath("/board/[id]", "page");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete card:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete card. Please try again.",
+    };
+  }
+}

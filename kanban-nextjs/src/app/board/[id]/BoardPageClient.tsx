@@ -95,6 +95,22 @@ export function BoardPageClient({
     });
   };
 
+  // Handle card deletion
+  const handleCardDelete = (cardId: string) => {
+    if (!board) return;
+
+    setBoard((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lists: prev.lists.map((list) => ({
+          ...list,
+          cards: list.cards.filter((card) => card.id !== cardId),
+        })),
+      };
+    });
+  };
+
   if (!board) {
     return (
       <main className="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
@@ -154,6 +170,7 @@ export function BoardPageClient({
                   allUsers={allUsers}
                   allTags={allTags}
                   onCardUpdate={handleCardUpdate}
+                  onCardDelete={handleCardDelete}
                 />
               ))
             )}
