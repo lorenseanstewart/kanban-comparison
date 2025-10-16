@@ -8,14 +8,10 @@ import { cards } from "../../drizzle/schema";
 export async function updateCardListAndPosition(
   cardId: string,
   newListId: string,
-  newPosition: number
+  newPosition: number,
 ): Promise<void> {
   // Get the current card
-  const card = await db
-    .select()
-    .from(cards)
-    .where(eq(cards.id, cardId))
-    .get();
+  const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
 
   if (!card) {
     throw new Error(`Card ${cardId} not found`);
@@ -30,7 +26,9 @@ export async function updateCardListAndPosition(
     await db
       .update(cards)
       .set({ position: sql`${cards.position} - 1` })
-      .where(and(eq(cards.listId, oldListId), gte(cards.position, oldPosition + 1)))
+      .where(
+        and(eq(cards.listId, oldListId), gte(cards.position, oldPosition + 1)),
+      )
       .run();
 
     // Get all cards in the new list at or after the target position
@@ -57,8 +55,8 @@ export async function updateCardListAndPosition(
           and(
             eq(cards.listId, oldListId),
             gte(cards.position, newPosition),
-            lt(cards.position, oldPosition)
-          )
+            lt(cards.position, oldPosition),
+          ),
         )
         .run();
     } else if (newPosition > oldPosition) {
@@ -70,8 +68,8 @@ export async function updateCardListAndPosition(
           and(
             eq(cards.listId, oldListId),
             gte(cards.position, oldPosition + 1),
-            lte(cards.position, newPosition)
-          )
+            lte(cards.position, newPosition),
+          ),
         )
         .run();
     }
@@ -90,14 +88,10 @@ export async function updateCardListAndPosition(
  */
 export async function updateCardPosition(
   cardId: string,
-  newPosition: number
+  newPosition: number,
 ): Promise<void> {
   // Get the current card
-  const card = await db
-    .select()
-    .from(cards)
-    .where(eq(cards.id, cardId))
-    .get();
+  const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
 
   if (!card) {
     throw new Error(`Card ${cardId} not found`);
@@ -119,8 +113,8 @@ export async function updateCardPosition(
         and(
           eq(cards.listId, listId),
           gte(cards.position, newPosition),
-          lt(cards.position, oldPosition)
-        )
+          lt(cards.position, oldPosition),
+        ),
       )
       .run();
   } else {
@@ -132,8 +126,8 @@ export async function updateCardPosition(
         and(
           eq(cards.listId, listId),
           gte(cards.position, oldPosition + 1),
-          lte(cards.position, newPosition)
-        )
+          lte(cards.position, newPosition),
+        ),
       )
       .run();
   }

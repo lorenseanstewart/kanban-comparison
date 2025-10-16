@@ -146,5 +146,5 @@ export const AddBoardModal = component$<AddBoardModalProps>(
         </dialog>
       </>
     );
-  }
+  },
 );

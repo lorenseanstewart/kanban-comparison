@@ -65,13 +65,13 @@ export const CardList = component$<CardListProps>(
       // Find the card element that was dropped on
       const afterElement = getDragAfterElement(
         dropZone as HTMLElement,
-        event.clientY
+        event.clientY,
       );
 
       if (afterElement) {
         const afterCardId = afterElement.getAttribute("data-id");
         const afterCardIndex = list.cards.findIndex(
-          (c) => c.id === afterCardId
+          (c) => c.id === afterCardId,
         );
         if (afterCardIndex !== -1) {
           targetPosition = afterCardIndex;
@@ -147,16 +147,16 @@ export const CardList = component$<CardListProps>(
         </div>
       </section>
     );
-  }
+  },
 );
 
 // Helper function to determine which card element the dragged item is after
 function getDragAfterElement(
   container: HTMLElement,
-  y: number
+  y: number,
 ): HTMLElement | null {
   const draggableElements = Array.from(
-    container.querySelectorAll("[data-id]:not(.dragging)")
+    container.querySelectorAll("[data-id]:not(.dragging)"),
   ) as HTMLElement[];
 
   return draggableElements.reduce<{
@@ -173,6 +173,6 @@ function getDragAfterElement(
         return closest;
       }
     },
-    { offset: Number.NEGATIVE_INFINITY, element: null }
+    { offset: Number.NEGATIVE_INFINITY, element: null },
   ).element;
 }

@@ -62,16 +62,12 @@
       "indexes": {
         "card_tags_card_id_idx": {
           "name": "card_tags_card_id_idx",
-          "columns": [
-            "card_id"
-          ],
+          "columns": ["card_id"],
           "isUnique": false
         },
         "card_tags_tag_id_idx": {
           "name": "card_tags_tag_id_idx",
-          "columns": [
-            "tag_id"
-          ],
+          "columns": ["tag_id"],
           "isUnique": false
         }
       },
@@ -80,12 +76,8 @@
           "name": "card_tags_card_id_cards_id_fk",
           "tableFrom": "card_tags",
           "tableTo": "cards",
-          "columnsFrom": [
-            "card_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["card_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -93,22 +85,15 @@
           "name": "card_tags_tag_id_tags_id_fk",
           "tableFrom": "card_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "card_tags_card_id_tag_id_pk": {
-          "columns": [
-            "card_id",
-            "tag_id"
-          ],
+          "columns": ["card_id", "tag_id"],
           "name": "card_tags_card_id_tag_id_pk"
         }
       },
@@ -178,23 +163,17 @@
       "indexes": {
         "cards_list_id_idx": {
           "name": "cards_list_id_idx",
-          "columns": [
-            "list_id"
-          ],
+          "columns": ["list_id"],
           "isUnique": false
         },
         "cards_position_idx": {
           "name": "cards_position_idx",
-          "columns": [
-            "position"
-          ],
+          "columns": ["position"],
           "isUnique": false
         },
         "cards_assignee_id_idx": {
           "name": "cards_assignee_id_idx",
-          "columns": [
-            "assignee_id"
-          ],
+          "columns": ["assignee_id"],
           "isUnique": false
         }
       },
@@ -203,12 +182,8 @@
           "name": "cards_list_id_lists_id_fk",
           "tableFrom": "cards",
           "tableTo": "lists",
-          "columnsFrom": [
-            "list_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["list_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -216,12 +191,8 @@
           "name": "cards_assignee_id_users_id_fk",
           "tableFrom": "cards",
           "tableTo": "users",
-          "columnsFrom": [
-            "assignee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assignee_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -271,23 +242,17 @@
       "indexes": {
         "comments_card_id_idx": {
           "name": "comments_card_id_idx",
-          "columns": [
-            "card_id"
-          ],
+          "columns": ["card_id"],
           "isUnique": false
         },
         "comments_user_id_idx": {
           "name": "comments_user_id_idx",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         },
         "comments_created_at_idx": {
           "name": "comments_created_at_idx",
-          "columns": [
-            "created_at"
-          ],
+          "columns": ["created_at"],
           "isUnique": false
         }
       },
@@ -296,12 +261,8 @@
           "name": "comments_card_id_cards_id_fk",
           "tableFrom": "comments",
           "tableTo": "cards",
-          "columnsFrom": [
-            "card_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["card_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -309,12 +270,8 @@
           "name": "comments_user_id_users_id_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -364,16 +321,12 @@
       "indexes": {
         "lists_board_id_idx": {
           "name": "lists_board_id_idx",
-          "columns": [
-            "board_id"
-          ],
+          "columns": ["board_id"],
           "isUnique": false
         },
         "lists_position_idx": {
           "name": "lists_position_idx",
-          "columns": [
-            "position"
-          ],
+          "columns": ["position"],
           "isUnique": false
         }
       },
@@ -382,12 +335,8 @@
           "name": "lists_board_id_boards_id_fk",
           "tableFrom": "lists",
           "tableTo": "boards",
-          "columnsFrom": [
-            "board_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["board_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

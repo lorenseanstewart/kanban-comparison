@@ -25,7 +25,7 @@ export const CardEditModal = component$<CardEditModalProps>(
   ({ card, users, tags, isOpen, action, deleteAction, onUpdate, onDelete }) => {
     const dialogRef = useSignal<HTMLDialogElement>();
     const selectedTagIds = useSignal<Set<string>>(
-      () => new Set(card.tags.map((t) => t.id))
+      () => new Set(card.tags.map((t) => t.id)),
     );
 
     useTask$(({ track }) => {
@@ -79,7 +79,7 @@ export const CardEditModal = component$<CardEditModalProps>(
       // Optimistically update the UI
       if (onUpdate) {
         const updatedTags = tags.filter((tag) =>
-          selectedTagIds.value.has(tag.id)
+          selectedTagIds.value.has(tag.id),
         );
         onUpdate({
           title,
@@ -255,5 +255,5 @@ export const CardEditModal = component$<CardEditModalProps>(
         </dialog>
       </>
     );
-  }
+  },
 );

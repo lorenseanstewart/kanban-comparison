@@ -186,5 +186,5 @@ export const CommentModal = component$<CommentModalProps>(
         </dialog>
       </>
     );
-  }
+  },
 );

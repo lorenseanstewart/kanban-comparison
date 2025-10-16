@@ -225,5 +225,5 @@ export const AddCardModal = component$<AddCardModalProps>(
         </dialog>
       </>
     );
-  }
+  },
 );

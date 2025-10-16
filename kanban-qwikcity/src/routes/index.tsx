@@ -40,7 +40,7 @@ export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
           boardId,
           title: listTitle,
           position: index,
-        }))
+        })),
       );
 
       return {
@@ -57,7 +57,7 @@ export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
             : "Failed to create board. Please try again.",
       };
     }
-  }
+  },
 );
 
 export default component$(() => {
@@ -75,7 +75,7 @@ export default component$(() => {
 
   const sortedBoards = useComputed$(() => {
     return [...boardsState.value].sort((a, b) =>
-      a.title.localeCompare(b.title)
+      a.title.localeCompare(b.title),
     );
   });
 
@@ -89,7 +89,7 @@ export default component$(() => {
       };
 
       boardsState.value = [...boardsState.value, newBoard];
-    }
+    },
   );
 
   return (
