@@ -57,6 +57,10 @@ export class ApiService {
     return this.http.patch<any>(`${this.baseUrl}/cards/${data.cardId}`, data);
   }
 
+  deleteCard(cardId: string): Observable<{ success: boolean; error?: string }> {
+    return this.http.delete<any>(`${this.baseUrl}/cards/${cardId}`);
+  }
+
   moveCard(cardId: string, data: { newListId: string; newPosition?: number }): Observable<{ success: boolean }> {
     return this.http.post<any>(`${this.baseUrl}/cards/${cardId}/move`, data);
   }

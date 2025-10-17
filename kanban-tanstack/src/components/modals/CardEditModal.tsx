@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { BoardCard, UsersList, TagsList } from "../lib/api";
+import type { BoardCard, UsersList, TagsList } from "@/lib/api";
 import { updateCard, deleteCard } from "../../utils/api";
 
 export function CardEditModal({
@@ -20,13 +20,13 @@ export function CardEditModal({
   onDelete?: () => void;
 }) {
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(
-    new Set(card.tags.map((t) => t.id))
+    new Set(card.tags.map((t: { id: string }) => t.id))
   );
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Reset selected tags when card changes
   useEffect(() => {
-    setSelectedTagIds(new Set(card.tags.map((t) => t.id)));
+    setSelectedTagIds(new Set(card.tags.map((t: { id: string }) => t.id)));
   }, [card]);
 
   const toggleTag = (tagId: string) => {
@@ -75,7 +75,7 @@ export function CardEditModal({
 
     // Optimistically update the UI
     if (onUpdate) {
-      const updatedTags = tags.filter((tag) => selectedTagIds.has(tag.id));
+      const updatedTags = tags.filter((tag: { id: string; name: string; color: string }) => selectedTagIds.has(tag.id));
       onUpdate({
         title,
         description: description || null,
@@ -155,7 +155,7 @@ export function CardEditModal({
               defaultValue={card.assigneeId || ""}
             >
               <option value="">Unassigned</option>
-              {users.map((user) => (
+              {users.map((user: { id: string; name: string }) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
@@ -168,7 +168,7 @@ export function CardEditModal({
               <span className="label-text">Tags</span>
             </label>
             <div className="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-              {tags.map((tag) => (
+              {tags.map((tag: { id: string; name: string; color: string }) => (
                 <button
                   key={tag.id}
                   type="button"

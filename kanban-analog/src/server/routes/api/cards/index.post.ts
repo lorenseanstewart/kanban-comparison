@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody } from 'h3';
+import { defineEventHandler, readBody, createError } from 'h3';
 import { db } from '../../../db/index';
 import { lists, cards, cardTags } from '../../../../../drizzle/schema';
 import { eq, max } from 'drizzle-orm';

@@ -3,7 +3,6 @@
 import { eq, max } from "drizzle-orm";
 import { db } from "./db";
 import { boards, lists, cards, cardTags, comments } from "../../drizzle/schema";
-import { revalidatePath } from "next/cache";
 import * as v from "valibot";
 import { BoardSchema, CardSchema, CardUpdateSchema, CommentSchema } from "./validation";
 
@@ -43,7 +42,6 @@ export async function createBoard(formData: FormData) {
       }))
     );
 
-    revalidatePath("/");
     return { success: true, data: { id: boardId, title: result.output.title, description: result.output.description } };
   } catch (error) {
     console.error("Failed to create board:", error);
@@ -99,9 +97,6 @@ export async function updateCard(formData: FormData) {
           .run();
       }
     });
-
-    revalidatePath("/board/[id]", "page");
-    revalidatePath("/");
   } catch (error) {
     console.error("Failed to update card:", error);
     throw new Error("Failed to update card. Please try again.");
@@ -134,8 +129,6 @@ export async function addComment(formData: FormData) {
       userId: result.output.userId,
       text: result.output.text,
     });
-
-    revalidatePath("/board/[id]", "page");
   } catch (error) {
     console.error("Failed to add comment:", error);
     throw new Error("Failed to add comment. Please try again.");
@@ -217,8 +210,6 @@ export async function createCard(formData: FormData) {
       }
     });
 
-    revalidatePath("/board/[id]", "page");
-    revalidatePath("/");
     return { success: true, data: { id: cardId } };
   } catch (error) {
     console.error("Failed to create card:", error);
@@ -239,7 +230,6 @@ export async function updateCardList(cardId: string, newListId: string, newPosit
       .set(updateData)
       .where(eq(cards.id, cardId));
 
-    revalidatePath("/board/[id]", "page");
     return { success: true };
   } catch (error) {
     console.error("Failed to update card list:", error);
@@ -259,7 +249,6 @@ export async function updateCardPositions(cardIds: string[]) {
       )
     );
 
-    revalidatePath("/board/[id]", "page");
     return { success: true };
   } catch (error) {
     console.error("Failed to update card positions:", error);
@@ -275,8 +264,6 @@ export async function deleteCard(cardId: string) {
 
     await db.delete(cards).where(eq(cards.id, cardId));
 
-    revalidatePath("/board/[id]", "page");
-    revalidatePath("/");
     return { success: true };
   } catch (error) {
     console.error("Failed to delete card:", error);

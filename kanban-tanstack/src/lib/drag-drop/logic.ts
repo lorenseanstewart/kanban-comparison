@@ -1,4 +1,4 @@
-import type { BoardDetails, BoardCard } from "@/lib/api";
+import type { BoardDetails, BoardCard, BoardList } from "@/lib/api";
 import type { DragDropResult, ReorderResult } from "./types";
 
 /**
@@ -15,8 +15,8 @@ export function resolveTargetListId(
   }
 
   // If it's not a list, assume it's a card ID and find which list contains it
-  const targetList = board.lists.find((list) =>
-    list.cards.some((card) => card.id === droppableId)
+  const targetList = board.lists.find((list: BoardList) =>
+    list.cards.some((card: BoardCard) => card.id === droppableId)
   );
   return targetList?.id ?? null;
 }
@@ -29,8 +29,8 @@ export function parseDragEvent(
   droppableId: string,
   board: BoardDetails
 ): DragDropResult | null {
-  const sourceList = board.lists.find((list) =>
-    list.cards.some((card) => card.id === cardId)
+  const sourceList = board.lists.find((list: BoardList) =>
+    list.cards.some((card: BoardCard) => card.id === cardId)
   );
 
   if (!sourceList) return null;
@@ -38,7 +38,7 @@ export function parseDragEvent(
   const targetListId = resolveTargetListId(droppableId, board);
   if (!targetListId) return null;
 
-  const card = sourceList.cards.find((c) => c.id === cardId);
+  const card = sourceList.cards.find((c: BoardCard) => c.id === cardId);
   if (!card) return null;
 
   return {
@@ -59,7 +59,7 @@ export function calculateReorder(
   draggedCardId: string,
   droppedOnCardId: string
 ): ReorderResult | null {
-  const cardIds = cards.map((c) => c.id);
+  const cardIds = cards.map((c: BoardCard) => c.id);
   const oldIndex = cardIds.indexOf(draggedCardId);
   const newIndex = cardIds.indexOf(droppedOnCardId);
 
@@ -71,8 +71,8 @@ export function calculateReorder(
   reorderedIds.splice(oldIndex, 1);
   reorderedIds.splice(newIndex, 0, draggedCardId);
 
-  const cardMap = new Map(cards.map((c) => [c.id, c]));
-  const reorderedCards = reorderedIds.map((id) => cardMap.get(id)!);
+  const cardMap = new Map(cards.map((c: BoardCard) => [c.id, c]));
+  const reorderedCards = reorderedIds.map((id: string) => cardMap.get(id)!);
 
   return { reorderedIds, reorderedCards };
 }
@@ -87,7 +87,7 @@ export function createReorderUpdate(
 ): BoardDetails {
   return {
     ...board,
-    lists: board.lists.map((list) =>
+    lists: board.lists.map((list: BoardList) =>
       list.id === result.targetListId ? { ...list, cards: reorderedCards } : list
     ),
   };
@@ -102,9 +102,9 @@ export function createCrossListUpdate(
 ): BoardDetails {
   return {
     ...board,
-    lists: board.lists.map((list) => {
+    lists: board.lists.map((list: BoardList) => {
       if (list.id === result.sourceListId) {
-        return { ...list, cards: list.cards.filter((c) => c.id !== result.cardId) };
+        return { ...list, cards: list.cards.filter((c: BoardCard) => c.id !== result.cardId) };
       } else if (list.id === result.targetListId) {
         return { ...list, cards: [...list.cards, result.card] };
       }

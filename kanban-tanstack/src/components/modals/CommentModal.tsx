@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { BoardCard, UsersList } from "../lib/api";
+import type { BoardCard, UsersList } from "@/lib/api";
 import { addComment } from "../../utils/api";
 
 export function CommentModal({
@@ -75,8 +75,8 @@ export function CommentModal({
             </div>
           ) : (
             <div className="space-y-3">
-              {card.comments.map((comment) => {
-                const user = users.find((u) => u.id === comment.userId);
+              {card.comments.map((comment: { id: string; userId: string; text: string; createdAt: Date }) => {
+                const user = users.find((u: { id: string; name: string }) => u.id === comment.userId);
                 return (
                   <div
                     key={comment.id}
@@ -112,7 +112,7 @@ export function CommentModal({
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.currentTarget.value)}
             >
-              {users.map((user) => (
+              {users.map((user: { id: string; name: string }) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>

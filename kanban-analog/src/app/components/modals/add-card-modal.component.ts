@@ -38,7 +38,7 @@ import type { UsersList, TagsList } from '../../../lib/types';
               <label class="label"><span class="label-text">Assignee</span></label>
               <select name="assigneeId" [(ngModel)]="formData.assigneeId" class="select select-bordered w-full"
                 [disabled]="isSubmitting()">
-                <option value="">Unassigned</option>
+                <option [ngValue]="null">Unassigned</option>
                 @for (user of users(); track user.id) {
                   <option [value]="user.id">{{ user.name }}</option>
                 }
@@ -92,7 +92,7 @@ export class AddCardModalComponent {
   formData = {
     title: '',
     description: '',
-    assigneeId: '',
+    assigneeId: null as string | null,
   };
 
   constructor() {
@@ -107,7 +107,7 @@ export class AddCardModalComponent {
   close() {
     this.onClose.emit();
     this.error.set(null);
-    this.formData = { title: '', description: '', assigneeId: '' };
+    this.formData = { title: '', description: '', assigneeId: null };
   }
 
   closeOnBackdrop(event: MouseEvent) {
@@ -157,8 +157,9 @@ export class AddCardModalComponent {
           }
           this.isSubmitting.set(false);
         },
-        error: () => {
-          this.error.set('An unexpected error occurred. Please try again.');
+        error: (err) => {
+          const errorMessage = err?.error?.statusMessage || err?.message || 'An unexpected error occurred. Please try again.';
+          this.error.set(errorMessage);
           this.isSubmitting.set(false);
         },
       });

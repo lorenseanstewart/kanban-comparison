@@ -85,6 +85,7 @@ export const routeMeta: RouteMeta = {
                   [allTags]="allTags()"
                   (onDrop)="handleDrop($event)"
                   (cardUpdate)="handleCardUpdate($event)"
+                  (cardDeleted)="handleCardDelete($event)"
                 ></app-card-list>
               }
             }
@@ -203,6 +204,22 @@ export default class BoardPageComponent {
         cards: list.cards.map(card =>
           card.id === update.cardId ? { ...card, ...update.updates } : card
         ),
+      })),
+    };
+
+    this.board.set(updatedBoard);
+  }
+
+  handleCardDelete(cardId: string) {
+    const board = this.board();
+    if (!board) return;
+
+    // Remove card from all lists
+    const updatedBoard = {
+      ...board,
+      lists: board.lists.map(list => ({
+        ...list,
+        cards: list.cards.filter(card => card.id !== cardId),
       })),
     };
 

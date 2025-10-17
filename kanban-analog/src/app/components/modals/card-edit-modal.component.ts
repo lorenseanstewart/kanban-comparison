@@ -19,18 +19,18 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
 
             <div class="form-control w-full mb-4">
               <label class="label"><span class="label-text">Title</span></label>
-              <input type="text" name="title" [(ngModel)]="formData.title" class="input input-bordered w-full" required />
+              <input type="text" name="title" [(ngModel)]="formData.title" class="input input-bordered w-full" required [disabled]="isDeleting()" />
             </div>
 
             <div class="form-control w-full mb-4">
               <label class="label"><span class="label-text">Description</span></label>
-              <textarea name="description" [(ngModel)]="formData.description" class="textarea textarea-bordered h-24 w-full"></textarea>
+              <textarea name="description" [(ngModel)]="formData.description" class="textarea textarea-bordered h-24 w-full" required [disabled]="isDeleting()"></textarea>
             </div>
 
             <div class="form-control w-full mb-4">
               <label class="label"><span class="label-text">Assignee</span></label>
-              <select name="assigneeId" [(ngModel)]="formData.assigneeId" class="select select-bordered w-full">
-                <option value="">Unassigned</option>
+              <select name="assigneeId" [(ngModel)]="formData.assigneeId" class="select select-bordered w-full" required [disabled]="isDeleting()">
+                <option [ngValue]="null" disabled>Select an assignee</option>
                 @for (user of users(); track user.id) {
                   <option [value]="user.id">{{ user.name }}</option>
                 }
@@ -55,9 +55,14 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
               </div>
             </div>
 
-            <div class="modal-action">
-              <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
-              <button type="submit" class="btn btn-primary">Save Changes</button>
+            <div class="modal-action justify-between">
+              <button type="button" class="btn btn-error" (click)="handleDelete()" [disabled]="isDeleting()">
+                {{ isDeleting() ? 'Deleting...' : 'Delete Card' }}
+              </button>
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-ghost" (click)="close()" [disabled]="isDeleting()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="!editForm.valid || isDeleting()">Save Changes</button>
+              </div>
             </div>
           </form>
         </div>
@@ -74,12 +79,14 @@ export class CardEditModalComponent {
   isOpen = input.required<boolean>();
   onClose = output<void>();
   cardUpdated = output<Partial<BoardCard>>();
+  cardDeleted = output<void>();
 
   selectedTagIds = signal<Set<string>>(new Set());
+  isDeleting = signal(false);
   formData = {
     title: '',
     description: '',
-    assigneeId: '',
+    assigneeId: null as string | null,
   };
 
   constructor() {
@@ -87,8 +94,32 @@ export class CardEditModalComponent {
       const card = this.card();
       this.formData.title = card.title;
       this.formData.description = card.description || '';
-      this.formData.assigneeId = card.assigneeId || '';
+      this.formData.assigneeId = card.assigneeId;
       this.selectedTagIds.set(new Set(card.tags.map(t => t.id)));
+    });
+  }
+
+  handleDelete() {
+    if (!confirm('Are you sure you want to delete this card?')) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+
+    this.apiService.deleteCard(this.card().id).subscribe({
+      next: (result) => {
+        if (result.success) {
+          this.cardDeleted.emit();
+          this.close();
+        } else {
+          alert(result.error || 'Failed to delete card');
+          this.isDeleting.set(false);
+        }
+      },
+      error: (err) => {
+        alert('Failed to delete card. Please try again.');
+        this.isDeleting.set(false);
+      },
     });
   }
 

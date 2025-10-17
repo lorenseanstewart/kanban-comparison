@@ -22,11 +22,13 @@ import { CommentModalComponent } from './modals/comment-modal.component';
     <div
       cdkDrag
       [cdkDragData]="card()"
-      class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
+      class="card mt-2 bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
     >
       <div class="card-body gap-3 p-4">
         <div class="flex items-start justify-between gap-2">
-          <h3 class="card-title text-lg text-base-content">{{ card().title }}</h3>
+          <h3 class="card-title text-lg text-base-content">
+            {{ card().title }}
+          </h3>
           @if (card().completed) {
             <span class="badge badge-success badge-outline">Done</span>
           }
@@ -46,13 +48,17 @@ import { CommentModalComponent } from './modals/comment-modal.component';
         }
 
         @if (card().description) {
-          <p class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2">
+          <p
+            class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2"
+          >
             {{ card().description }}
           </p>
         }
 
         @if (card().tags.length > 0) {
-          <div class="flex flex-wrap gap-2.5 rounded-xl px-3 py-2 bg-base-200 dark:bg-base-100">
+          <div
+            class="flex flex-wrap gap-2.5 rounded-xl px-3 py-2 bg-base-200 dark:bg-base-100"
+          >
             @for (tag of card().tags; track tag.id) {
               <span
                 class="badge border-0 shadow font-semibold text-white"
@@ -76,7 +82,9 @@ import { CommentModalComponent } from './modals/comment-modal.component';
             </button>
           </div>
         } @else {
-          <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
+          <div
+            class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative"
+          >
             <div class="flex items-center justify-between">
               <p class="text-xs font-semibold text-base-content/50">Comments</p>
               <button
@@ -109,6 +117,7 @@ import { CommentModalComponent } from './modals/comment-modal.component';
       [isOpen]="isEditModalOpen()"
       (onClose)="isEditModalOpen.set(false)"
       (cardUpdated)="handleUpdate($event)"
+      (cardDeleted)="handleDelete()"
     ></app-card-edit-modal>
 
     <app-comment-modal
@@ -126,17 +135,22 @@ export class CardComponent {
   allUsers = input.required<UsersList>();
   allTags = input.required<TagsList>();
   cardUpdate = output<{ cardId: string; updates: Partial<BoardCard> }>();
+  cardDeleted = output<string>();
 
   isEditModalOpen = signal(false);
   isCommentModalOpen = signal(false);
 
   getUserName(userId: string | null): string {
     if (!userId) return 'Unknown';
-    return this.allUsers().find(u => u.id === userId)?.name ?? 'Unknown';
+    return this.allUsers().find((u) => u.id === userId)?.name ?? 'Unknown';
   }
 
   handleUpdate(updates: Partial<BoardCard>) {
     this.cardUpdate.emit({ cardId: this.card().id, updates });
+  }
+
+  handleDelete() {
+    this.cardDeleted.emit(this.card().id);
   }
 
   handleCommentAdd(comment: { userId: string; text: string }) {

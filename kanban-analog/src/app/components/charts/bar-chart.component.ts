@@ -37,6 +37,18 @@ export interface ChartData {
       max-width: 100%;
       margin: 0;
     }
+
+    td {
+      transition: all 0.5s ease-in-out;
+    }
+
+    th {
+      transform: translateY(10px);
+    }
+
+    .data {
+      transform: translateY(2px);
+    }
   `,
 })
 export class BarChartComponent {

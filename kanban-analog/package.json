@@ -13,7 +13,12 @@
     "watch": "vite build --watch",
     "test": "vitest",
     "preview": "node dist/analog/server/index.mjs",
-    "seed": "tsx src/server/db/seed.ts"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:push": "drizzle-kit push",
+    "db:reset": "node scripts/reset-db.js",
+    "seed": "tsx src/server/db/seed.ts",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
   },
   "private": true,
   "dependencies": {

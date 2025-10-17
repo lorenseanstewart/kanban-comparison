@@ -7,12 +7,13 @@ export const BoardSchema = v.object({
     v.minLength(1, 'Title cannot be empty'),
     v.maxLength(255, 'Title must be less than 255 characters')
   ),
-  description: v.optional(
-    v.pipe(
-      v.string(),
-      v.maxLength(500, 'Description must be less than 500 characters')
-    ),
-    null
+  description: v.nullable(
+    v.optional(
+      v.pipe(
+        v.string(),
+        v.maxLength(500, 'Description must be less than 500 characters')
+      )
+    )
   ),
 });
 
@@ -26,15 +27,16 @@ export const CardSchema = v.object({
     v.minLength(1, 'Title cannot be empty'),
     v.maxLength(255, 'Title must be less than 255 characters')
   ),
-  description: v.optional(
-    v.pipe(
-      v.string(),
-      v.maxLength(2000, 'Description must be less than 2000 characters')
-    ),
-    null
+  description: v.nullable(
+    v.optional(
+      v.pipe(
+        v.string(),
+        v.maxLength(2000, 'Description must be less than 2000 characters')
+      )
+    )
   ),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), []),
+  assigneeId: v.nullable(v.optional(v.string())),
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardInput = v.InferInput<typeof CardSchema>;
@@ -48,15 +50,16 @@ export const CardUpdateSchema = v.object({
     v.minLength(1, 'Title cannot be empty'),
     v.maxLength(255, 'Title must be less than 255 characters')
   ),
-  description: v.optional(
-    v.pipe(
-      v.string(),
-      v.maxLength(2000, 'Description must be less than 2000 characters')
-    ),
-    null
+  description: v.nullable(
+    v.optional(
+      v.pipe(
+        v.string(),
+        v.maxLength(2000, 'Description must be less than 2000 characters')
+      )
+    )
   ),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), []),
+  assigneeId: v.nullable(v.optional(v.string())),
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardUpdateInput = v.InferInput<typeof CardUpdateSchema>;
