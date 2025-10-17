@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { db } from '../../../utils/db'
 import { comments, users } from '../../../../drizzle/schema'
 
 export default defineEventHandler(async (event) => {
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
     const allUsers = await db.select().from(users)
 
     const commentsWithAuthors = cardComments.map((comment) => {
-      const author = allUsers.find((u) => u.id === comment.authorId)
+      const author = allUsers.find((u) => u.id === comment.userId)
       return {
         ...comment,
         author: author || null,

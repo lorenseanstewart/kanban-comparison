@@ -21,6 +21,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   cardUpdate: [cardId: string, updates: Partial<BoardCard>]
+  cardDelete: [cardId: string]
 }>()
 
 const isEditModalOpen = ref(false)
@@ -28,6 +29,10 @@ const isCommentModalOpen = ref(false)
 
 function handleUpdate(updates: Partial<BoardCard>) {
   emit('cardUpdate', props.card.id, updates)
+}
+
+function handleDelete() {
+  emit('cardDelete', props.card.id)
 }
 
 function handleCommentAdd(comment: { userId: string; text: string; id: string; cardId: string; createdAt: string }) {
@@ -139,6 +144,7 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
       :tags="allTags"
       @close="isEditModalOpen = false"
       @update="handleUpdate"
+      @delete="handleDelete"
     />
     <CommentModal
       v-if="isCommentModalOpen"

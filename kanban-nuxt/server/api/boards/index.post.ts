@@ -1,4 +1,5 @@
 import * as v from 'valibot'
+import { db } from '../../utils/db'
 import { boards, lists } from '../../../drizzle/schema'
 import { BoardSchema } from '../../utils/validation'
 

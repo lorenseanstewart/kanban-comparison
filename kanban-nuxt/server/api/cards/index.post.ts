@@ -1,12 +1,12 @@
 import * as v from 'valibot'
 import { eq, max } from 'drizzle-orm'
+import { db } from '../../utils/db'
 import { cards, cardTags, lists } from '../../../drizzle/schema'
 import { CardSchema } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    console.log('POST /api/cards (CREATE) - Received body:', body)
 
     if (!body.boardId) {
       throw createError({

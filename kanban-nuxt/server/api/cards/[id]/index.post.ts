@@ -1,5 +1,6 @@
 import * as v from 'valibot'
 import { eq } from 'drizzle-orm'
+import { db } from '../../../utils/db'
 import { cards, cardTags } from '../../../../drizzle/schema'
 import { CardUpdateSchema } from '../../../utils/validation'
 
@@ -14,14 +15,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    console.log('Request method:', event.method)
-    console.log('Request headers:', getHeaders(event))
-
     const rawBody = await readRawBody(event, 'utf-8')
-    console.log('Raw body:', rawBody)
-
     const body = rawBody ? JSON.parse(rawBody) : null
-    console.log('Parsed body:', body, 'Type:', typeof body)
 
     if (!body || typeof body !== 'object') {
       throw createError({

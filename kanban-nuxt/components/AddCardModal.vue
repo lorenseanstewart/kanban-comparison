@@ -24,8 +24,6 @@ const selectedTagIds = ref(new Set<string>())
 const error = ref<string | null>(null)
 const isSubmitting = ref(false)
 
-const { $fetch } = useNuxtApp()
-
 function toggleTag(tagId: string) {
   const newSet = new Set(selectedTagIds.value)
   if (newSet.has(tagId)) {

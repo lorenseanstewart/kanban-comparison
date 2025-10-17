@@ -21,9 +21,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   update: [updates: Partial<BoardCard>]
+  delete: []
 }>()
 
 const selectedTagIds = ref(new Set(props.card.tags.map((t) => t.id)))
+const isDeleting = ref(false)
 
 // Reset selected tags when card changes
 watch(
@@ -41,6 +43,27 @@ function toggleTag(tagId: string) {
     newSet.add(tagId)
   }
   selectedTagIds.value = newSet
+}
+
+async function handleDelete() {
+  if (!confirm('Are you sure you want to delete this card?')) {
+    return
+  }
+
+  isDeleting.value = true
+
+  try {
+    await $fetch(`/api/cards/${props.card.id}`, {
+      method: 'DELETE',
+    })
+
+    emit('delete')
+    emit('close')
+  } catch (error: any) {
+    console.error('Failed to delete card:', error)
+    alert('Failed to delete card. Please try again.')
+    isDeleting.value = false
+  }
 }
 
 async function handleSubmit(e: Event) {
@@ -68,19 +91,10 @@ async function handleSubmit(e: Event) {
       tagIds: Array.from(selectedTagIds.value),
     }
 
-    console.log('Sending payload:', payload)
-
-    const response = await fetch(`/api/cards/${props.card.id}`, {
+    await $fetch(`/api/cards/${props.card.id}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
     })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`)
-    }
 
     emit('close')
   } catch (error: any) {
@@ -176,11 +190,21 @@ async function handleSubmit(e: Event) {
           </div>
         </div>
 
-        <div class="modal-action">
-          <button type="button" class="btn btn-ghost" @click="emit('close')">
-            Cancel
+        <div class="modal-action justify-between">
+          <button
+            type="button"
+            class="btn btn-error"
+            @click="handleDelete"
+            :disabled="isDeleting"
+          >
+            {{ isDeleting ? 'Deleting...' : 'Delete Card' }}
           </button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-ghost" @click="emit('close')">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
         </div>
       </form>
     </div>

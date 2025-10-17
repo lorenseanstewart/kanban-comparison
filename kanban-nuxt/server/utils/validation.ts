@@ -2,14 +2,14 @@ import * as v from 'valibot'
 
 export const BoardSchema = v.object({
   title: v.pipe(
-    v.string('Title is required'),
-    v.minLength(1, 'Title cannot be empty'),
-    v.maxLength(255, 'Title must be less than 255 characters')
+    v.string('Board title is required'),
+    v.minLength(1, 'Board title cannot be empty'),
+    v.maxLength(255, 'Board title must be less than 255 characters')
   ),
   description: v.optional(
     v.pipe(
-      v.string(),
-      v.maxLength(500, 'Description must be less than 500 characters')
+      v.string('Board description must be text'),
+      v.maxLength(500, 'Board description must be less than 500 characters')
     ),
     null
   ),
@@ -17,40 +17,46 @@ export const BoardSchema = v.object({
 
 export const CardSchema = v.object({
   title: v.pipe(
-    v.string('Title is required'),
-    v.minLength(1, 'Title cannot be empty'),
-    v.maxLength(255, 'Title must be less than 255 characters')
+    v.string('Card title is required'),
+    v.minLength(1, 'Card title cannot be empty'),
+    v.maxLength(255, 'Card title must be less than 255 characters')
   ),
   description: v.optional(
     v.pipe(
-      v.string(),
-      v.maxLength(2000, 'Description must be less than 2000 characters')
+      v.string('Card description must be text'),
+      v.maxLength(2000, 'Card description must be less than 2000 characters')
     ),
     null
   ),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), []),
+  assigneeId: v.optional(v.string('Assignee must be a valid user ID'), null),
+  tagIds: v.optional(v.array(v.string('Each tag ID must be a valid string'), 'Tags must be provided as an array'), []),
 })
 
 export const CardUpdateSchema = v.object({
   title: v.optional(
     v.pipe(
-      v.string(),
-      v.minLength(1, 'Title cannot be empty'),
-      v.maxLength(255, 'Title must be less than 255 characters')
+      v.string('Card title must be text'),
+      v.minLength(1, 'Card title cannot be empty'),
+      v.maxLength(255, 'Card title must be less than 255 characters')
     )
   ),
-  description: v.optional(v.pipe(v.string(), v.maxLength(2000, 'Description must be less than 2000 characters')), null),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string())),
+  description: v.optional(
+    v.pipe(
+      v.string('Card description must be text'),
+      v.maxLength(2000, 'Card description must be less than 2000 characters')
+    ),
+    null
+  ),
+  assigneeId: v.optional(v.string('Assignee must be a valid user ID'), null),
+  tagIds: v.optional(v.array(v.string('Each tag ID must be a valid string'), 'Tags must be provided as an array')),
 })
 
 export const CommentSchema = v.object({
   text: v.pipe(
     v.string('Comment text is required'),
     v.minLength(1, 'Comment text cannot be empty'),
-    v.maxLength(1000, 'Comment must be less than 1000 characters')
+    v.maxLength(1000, 'Comment text must be less than 1000 characters')
   ),
-  cardId: v.string('Card ID is required'),
-  userId: v.string('User ID is required'),
+  cardId: v.string('Card ID is required to add a comment'),
+  userId: v.string('User must be selected to add a comment'),
 })

@@ -2,6 +2,15 @@
 import AddBoardModal from '~/components/AddBoardModal.vue';
 import BoardOverview from '~/components/BoardOverview.vue';
 
+useHead({
+  title: 'Boards - Kanban',
+  meta: [
+    { name: 'description', content: 'Manage your Kanban boards and organize your workflow efficiently.' },
+    { property: 'og:title', content: 'Boards - Kanban' },
+    { property: 'og:description', content: 'Manage your Kanban boards and organize your workflow efficiently.' },
+  ],
+});
+
 const { data: boards, pending, error } = await useAsyncData(
   'boards',
   () => $fetch('/api/boards'),
@@ -64,7 +73,6 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
         v-for="board in boards"
         :key="board.id"
         :to="`/board/${board.id}`"
-        @click="console.log('Navigating to board:', board.id)"
         class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
       >
         <div class="card-body">
@@ -75,14 +83,6 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
           <p v-else class="badge badge-secondary badge-outline w-fit shadow">
             No description
           </p>
-          <div class="card-actions justify-end">
-            <button 
-              class="btn btn-secondary btn-sm shadow-lg"
-              @click="() => { console.log('Button clicked for board:', board.id); navigateTo(`/board/${board.id}`); }"
-            >
-              Open board
-            </button>
-          </div>
         </div>
       </NuxtLink>
     </section>

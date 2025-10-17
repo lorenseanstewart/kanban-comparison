@@ -37,6 +37,26 @@ watch(serverData, (newBoard) => {
   board.value = newBoard;
 });
 
+// Set dynamic meta tags based on board data
+watchEffect(() => {
+  if (board.value) {
+    useHead({
+      title: `${board.value.board.title} - Kanban`,
+      meta: [
+        {
+          name: 'description',
+          content: board.value.board.description || `Manage tasks on the ${board.value.board.title} board.`
+        },
+        { property: 'og:title', content: `${board.value.board.title} - Kanban` },
+        {
+          property: 'og:description',
+          content: board.value.board.description || `Manage tasks on the ${board.value.board.title} board.`
+        },
+      ],
+    });
+  }
+});
+
 const showAddCardModal = ref(false)
 const dragOverListId = ref<string | null>(null)
 const draggedCard = ref<{ id: string; fromListId: string } | null>(null)
@@ -88,6 +108,26 @@ async function onDragEnd(listId: string, event: any) {
   const { oldIndex, newIndex } = event
   if (oldIndex === newIndex && fromListId === listId) return
 
+  // Store previous state for rollback
+  const previousState = JSON.parse(JSON.stringify(board.value.lists))
+
+  // Optimistically update the UI - vuedraggable already moved the card in the DOM
+  // We just need to update positions
+  const updatedLists = board.value.lists.map(list => ({
+    ...list,
+    cards: list.cards.map((card, index) => ({
+      ...card,
+      position: index,
+      listId: list.id
+    }))
+  }))
+
+  board.value = {
+    ...board.value,
+    lists: updatedLists
+  }
+
+  // Send update to server in background
   try {
     const response = await $fetch('/api/cards/move', {
       method: 'POST',
@@ -99,10 +139,21 @@ async function onDragEnd(listId: string, event: any) {
       },
     })
 
-    if (response?.success) {
+    if (!response?.success) {
+      // Rollback on failure
+      board.value = {
+        ...board.value,
+        lists: previousState
+      }
       await refresh()
     }
   } catch (error) {
+    // Rollback on error
+    console.error('Failed to move card:', error)
+    board.value = {
+      ...board.value,
+      lists: previousState
+    }
     await refresh()
   }
 }
@@ -124,7 +175,26 @@ function handleCardUpdate(cardId: string, updates: Partial<BoardCard>) {
   }
 }
 
-// Handle card creation with server-generated ID
+// Handle optimistic card deletion
+function handleCardDelete(cardId: string) {
+  if (!board.value) return
+
+  // Optimistically remove card from UI
+  const updatedLists = board.value.lists.map((list) => ({
+    ...list,
+    cards: list.cards.filter((card) => card.id !== cardId)
+  }))
+
+  board.value = {
+    ...board.value,
+    lists: updatedLists,
+  }
+
+  // Refresh in background to sync with server
+  refresh()
+}
+
+// Handle card creation with optimistic update
 async function handleCardAdd(cardData: {
   id: string
   title: string
@@ -133,7 +203,53 @@ async function handleCardAdd(cardData: {
   tagIds: string[]
 }) {
   showAddCardModal.value = false
-  await refresh()
+
+  if (!board.value) return
+
+  // Find the Todo list
+  const todoList = board.value.lists.find(list => list.title === 'Todo')
+  if (!todoList) return
+
+  // Get the highest position in the Todo list
+  const maxPosition = todoList.cards.length > 0
+    ? Math.max(...todoList.cards.map(c => c.position))
+    : -1
+
+  // Create optimistic card with populated tags
+  const optimisticCard = {
+    id: cardData.id,
+    title: cardData.title,
+    description: cardData.description,
+    assigneeId: cardData.assigneeId,
+    listId: todoList.id,
+    position: maxPosition + 1,
+    completed: false,
+    createdAt: new Date(),
+    tags: cardData.tagIds.map(tagId => {
+      const tag = board.value!.tags.find(t => t.id === tagId)
+      return tag ? { tagId, tag } : null
+    }).filter(Boolean),
+    comments: []
+  }
+
+  // Optimistically add card to the Todo list
+  const updatedLists = board.value.lists.map(list => {
+    if (list.id === todoList.id) {
+      return {
+        ...list,
+        cards: [...list.cards, optimisticCard]
+      }
+    }
+    return list
+  })
+
+  board.value = {
+    ...board.value,
+    lists: updatedLists
+  }
+
+  // Refresh in background to sync with server
+  refresh()
 }
 </script>
 
@@ -192,39 +308,40 @@ async function handleCardAdd(cardData: {
               </div>
             </header>
 
-            <div :ref="getAnimateRef(list.id)" class="space-y-3 min-h-[200px]">
-              <draggable
-                v-model="list.cards"
-                item-key="id"
-                :group="{ name: 'cards', pull: true, put: true }"
-                :class="[
-                  'transition-all duration-200',
-                  dragOverListId === list.id
-                    ? 'ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]'
-                    : ''
-                ]"
-                @start="onDragStart(list.id, $event.item?.__draggable_context?.element?.id ?? '')"
-                @end="onDragEnd(list.id, $event)"
-                @dragover="onDragOver(list.id)"
-                @dragleave="onDragLeave"
-              >
-                <template #item="{ element }">
-                  <Card
-                    :card="element"
-                    :users="board.users"
-                    :all-users="board.users"
-                    :all-tags="board.tags"
-                    @card-update="handleCardUpdate"
-                  />
-                </template>
-              </draggable>
-            </div>
-            <div
-              v-if="list.cards.length === 0"
-              class="alert alert-info text-sm"
+            <draggable
+              v-model="list.cards"
+              item-key="id"
+              :group="{ name: 'cards', pull: true, put: true }"
+              :class="[
+                'space-y-3 min-h-[600px] transition-all duration-200 rounded-lg p-2',
+                dragOverListId === list.id
+                  ? 'ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]'
+                  : ''
+              ]"
+              @start="onDragStart(list.id, $event.item?.__draggable_context?.element?.id ?? '')"
+              @end="onDragEnd(list.id, $event)"
+              @dragover="onDragOver(list.id)"
+              @dragleave="onDragLeave"
             >
-              <span>No cards yet</span>
-            </div>
+              <template #item="{ element }">
+                <Card
+                  :card="element"
+                  :users="board.users"
+                  :all-users="board.users"
+                  :all-tags="board.tags"
+                  @card-update="handleCardUpdate"
+                  @card-delete="handleCardDelete"
+                />
+              </template>
+              <template #footer>
+                <div
+                  v-if="list.cards.length === 0"
+                  class="alert alert-info text-sm mt-2"
+                >
+                  <span>No cards yet</span>
+                </div>
+              </template>
+            </draggable>
           </div>
         </article>
       </section>

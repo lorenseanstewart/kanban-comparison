@@ -9,8 +9,6 @@ const description = ref('')
 const error = ref<string | null>(null)
 const isSubmitting = ref(false)
 
-const { $fetch } = useNuxtApp()
-
 async function handleSubmit() {
   error.value = null
   isSubmitting.value = true
@@ -38,7 +36,7 @@ async function handleSubmit() {
     description.value = ''
     emit('close')
   } catch (err: any) {
-    error.value = err?.statusMessage || 'Failed to create board'
+    error.value = err?.statusMessage || err?.message || 'Failed to create board'
   } finally {
     isSubmitting.value = false
   }

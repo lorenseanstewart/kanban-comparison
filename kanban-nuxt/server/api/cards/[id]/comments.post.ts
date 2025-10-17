@@ -1,4 +1,5 @@
 import * as v from 'valibot'
+import { db } from '../../../utils/db'
 import { comments } from '../../../../drizzle/schema'
 import { CommentSchema } from '../../../utils/validation'
 

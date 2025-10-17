@@ -1,4 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
+import { db } from '../../utils/db'
 import { cards } from '../../../drizzle/schema'
 
 interface MoveCardPayload {
