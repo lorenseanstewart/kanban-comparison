@@ -105,8 +105,16 @@ async function onDragEnd(listId: string, event: any) {
   const { fromListId, id: cardId } = draggedCard.value
   draggedCard.value = null
 
-  const { oldIndex, newIndex } = event
-  if (oldIndex === newIndex && fromListId === listId) return
+  const { oldIndex, newIndex, to, from } = event
+  console.log('onDragEnd event:', { event, cardId, fromListId, toListId: listId, oldIndex, newIndex, to, from })
+
+  // Get the actual target list ID from the draggable event
+  // The 'to' element has a data attribute or we can find which list contains the card after the move
+  const targetListId = to?.dataset?.listId || listId
+
+  console.log('onDragEnd:', { cardId, fromListId, targetListId, oldIndex, newIndex })
+
+  if (oldIndex === newIndex && fromListId === targetListId) return
 
   // Store previous state for rollback
   const previousState = JSON.parse(JSON.stringify(board.value.lists))
@@ -129,12 +137,19 @@ async function onDragEnd(listId: string, event: any) {
 
   // Send update to server in background
   try {
+    console.log('Sending move request:', {
+      cardId,
+      sourceListId: fromListId,
+      targetListId,
+      newPosition: newIndex,
+    })
+
     const response = await $fetch('/api/cards/move', {
       method: 'POST',
       body: {
         cardId,
         sourceListId: fromListId,
-        targetListId: listId,
+        targetListId,
         newPosition: newIndex,
       },
     })
@@ -312,6 +327,7 @@ async function handleCardAdd(cardData: {
               v-model="list.cards"
               item-key="id"
               :group="{ name: 'cards', pull: true, put: true }"
+              :data-list-id="list.id"
               :class="[
                 'space-y-3 min-h-[600px] transition-all duration-200 rounded-lg p-2',
                 dragOverListId === list.id

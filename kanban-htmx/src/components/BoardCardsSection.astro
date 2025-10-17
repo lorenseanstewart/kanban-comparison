@@ -47,11 +47,11 @@ const { board, users } = Astro.props;
   import autoAnimate from "@formkit/auto-animate";
 
   // Create global namespace for kanban functions
-  window.kanban = window.kanban || {};
+  window.kanban = window.kanban || ({} as any);
 
   // Extract drag-and-drop values for HTMX request
-  window.kanban.getDragDropValues = function (event) {
-    const vals = {};
+  window.kanban.getDragDropValues = function (event: any) {
+    const vals: Record<string, any> = {};
     // Only process if event.detail exists (drag-and-drop events)
     if (!event || !event.detail) return vals;
 
@@ -71,12 +71,12 @@ const { board, users } = Astro.props;
     const dropZones = Array.from(document.querySelectorAll("[data-drop-zone]"));
 
     // Track which list is being dragged over (shared across all drop zones)
-    let dragOverListId = null;
+    let dragOverListId: string | null = null;
 
     // Track if we're in the middle of a transfer to prevent duplicate calls
     // This must be shared across all drop zones
     let isTransferring = false;
-    let transferTimeout = null;
+    let transferTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Initialize drag-and-drop for each drop zone
     dropZones.forEach((container) => {
@@ -86,10 +86,10 @@ const { board, users } = Astro.props;
       if (!listId) return;
 
       // Enable auto-animate for smooth card transitions
-      autoAnimate(container);
+      autoAnimate(container as HTMLElement);
 
       // Add hover state listeners with proper boundary checking
-      const handleDragOver = (e) => {
+      const handleDragOver = (e: DragEvent) => {
         e.preventDefault();
         if (dragOverListId !== listId) {
           dragOverListId = listId;
@@ -103,7 +103,7 @@ const { board, users } = Astro.props;
         }
       };
 
-      const handleDragLeave = (e) => {
+      const handleDragLeave = (e: DragEvent) => {
         // Check if we're actually leaving the container bounds
         const rect = container.getBoundingClientRect();
         const x = e.clientX;
@@ -126,31 +126,18 @@ const { board, users } = Astro.props;
         }
       };
 
-      container.addEventListener("dragover", handleDragOver);
-      container.addEventListener("dragleave", handleDragLeave);
+      container.addEventListener("dragover", handleDragOver as EventListener);
+      container.addEventListener("dragleave", handleDragLeave as EventListener);
 
       // Also add dragover to all cards so they trigger the parent's hover state
       const cards = container.querySelectorAll("[data-draggable-card]");
       cards.forEach((card) => {
-        card.addEventListener("dragover", handleDragOver);
+        card.addEventListener("dragover", handleDragOver as EventListener);
       });
-
-      // Function to update placeholder visibility based on actual DOM
-      const updatePlaceholder = () => {
-        requestAnimationFrame(() => {
-          const actualCardCount = container.querySelectorAll(
-            "[data-draggable-card]"
-          ).length;
-          const placeholder = container.querySelector(".empty-placeholder");
-          if (placeholder) {
-            placeholder.style.display = actualCardCount > 0 ? "none" : "block";
-          }
-        });
-      };
 
       // Initialize drag-and-drop with separate handlers for sort and transfer
       dragAndDrop({
-        parent: container,
+        parent: container as HTMLElement,
         getValues: () => {
           // Return all direct children - library needs exact match
           return Array.from(container.children);
@@ -185,13 +172,14 @@ const { board, users } = Astro.props;
                 ).length;
                 const placeholder = zone.querySelector(".empty-placeholder");
                 if (placeholder) {
-                  placeholder.style.display = cards > 0 ? "none" : "block";
+                  (placeholder as HTMLElement).style.display =
+                    cards > 0 ? "none" : "block";
                 }
               });
             });
           },
           // Handle reordering within the same list
-          onSort: async ({ values }) => {
+          onSort: async ({ values }: { values: any[] }) => {
             // Skip if we're in the middle of a transfer
             // (onTransfer handles the persistence)
             if (isTransferring) {
@@ -199,8 +187,8 @@ const { board, users } = Astro.props;
             }
 
             const cardIds = values
-              .map((el) => el.getAttribute("data-card-id"))
-              .filter((id) => id !== null);
+              .map((el: any) => el.getAttribute("data-card-id"))
+              .filter((id): id is string => id !== null);
 
             // Dispatch custom event with reorder data
             container.dispatchEvent(
@@ -211,7 +199,15 @@ const { board, users } = Astro.props;
             );
           },
           // Handle moving cards between lists
-          onTransfer: async ({ sourceParent, targetParent, draggedNodes }) => {
+          onTransfer: async ({
+            sourceParent,
+            targetParent,
+            draggedNodes,
+          }: {
+            sourceParent: any;
+            targetParent: any;
+            draggedNodes: any[];
+          }) => {
             // Prevent duplicate calls - onTransfer can fire multiple times
             if (isTransferring) {
               return;
@@ -224,12 +220,14 @@ const { board, users } = Astro.props;
               clearTimeout(transferTimeout);
             }
 
-            let sourceListEl = sourceParent.el.parentElement;
+            let sourceListEl: HTMLElement | null =
+              sourceParent.el.parentElement;
             while (sourceListEl && !sourceListEl.hasAttribute("data-list-id")) {
               sourceListEl = sourceListEl.parentElement;
             }
 
-            let targetListEl = targetParent.el.parentElement;
+            let targetListEl: HTMLElement | null =
+              targetParent.el.parentElement;
             while (targetListEl && !targetListEl.hasAttribute("data-list-id")) {
               targetListEl = targetListEl.parentElement;
             }
@@ -263,7 +261,7 @@ const { board, users } = Astro.props;
   };
 
   // Handler for HTMX after-swap event
-  window.kanban.handleAfterSwap = function (event) {
+  window.kanban.handleAfterSwap = function (event: any) {
     if (event.detail.target.id === "board-cards-section") {
       window.kanban.initializeDragAndDrop();
     }

@@ -1,5 +1,11 @@
 ---
-import type { BoardDetails, UsersList, TagsList } from "../lib/api";
+import type {
+  BoardDetails,
+  User,
+  UsersList,
+  TagItem,
+  TagsList,
+} from "../../lib/api";
 
 interface Props {
   board: BoardDetails;
@@ -23,7 +29,11 @@ const { board, users, tags } = Astro.props;
 
     <h3 class="font-bold text-lg mb-4">Edit Card</h3>
 
-    <div id="edit-card-error" class="mb-4"></div>
+    <div
+      id="edit-card-error"
+      class="mb-4"
+    >
+    </div>
 
     <form
       id="edit-card-form"
@@ -81,7 +91,11 @@ const { board, users, tags } = Astro.props;
           class="select select-bordered w-full"
         >
           <option value="">Unassigned</option>
-          {users.map((user) => <option value={user.id}>{user.name}</option>)}
+          {
+            users.map((user: User) => (
+              <option value={user.id}>{user.name}</option>
+            ))
+          }
         </select>
       </div>
 
@@ -91,7 +105,7 @@ const { board, users, tags } = Astro.props;
         </label>
         <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
           {
-            tags.map((tag) => (
+            tags.map((tag: TagItem) => (
               <label class="cursor-pointer">
                 <input
                   type="checkbox"
@@ -165,12 +179,12 @@ const { board, users, tags } = Astro.props;
 
   // Handle tag selection
   document.querySelectorAll(".edit-tag-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", (e) => {
-      const target = e.target;
+    checkbox.addEventListener("change", (e: Event) => {
+      const target = e.target as HTMLInputElement;
       const tagId = target.dataset.editTagId;
       const badge = document.querySelector(
         `[data-edit-tag-badge="${tagId}"]`
-      );
+      ) as HTMLElement;
 
       if (target.checked) {
         badge.classList.remove("badge-outline");

@@ -25,7 +25,7 @@ export const actions = {
 			// Validate with Valibot
 			const result = v.safeParse(BoardSchema, {
 				title,
-				description: description || null
+				description: description || undefined
 			});
 
 			if (!result.success) {
@@ -39,7 +39,7 @@ export const actions = {
 			await db.insert(boards).values({
 				id: boardId,
 				title: result.output.title,
-				description: result.output.description
+				description: result.output.description || null
 			});
 
 			// Create the four default lists for the board

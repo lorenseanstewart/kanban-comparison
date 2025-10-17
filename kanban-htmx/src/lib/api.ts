@@ -42,8 +42,11 @@ export type BoardDetails = BoardSummary & {
 
 export type BoardList = BoardDetails["lists"][number];
 export type BoardCard = BoardList["cards"][number];
-export type UsersList = Array<{ id: string; name: string }>;
-export type TagsList = Array<Pick<Tag, "id" | "name" | "color">>;
+export type CardComment = BoardCard["comments"][number];
+export type User = { id: string; name: string };
+export type UsersList = Array<User>;
+export type TagItem = Pick<Tag, "id" | "name" | "color">;
+export type TagsList = Array<TagItem>;
 
 export async function getBoards(): Promise<BoardSummary[]> {
   const rows = await db

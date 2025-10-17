@@ -1,5 +1,5 @@
 ---
-import type { BoardCard, UsersList } from '../../lib/api';
+import type { BoardCard, User, UsersList, CardComment } from '../../lib/api';
 
 interface Props {
   card: BoardCard;
@@ -26,8 +26,8 @@ const { card, users, boardId } = Astro.props;
     <!-- Existing Comments -->
     <div class="space-y-3 mb-4 max-h-64 overflow-y-auto">
       {card.comments && card.comments.length > 0 ? (
-        card.comments.map((comment) => {
-          const commentUser = users.find((u) => u.id === comment.userId);
+        card.comments.map((comment: CardComment) => {
+          const commentUser = users.find((u: User) => u.id === comment.userId);
           const userName = commentUser ? commentUser.name : "Unknown";
           const date = new Date(comment.createdAt).toLocaleDateString();
 
@@ -65,7 +65,7 @@ const { card, users, boardId } = Astro.props;
           class="select select-bordered w-full"
         >
           <option value="">Select user</option>
-          {users.map((user) => <option value={user.id}>{user.name}</option>)}
+          {users.map((user: User) => <option value={user.id}>{user.name}</option>)}
         </select>
       </div>
 

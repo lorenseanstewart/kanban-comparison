@@ -83,6 +83,11 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
           <p v-else class="badge badge-secondary badge-outline w-fit shadow">
             No description
           </p>
+          <div class="card-actions justify-end">
+            <span class="btn btn-secondary btn-sm shadow-lg">
+              Open board
+            </span>
+          </div>
         </div>
       </NuxtLink>
     </section>

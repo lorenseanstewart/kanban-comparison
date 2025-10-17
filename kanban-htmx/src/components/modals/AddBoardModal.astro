@@ -1,23 +1,31 @@
----
-// No props needed - this is a global modal
----
-
-<dialog id="add-board-modal" class="modal">
+<dialog
+  id="add-board-modal"
+  class="modal"
+>
   <div class="modal-backdrop bg-black/70"></div>
   <div class="modal-box bg-base-200 dark:bg-base-300">
     <form method="dialog">
-      <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="document.getElementById('add-board-modal').close()">✕</button>
+      <button
+        type="button"
+        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+        onclick="document.getElementById('add-board-modal').close()"
+        >✕</button
+      >
     </form>
 
     <h3 class="font-bold text-lg mb-4">Add New Board</h3>
 
-    <div id="add-board-error" class="mb-4"></div>
+    <div
+      id="add-board-error"
+      class="mb-4"
+    >
+    </div>
 
     <form
       hx-post="/api/boards-list"
       hx-target="#boards-list"
-      hx-swap="outerHTML"
       hx-on::after-request="window.kanban.handleAddBoardResponse(event, this)"
+      hx-swap="outerHTML"
     >
       <div class="form-control w-full mb-4">
         <label class="label">
@@ -43,10 +51,17 @@
       </div>
 
       <div class="modal-action">
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-board-modal').close()">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          onclick="document.getElementById('add-board-modal').close()"
+        >
           Cancel
         </button>
-        <button type="submit" class="btn btn-primary">
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
           Add Board
         </button>
       </div>

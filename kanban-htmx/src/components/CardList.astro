@@ -1,6 +1,6 @@
 ---
-import type { BoardList, UsersList } from '../lib/api';
-import Card from './Card.astro';
+import type { BoardList, UsersList, BoardCard } from "../lib/api";
+import Card from "./Card.astro";
 
 interface Props {
   list: BoardList;
@@ -11,11 +11,17 @@ interface Props {
 const { list, users, boardId } = Astro.props;
 ---
 
-<article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl" data-list-id={list.id}>
+<article
+  class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl"
+  data-list-id={list.id}
+>
   <div class="card-body gap-4">
     <header class="flex items-center justify-between">
       <h2 class="card-title text-base-content">{list.title}</h2>
-      <div id={`list-${list.id}-badge`} class="badge badge-primary badge-outline badge-lg shadow">
+      <div
+        id={`list-${list.id}-badge`}
+        class="badge badge-primary badge-outline badge-lg shadow"
+      >
         {list.cards.length} cards
       </div>
     </header>
@@ -25,14 +31,25 @@ const { list, users, boardId } = Astro.props;
       data-drop-zone
       data-empty={list.cards.length === 0}
     >
-      {list.cards.map((card) => (
-        <Card card={card} users={users} boardId={boardId} />
-      ))}
-      {list.cards.length === 0 && (
-        <div class="empty-placeholder alert alert-info text-sm" draggable="false">
-          <span>No cards yet</span>
-        </div>
-      )}
+      {
+        list.cards.map((card: BoardCard) => (
+          <Card
+            card={card}
+            users={users}
+            boardId={boardId}
+          />
+        ))
+      }
+      {
+        list.cards.length === 0 && (
+          <div
+            class="empty-placeholder alert alert-info text-sm"
+            draggable="false"
+          >
+            <span>No cards yet</span>
+          </div>
+        )
+      }
     </div>
   </div>
 </article>

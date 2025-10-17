@@ -46,8 +46,8 @@ export const actions = {
 			// Validate with Valibot
 			const result = v.safeParse(CardSchema, {
 				title,
-				description: description || null,
-				assigneeId: assigneeId || null,
+				description: description || undefined,
+				assigneeId: assigneeId || undefined,
 				tagIds
 			});
 
@@ -84,8 +84,8 @@ export const actions = {
 					id: cardId,
 					listId: todoList.id,
 					title: result.output.title,
-					description: result.output.description,
-					assigneeId: result.output.assigneeId,
+					description: result.output.description || null,
+					assigneeId: result.output.assigneeId || null,
 					position: nextPosition,
 					completed: false
 				}).run();
@@ -120,8 +120,8 @@ export const actions = {
 			const result = v.safeParse(CardUpdateSchema, {
 				cardId,
 				title,
-				description: description || null,
-				assigneeId: assigneeId || null,
+				description: description || undefined,
+				assigneeId: assigneeId || undefined,
 				tagIds
 			});
 
@@ -135,8 +135,8 @@ export const actions = {
 					.update(cards)
 					.set({
 						title: result.output.title,
-						description: result.output.description,
-						assigneeId: result.output.assigneeId
+						description: result.output.description || null,
+						assigneeId: result.output.assigneeId || null
 					})
 					.where(eq(cards.id, result.output.cardId))
 					.run();
