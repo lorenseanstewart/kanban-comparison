@@ -52,7 +52,7 @@ function BarColumn({
       {/* Bar container - grows from bottom */}
       <div className="w-full flex flex-col justify-end" style={{ height: "150px" }}>
         <div
-          className="w-full rounded-t bar-grow"
+          className="w-full rounded-t"
           style={{
             height: `${heightPercent}%`,
             backgroundColor: color,

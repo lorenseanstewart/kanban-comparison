@@ -29,6 +29,7 @@ const FRAMEWORKS = [
   { name: 'SvelteKit', dir: 'kanban-sveltekit', port: 3005, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
   { name: 'Qwik', dir: 'kanban-qwikcity', port: 3006, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
   { name: 'Astro', dir: 'kanban-htmx', port: 3007, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
+  { name: 'TanStack Start', dir: 'kanban-tanstack', port: 3008, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
 ];
 
 async function sleep(ms: number): Promise<void> {
@@ -89,6 +90,7 @@ async function startServer(framework: typeof FRAMEWORKS[0]): Promise<() => void>
 }
 
 async function measurePageBundle(url: string): Promise<{ jsTransferred: number; jsUncompressed: number; totalRequests: number }> {
+  // Use Chrome DevTools Protocol to get accurate network measurements with compression
   const cmd = `npx lighthouse ${url} \
     --form-factor=mobile \
     --screenEmulation.mobile \
@@ -96,7 +98,8 @@ async function measurePageBundle(url: string): Promise<{ jsTransferred: number; 
     --output-path=stdout \
     --only-categories=performance \
     --throttling-method=provided \
-    --chrome-flags="--headless --no-sandbox --disable-gpu"`;
+    --emulated-user-agent="Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36" \
+    --chrome-flags="--headless --no-sandbox --disable-gpu --enable-features=NetworkService"`;
 
   try {
     const output = execSync(cmd, { maxBuffer: 10 * 1024 * 1024 });
@@ -111,9 +114,20 @@ async function measurePageBundle(url: string): Promise<{ jsTransferred: number; 
 
     for (const request of networkRequests) {
       if (request.resourceType === 'Script') {
-        jsTransferred += request.transferSize || 0;
-        jsUncompressed += request.resourceSize || 0;
+        // transferSize is the actual bytes transferred (compressed if gzip)
+        // resourceSize is the uncompressed size
+        const transferred = request.transferSize || 0;
+        const uncompressed = request.resourceSize || 0;
+
+        jsTransferred += transferred;
+        jsUncompressed += uncompressed;
         totalRequests++;
+
+        // Debug log to verify compression is working
+        if (transferred > 0 && uncompressed > 0) {
+          const ratio = ((1 - transferred / uncompressed) * 100).toFixed(1);
+          console.log(`      ${request.url.split('/').pop()}: ${(transferred / 1024).toFixed(1)} kB transferred, ${(uncompressed / 1024).toFixed(1)} kB uncompressed (${ratio}% reduction)`);
+        }
       }
     }
 

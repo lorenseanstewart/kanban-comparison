@@ -1,37 +1,9 @@
+@import "tailwindcss";
+@plugin 'daisyui' {
+  themes:
+    light --default,
+    dark --prefersdark,
+    pastel;
+}
+
 @import "charts.css/dist/charts.min.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html {
-    color-scheme: light dark;
-  }
-
-  * {
-    @apply border-gray-200 dark:border-gray-800;
-  }
-
-  html,
-  body {
-    @apply text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-200;
-  }
-
-  .using-mouse * {
-    outline: none !important;
-  }
-}
-
-@layer components {
-  /* Bar chart grow animation - CSS only for SSR compatibility */
-  @keyframes barGrow {
-    from {
-      height: 0%;
-    }
-  }
-
-  .bar-grow {
-    animation: barGrow 500ms ease-out;
-  }
-}
