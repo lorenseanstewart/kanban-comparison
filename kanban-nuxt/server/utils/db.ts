@@ -11,7 +11,7 @@ const __dirname = dirname(__filename)
 const projectRoot = join(__dirname, '../..')
 
 // Use absolute path to database so it works in both dev and production
-const dbPath = join(projectRoot, 'kanban.db')
+const dbPath = join(projectRoot, 'drizzle/db.sqlite')
 
 const sqlite = new Database(dbPath)
 

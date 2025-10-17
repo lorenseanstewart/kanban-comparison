@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { boards, lists, cards, users, tags, cardTags, comments } from '../../drizzle/schema';
 
-const sqlite = new Database('./kanban.db');
+const sqlite = new Database('./drizzle/db.sqlite');
 const db = drizzle(sqlite);
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
