@@ -33,7 +33,13 @@ export function AddCardModal(props: {
 
   createEffect(() => {
     const result = submission.result;
-    if (!result?.success) {
+    if (!result) {
+      return;
+    }
+
+    // Only proceed if submission was successful
+    if (!result.success) {
+      // Error will be displayed via errorMessage() memo
       return;
     }
 
@@ -58,7 +64,20 @@ export function AddCardModal(props: {
     props.onClose();
   });
 
-  const errorMessage = createMemo(() => submission.error?.error ?? submission.error);
+  const errorMessage = createMemo(() => {
+    // Check submission result error first
+    const result = submission.result;
+    if (result && !result.success) {
+      return result.error;
+    }
+
+    // Check submission.error
+    if (submission.error) {
+      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+    }
+
+    return null;
+  });
   const pending = () => submission.pending;
 
   const handleSubmit = () => {

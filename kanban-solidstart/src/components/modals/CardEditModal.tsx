@@ -1,7 +1,7 @@
 import { createSignal, Show, For, createMemo, createEffect } from "solid-js";
 import type { BoardCard, UsersList, TagsList } from "~/api/boards";
 import { updateCardAction, deleteCardAction } from "~/api/card-actions";
-import { useSubmission, useNavigate } from "@solidjs/router";
+import { useSubmission, useNavigate, useAction } from "@solidjs/router";
 
 export function CardEditModal(props: {
   card: BoardCard;
@@ -17,13 +17,22 @@ export function CardEditModal(props: {
   const [selectedTagIds, setSelectedTagIds] = createSignal<Set<string>>(
     new Set(props.card.tags.map((t) => t.id))
   );
+  const [deleteError, setDeleteError] = createSignal<string | null>(null);
+  const [isDeleting, setIsDeleting] = createSignal(false);
   const submission = useSubmission(updateCardAction);
-  const deleteSubmission = useSubmission(deleteCardAction);
+  const deleteCard = useAction(deleteCardAction);
 
   createEffect(() => {
     const result = submission.result;
-    if (!result?.success) return;
+    if (!result) return;
 
+    // Only proceed if submission was successful
+    if (!result.success) {
+      // Error will be displayed via errorMessage() memo
+      return;
+    }
+
+    // Success case
     if (props.onUpdate) {
       const updatedTags = props.tags.filter((tag) => selectedTagIds().has(tag.id));
       const input = submission.input?.[0] as FormData | undefined;
@@ -39,17 +48,6 @@ export function CardEditModal(props: {
     props.onClose();
   });
 
-  createEffect(() => {
-    const result = deleteSubmission.result;
-    if (!result?.success) return;
-
-    if (props.onDelete) {
-      props.onDelete(props.card.id);
-    }
-
-    deleteSubmission.clear();
-    props.onClose();
-  });
 
   const toggleTag = (tagId: string) => {
     const newSet = new Set(selectedTagIds());
@@ -65,11 +63,43 @@ export function CardEditModal(props: {
     if (!confirm("Are you sure you want to delete this card?")) {
       return;
     }
-    await deleteCardAction(props.card.id);
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      const result = await deleteCard(props.card.id);
+      if (result?.success) {
+        if (props.onDelete) {
+          props.onDelete(props.card.id);
+        }
+        props.onClose();
+      } else {
+        setDeleteError(result?.error ?? "Failed to delete card");
+      }
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Failed to delete card");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const errorMessage = createMemo(() => submission.error?.error ?? submission.error ?? deleteSubmission.error?.error ?? deleteSubmission.error);
-  const pending = () => submission.pending || deleteSubmission.pending;
+  const errorMessage = createMemo(() => {
+    // Check delete error first
+    if (deleteError()) return deleteError();
+
+    // Check submission result error
+    const result = submission.result;
+    if (result && !result.success) {
+      return result.error;
+    }
+
+    // Check submission.error
+    if (submission.error) {
+      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+    }
+
+    return null;
+  });
+  const pending = () => submission.pending || isDeleting();
 
   return (
     <Show when={props.isOpen}>
@@ -185,7 +215,7 @@ export function CardEditModal(props: {
                 onClick={handleDelete}
                 disabled={pending()}
               >
-                {deleteSubmission.pending ? "Deleting..." : "Delete Card"}
+                {isDeleting() ? "Deleting..." : "Delete Card"}
               </button>
               <div class="flex gap-2">
                 <button

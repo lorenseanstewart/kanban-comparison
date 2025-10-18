@@ -37,8 +37,8 @@ export const updateCardAction = action(async (formData: FormData): Promise<CardA
   "use server";
   const validation = validateCardUpdate(formData);
   if (!validation.success) {
-    const issue = validation.issues[0];
-    return { success: false, error: issue?.message ?? "Invalid card data" };
+    const firstIssue = validation.issues[0];
+    return { success: false, error: firstIssue.message } as const;
   }
 
   const { cardId, title, description, assigneeId, tagIds } = validation.output;
@@ -63,15 +63,15 @@ export const updateCardAction = action(async (formData: FormData): Promise<CardA
   });
 
   revalidate(["boards:detail", "boards:list"]);
-  return { success: true };
+  return { success: true } as const;
 }, "cards:update");
 
 export const addCommentAction = action(async (formData: FormData): Promise<CardActionResponse> => {
   "use server";
   const validation = validateComment(formData);
   if (!validation.success) {
-    const issue = validation.issues[0];
-    return { success: false, error: issue?.message ?? "Invalid comment" };
+    const firstIssue = validation.issues[0];
+    return { success: false, error: firstIssue.message } as const;
   }
 
   const { cardId, userId, text } = validation.output;
@@ -85,20 +85,20 @@ export const addCommentAction = action(async (formData: FormData): Promise<CardA
   });
 
   revalidate(["boards:detail"]);
-  return { success: true, data: { commentId } };
+  return { success: true, data: { commentId } } as const;
 }, "cards:add-comment");
 
 export const createCardAction = action(async (formData: FormData): Promise<CardActionResponse> => {
   "use server";
   const boardId = formData.get("boardId") as string | null;
   if (!boardId) {
-    return { success: false, error: "Board ID is required" };
+    return { success: false, error: "Board ID is required" } as const;
   }
 
   const validation = validateCardCreate(formData);
   if (!validation.success) {
-    const issue = validation.issues[0];
-    return { success: false, error: issue?.message ?? "Invalid card data" };
+    const firstIssue = validation.issues[0];
+    return { success: false, error: firstIssue.message } as const;
   }
 
   const todoList = await db
@@ -108,7 +108,7 @@ export const createCardAction = action(async (formData: FormData): Promise<CardA
     .then((rows) => rows.find((list) => list.title === "Todo"));
 
   if (!todoList) {
-    return { success: false, error: "Todo list not found for this board" };
+    return { success: false, error: "Todo list not found for this board" } as const;
   }
 
   const maxPositionRow = await db
@@ -145,24 +145,24 @@ export const createCardAction = action(async (formData: FormData): Promise<CardA
   });
 
   revalidate(["boards:detail", "boards:list"]);
-  return { success: true, data: { id: cardId, listId: todoList.id } };
+  return { success: true, data: { id: cardId, listId: todoList.id } } as const;
 }, "cards:create");
 
 export const deleteCardAction = action(async (cardId: string): Promise<CardActionResponse> => {
   "use server";
   if (!cardId) {
-    return { success: false, error: "Card ID is required" };
+    return { success: false, error: "Card ID is required" } as const;
   }
 
   try {
     await db.delete(cards).where(eq(cards.id, cardId));
     revalidate(["boards:detail", "boards:list"]);
-    return { success: true };
+    return { success: true } as const;
   } catch (error) {
     console.error("Failed to delete card:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete card. Please try again."
-    };
+    } as const;
   }
 }, "cards:delete");

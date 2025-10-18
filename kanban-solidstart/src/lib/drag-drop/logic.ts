@@ -175,9 +175,17 @@ export function createCrossListUpdate(
   return {
     ...board,
     lists: board.lists.map((list) => {
+      // Remove card from source list
       if (list.id === result.sourceListId) {
         return { ...list, cards: list.cards.filter((c) => c.id !== result.cardId) };
-      } else if (list.id === result.targetListId) {
+      }
+      // Add card to target list - only if it's not already there (prevent duplicates)
+      if (list.id === result.targetListId) {
+        const cardExists = list.cards.some((c) => c.id === result.cardId);
+        if (cardExists) {
+          // Card is already in the target list, don't add it again
+          return list;
+        }
         return { ...list, cards: [...list.cards, result.card] };
       }
       return list;
