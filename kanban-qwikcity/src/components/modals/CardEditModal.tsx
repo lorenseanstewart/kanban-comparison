@@ -25,11 +25,11 @@ export const CardEditModal = component$<CardEditModalProps>(
   ({ card, users, tags, isOpen, action, deleteAction, onUpdate, onDelete }) => {
     const dialogRef = useSignal<HTMLDialogElement>();
     const selectedTagIds = useSignal<Set<string>>(
-      new Set(card.tags.map((t) => t.id))
+      () => new Set(card.tags.map((t) => t.id)),
     );
 
     useTask$(({ track }) => {
-      track(() => isOpen.value);
+      track(isOpen);
 
       if (isServer || !dialogRef.value) {
         return;
@@ -79,7 +79,7 @@ export const CardEditModal = component$<CardEditModalProps>(
       // Optimistically update the UI
       if (onUpdate) {
         const updatedTags = tags.filter((tag) =>
-          selectedTagIds.value.has(tag.id)
+          selectedTagIds.value.has(tag.id),
         );
         onUpdate({
           title,
@@ -125,123 +125,135 @@ export const CardEditModal = component$<CardEditModalProps>(
             }
           }}
         >
-            <div class="modal-backdrop bg-black/70" />
-            <div class="modal-box bg-base-200 dark:bg-base-300">
-              <form method="dialog" preventdefault:submit onSubmit$={handleSubmit$}>
+          <div class="modal-backdrop bg-black/70" />
+          <div class="modal-box bg-base-200 dark:bg-base-300">
+            <form
+              method="dialog"
+              preventdefault:submit
+              onSubmit$={handleSubmit$}
+            >
+              <button
+                type="button"
+                class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                onClick$={handleClose$}
+              >
+                ✕
+              </button>
+              <h3 class="font-bold text-lg mb-4">Edit Card</h3>
+
+              <input type="hidden" name="cardId" value={card.id} />
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Title</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  class="input input-bordered w-full"
+                  value={card.title}
+                  required
+                />
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Description</span>
+                </label>
+                <textarea
+                  name="description"
+                  class="textarea textarea-bordered h-24 w-full"
+                  value={card.description || ""}
+                />
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Assignee</span>
+                </label>
+                <select
+                  name="assigneeId"
+                  class="select select-bordered w-full"
+                  value={card.assigneeId || ""}
+                >
+                  <option value="">Unassigned</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div class="form-control w-full mb-4">
+                <label class="label">
+                  <span class="label-text">Tags</span>
+                </label>
+                <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
+                        selectedTagIds.value.has(tag.id)
+                          ? "text-white"
+                          : "badge-outline"
+                      }`}
+                      style={
+                        selectedTagIds.value.has(tag.id)
+                          ? {
+                              backgroundColor: tag.color,
+                              borderColor: tag.color,
+                            }
+                          : {
+                              color: tag.color,
+                              borderColor: tag.color,
+                            }
+                      }
+                      onClick$={() => toggleTag$(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div class="modal-action justify-between">
                 <button
                   type="button"
-                  class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick$={handleClose$}
+                  class="btn btn-error"
+                  onClick$={handleDelete$}
+                  disabled={action.isRunning || deleteAction.isRunning}
                 >
-                  ✕
+                  {deleteAction.isRunning ? "Deleting..." : "Delete Card"}
                 </button>
-                <h3 class="font-bold text-lg mb-4">Edit Card</h3>
-
-                <input type="hidden" name="cardId" value={card.id} />
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Title</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    class="input input-bordered w-full"
-                    value={card.title}
-                    required
-                  />
-                </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Description</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    class="textarea textarea-bordered h-24 w-full"
-                    value={card.description || ""}
-                  />
-                </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Assignee</span>
-                  </label>
-                  <select
-                    name="assigneeId"
-                    class="select select-bordered w-full"
-                    value={card.assigneeId || ""}
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div class="form-control w-full mb-4">
-                  <label class="label">
-                    <span class="label-text">Tags</span>
-                  </label>
-                  <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
-                          selectedTagIds.value.has(tag.id)
-                            ? "text-white"
-                            : "badge-outline"
-                        }`}
-                        style={
-                          selectedTagIds.value.has(tag.id)
-                            ? {
-                                backgroundColor: tag.color,
-                                borderColor: tag.color,
-                              }
-                            : {
-                                color: tag.color,
-                                borderColor: tag.color,
-                              }
-                        }
-                        onClick$={() => toggleTag$(tag.id)}
-                      >
-                        {tag.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div class="modal-action justify-between">
+                <div class="flex gap-2">
                   <button
                     type="button"
-                    class="btn btn-error"
-                    onClick$={handleDelete$}
+                    class="btn btn-ghost"
+                    onClick$={handleClose$}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
                     disabled={action.isRunning || deleteAction.isRunning}
                   >
-                    {deleteAction.isRunning ? "Deleting..." : "Delete Card"}
+                    {action.isRunning ? "Saving..." : "Save Changes"}
                   </button>
-                  <div class="flex gap-2">
-                    <button type="button" class="btn btn-ghost" onClick$={handleClose$}>
-                      Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary" disabled={action.isRunning || deleteAction.isRunning}>
-                      {action.isRunning ? "Saving..." : "Save Changes"}
-                    </button>
-                  </div>
                 </div>
+              </div>
 
-                {action.value?.error && (
-                  <div class="alert alert-error mt-4">
-                    <span>{action.value.error}</span>
-                  </div>
-                )}
-              </form>
-            </div>
-          </dialog>
+              {action.value?.error && (
+                <div class="alert alert-error mt-4">
+                  <span>{action.value.error}</span>
+                </div>
+              )}
+            </form>
+          </div>
+        </dialog>
       </>
     );
-  }
+  },
 );

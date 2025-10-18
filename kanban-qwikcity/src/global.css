@@ -1,4 +1,4 @@
-@import 'charts.css/dist/charts.min.css';
+@import "charts.css/dist/charts.min.css";
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +7,9 @@
 /* Drag and Drop Styles */
 [draggable="true"] {
   cursor: grab;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 [draggable="true"]:active {
@@ -20,7 +22,9 @@
 }
 
 .drop-zone {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   min-height: 200px;
 }
 
@@ -35,7 +39,9 @@ article.card.drag-over {
   outline: 3px dashed #3b82f6 !important;
   outline-offset: 2px;
   background-color: rgba(59, 130, 246, 0.05) !important;
-  transition: outline 0.2s ease, background-color 0.2s ease;
+  transition:
+    outline 0.2s ease,
+    background-color 0.2s ease;
 }
 
 /* View Transitions for Cards */

@@ -46,28 +46,32 @@ interface BarColumnProps {
   color: string;
 }
 
-const BarColumn = component$<BarColumnProps>(({ label, value, heightPercent, color }) => {
-
-  return (
-    <div class="flex flex-col items-center gap-2">
-      {/* Bar container - grows from bottom */}
-      <div class="w-full flex flex-col justify-end" style={{ height: "150px" }}>
+const BarColumn = component$<BarColumnProps>(
+  ({ label, value, heightPercent, color }) => {
+    return (
+      <div class="flex flex-col items-center gap-2">
+        {/* Bar container - grows from bottom */}
         <div
-          class="w-full rounded-t"
-          style={{
-            height: `${heightPercent}%`,
-            backgroundColor: color,
-          }}
+          class="w-full flex flex-col justify-end"
+          style={{ height: "150px" }}
         >
-          <div class="text-xs text-white font-semibold text-center pt-1">
-            {value}
+          <div
+            class="w-full rounded-t"
+            style={{
+              height: `${heightPercent}%`,
+              backgroundColor: color,
+            }}
+          >
+            <div class="text-xs text-white font-semibold text-center pt-1">
+              {value}
+            </div>
           </div>
         </div>
+        {/* Label below bar */}
+        <div class="text-xs text-base-content text-center font-medium pt-3">
+          {label}
+        </div>
       </div>
-      {/* Label below bar */}
-      <div class="text-xs text-base-content text-center font-medium pt-3">
-        {label}
-      </div>
-    </div>
-  );
-});
+    );
+  },
+);

@@ -8,7 +8,6 @@ interface BoardOverviewProps {
 }
 
 export const BoardOverview = component$<BoardOverviewProps>(({ data }) => {
-
   // DaisyUI pastel colors matching the theme
   const pastelColors = [
     "#fbbf24", // amber (warning)

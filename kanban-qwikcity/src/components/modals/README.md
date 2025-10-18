@@ -49,7 +49,7 @@ const isAddCardModalOpen = useSignal(false);
     // Handle optimistic UI update
     console.log("Card added:", card);
   }}
-/>
+/>;
 ```
 
 ### 3. CardEditModal
@@ -73,7 +73,7 @@ const selectedCard = useSignal<BoardCard | null>(null);
     // Handle optimistic UI update
     console.log("Card updated:", updatedCard);
   }}
-/>
+/>;
 ```
 
 ### 4. CommentModal
@@ -96,7 +96,7 @@ const selectedCard = useSignal<BoardCard | null>(null);
     // Handle optimistic UI update
     console.log("Comment added:", comment);
   }}
-/>
+/>;
 ```
 
 ## Key Qwik Patterns Used

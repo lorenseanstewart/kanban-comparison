@@ -20,7 +20,7 @@ export const PieChart = component$<PieChartProps>(({ data, colors, title }) => {
           style={{
             height: "120px",
             width: "120px",
-            "--labels-size": "0"
+            "--labels-size": "0",
           }}
         >
           <tbody>
@@ -29,7 +29,8 @@ export const PieChart = component$<PieChartProps>(({ data, colors, title }) => {
               for (let i = 0; i < index; i++) {
                 startValue += data[i].value / totalValue;
               }
-              const endValue = startValue + (totalValue > 0 ? item.value / totalValue : 0);
+              const endValue =
+                startValue + (totalValue > 0 ? item.value / totalValue : 0);
 
               return (
                 <tr key={item.label}>
@@ -37,7 +38,7 @@ export const PieChart = component$<PieChartProps>(({ data, colors, title }) => {
                     style={{
                       "--start": startValue.toString(),
                       "--end": endValue.toString(),
-                      "--color": colors[index % colors.length]
+                      "--color": colors[index % colors.length],
                     }}
                   />
                 </tr>
@@ -48,9 +49,13 @@ export const PieChart = component$<PieChartProps>(({ data, colors, title }) => {
         {/* Legend */}
         <div class="flex flex-col gap-1 w-full">
           {data.map((item, index) => {
-            const percentage = totalValue > 0 ? (item.value / totalValue) * 100 : 0;
+            const percentage =
+              totalValue > 0 ? (item.value / totalValue) * 100 : 0;
             return (
-              <div key={item.label} class="flex items-center gap-2 justify-between">
+              <div
+                key={item.label}
+                class="flex items-center gap-2 justify-between"
+              >
                 <div class="flex items-center gap-2">
                   <div
                     class="w-2.5 h-2.5 rounded-sm flex-shrink-0"

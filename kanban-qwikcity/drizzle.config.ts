@@ -3,6 +3,6 @@ export default {
   schema: "./drizzle/schema.ts",
   out: "./drizzle/migrations/",
   dbCredentials: {
-    url: './drizzle/db.sqlite',
+    url: "./drizzle/db.sqlite",
   },
 };
