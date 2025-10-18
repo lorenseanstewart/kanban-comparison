@@ -6,12 +6,11 @@ export const BoardSchema = v.object({
     v.minLength(1, 'Board title cannot be empty'),
     v.maxLength(255, 'Board title must be less than 255 characters')
   ),
-  description: v.optional(
+  description: v.nullish(
     v.pipe(
       v.string('Board description must be text'),
       v.maxLength(500, 'Board description must be less than 500 characters')
-    ),
-    null
+    )
   ),
 })
 
@@ -21,14 +20,13 @@ export const CardSchema = v.object({
     v.minLength(1, 'Card title cannot be empty'),
     v.maxLength(255, 'Card title must be less than 255 characters')
   ),
-  description: v.optional(
+  description: v.nullish(
     v.pipe(
       v.string('Card description must be text'),
       v.maxLength(2000, 'Card description must be less than 2000 characters')
-    ),
-    null
+    )
   ),
-  assigneeId: v.optional(v.string('Assignee must be a valid user ID'), null),
+  assigneeId: v.nullish(v.string('Assignee must be a valid user ID')),
   tagIds: v.optional(v.array(v.string('Each tag ID must be a valid string'), 'Tags must be provided as an array'), []),
 })
 
@@ -40,14 +38,13 @@ export const CardUpdateSchema = v.object({
       v.maxLength(255, 'Card title must be less than 255 characters')
     )
   ),
-  description: v.optional(
+  description: v.nullish(
     v.pipe(
       v.string('Card description must be text'),
       v.maxLength(2000, 'Card description must be less than 2000 characters')
-    ),
-    null
+    )
   ),
-  assigneeId: v.optional(v.string('Assignee must be a valid user ID'), null),
+  assigneeId: v.nullish(v.string('Assignee must be a valid user ID')),
   tagIds: v.optional(v.array(v.string('Each tag ID must be a valid string'), 'Tags must be provided as an array')),
 })
 

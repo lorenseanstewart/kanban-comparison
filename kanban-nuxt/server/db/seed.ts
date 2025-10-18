@@ -28,13 +28,19 @@ const listIds = [
 ];
 
 const listsData = boardsData.flatMap((board, boardIndex) =>
-  listTitles.map((title, titleIndex) => ({
-    id: listIds[boardIndex][titleIndex],
-    boardId: board.id,
-    title,
-    position: titleIndex + 1,
-    createdAt: timestamp(2 + boardIndex, 8 + titleIndex),
-  })),
+  listTitles.map((title, titleIndex) => {
+    const id = listIds[boardIndex]?.[titleIndex];
+    if (!id) {
+      throw new Error(`Missing list ID for board ${boardIndex}, title ${titleIndex}`);
+    }
+    return {
+      id,
+      boardId: board.id,
+      title,
+      position: titleIndex + 1,
+      createdAt: timestamp(2 + boardIndex, 8 + titleIndex),
+    };
+  }),
 );
 
 const listIdByKey = new Map<string, string>();

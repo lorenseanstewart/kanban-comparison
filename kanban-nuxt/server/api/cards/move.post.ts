@@ -14,8 +14,6 @@ export default defineEventHandler(async (event) => {
     const body = await readBody<MoveCardPayload>(event)
     const { cardId, sourceListId, targetListId, newPosition } = body
 
-    console.log('Move card request:', { cardId, sourceListId, targetListId, newPosition })
-
     if (!cardId || !targetListId || newPosition === undefined) {
       throw createError({
         statusCode: 400,
@@ -32,11 +30,8 @@ export default defineEventHandler(async (event) => {
         .orderBy(cards.position)
         .all()
 
-      console.log('Source cards before move:', sourceCardIds)
-
       // Step 2: Move the card to the target list if it's a different list
       if (sourceListId !== targetListId) {
-        console.log(`Moving card ${cardId} from ${sourceListId} to ${targetListId} at position ${newPosition}`)
 
         // First, move the card to the target list (we'll set the correct position later)
         tx
@@ -63,15 +58,12 @@ export default defineEventHandler(async (event) => {
           .orderBy(cards.position)
           .all()
 
-        console.log('Target cards after move:', targetCardIds)
-
         // Insert the moved card at the new position
         const reordered: { id: string }[] = targetCardIds
           .filter((card) => card.id !== cardId)
           .map((card) => ({ id: card.id }))
 
         reordered.splice(newPosition, 0, { id: cardId })
-        console.log('Reordered target list:', reordered.map((c, i) => `${i}: ${c.id}`))
 
         // Update positions for all cards in target list (including the moved card)
         for (const [index, card] of reordered.entries()) {
@@ -82,7 +74,6 @@ export default defineEventHandler(async (event) => {
             .run()
         }
       } else {
-        console.log(`Reordering card ${cardId} in same list to position ${newPosition}`)
         // Step 5: Same list - just reorder
         const reordered: { id: string }[] = sourceCardIds
           .filter((card) => card.id !== cardId)

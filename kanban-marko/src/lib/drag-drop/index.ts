@@ -3,7 +3,7 @@ import { animations } from "@formkit/drag-and-drop";
 import autoAnimate from "@formkit/auto-animate";
 import type { BoardDetails } from "../api";
 
-interface DragDropState {
+export interface DragDropState {
   dropZoneRefs: Map<string, Element>;
   isUpdatingFromDrag: boolean;
 }

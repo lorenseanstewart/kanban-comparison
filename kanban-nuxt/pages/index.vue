@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import AddBoardModal from '~/components/AddBoardModal.vue';
-import BoardOverview from '~/components/BoardOverview.vue';
-
 useHead({
   title: 'Boards - Kanban',
   meta: [

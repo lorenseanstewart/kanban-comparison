@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import BarChart from './charts/BarChart.vue'
-import PieChart from './charts/PieChart.vue'
 import type { Tag, Comment } from '../drizzle/schema'
+
+const BarChart = defineAsyncComponent(() => import('./charts/BarChart.vue'))
+const PieChart = defineAsyncComponent(() => import('./charts/PieChart.vue'))
 
 interface BoardCard {
   id: string

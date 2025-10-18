@@ -1,17 +1,15 @@
-static {
-  var sharedDragDropState = null;
-}
-
 import {
   createDragDropState,
   initializeDragAndDrop,
+  type DragDropState,
 } from "../lib/drag-drop/index";
 import type { BoardDetails, UsersList, TagsList, BoardCard } from "../lib/api";
+static var sharedDragDropState: DragDropState | null = null;
+static const chartColors = ["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"];
 import type { User } from "../../drizzle/schema";
 import AddCardModal from "./modals/AddCardModal.marko";
 import CardEditModal from "./modals/CardEditModal.marko";
 import CommentModal from "./modals/CommentModal.marko";
-
 export interface Input {
   initialBoard: BoardDetails;
   allUsers: UsersList;
@@ -25,28 +23,24 @@ export interface Input {
 <let/selectedCard=null as BoardCard | null>
 <let/dragOverListId=null as string | null>
 
-<effect() {
-  // Create shared state once on first run
+<script>
   if (!sharedDragDropState) {
     sharedDragDropState = createDragDropState();
   }
-
-  // Helper to get current board state (always returns latest)
   const getBoard = () => board;
-
-  // Helper to update board state
   const setBoard = (newBoard: BoardDetails) => {
     board = newBoard;
   };
-
-  // Helper to update drag over state
   const setDragOverListId = (id: string | null) => {
     dragOverListId = id;
   };
-
-  // Initialize drag and drop after component mounts and whenever board changes
-  initializeDragAndDrop(sharedDragDropState, getBoard, setBoard, setDragOverListId);
-}/>
+  initializeDragAndDrop(
+    sharedDragDropState,
+    getBoard,
+    setBoard,
+    setDragOverListId,
+  );
+</script>
 
 <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
   <div class="breadcrumbs text-sm">
@@ -81,7 +75,6 @@ export interface Input {
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
-        <!-- Charts will update when board state changes -->
         <div class="card bg-base-100 shadow-lg">
           <div class="card-body p-4">
             <h3 class="card-title text-sm text-base-content mb-4">
@@ -106,7 +99,7 @@ export interface Input {
                           1,
                         );
                         return (list.cards.length / maxValue) * 100;
-                      })()}%; background-color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][index % 4]}`>
+                      })()}%; background-color: ${chartColors[index % 4]}`>
                       <div class="text-xs text-white font-semibold text-center pt-1">
                         ${list.cards.length}
                       </div>
@@ -148,7 +141,7 @@ export interface Input {
                   },
                 )>
                   <tr>
-                    <td style=`--start: ${list.startValue}; --end: ${list.endValue}; --color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][list.idx % 4]}`/>
+                    <td style=`--start: ${list.startValue}; --end: ${list.endValue}; --color: ${chartColors[list.idx % 4]}`/>
                   </tr>
                 </for>
               </tbody>
@@ -159,7 +152,7 @@ export interface Input {
                   <div class="flex items-center gap-2">
                     <div
                       class="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                      style=`background-color: ${["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"][index % 4]}`/>
+                      style=`background-color: ${chartColors[index % 4]}`/>
                     <span class="text-xs text-base-content">
                       ${list.title}
                     </span>
@@ -372,7 +365,7 @@ export interface Input {
     </section>
   </div>
 </main>
-<!-- Modals -->
+
 <AddCardModal
   isOpen=isAddCardModalOpen
   boardId=board.id

@@ -1,19 +1,8 @@
 <script setup lang="ts">
-// Remove unused import
-// import { useDraggable } from '@vueuse/components';
-
-// Re-add dynamic import for draggable
 import draggable from 'vuedraggable';
-
-// Keep useAutoAnimate
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
-// Dynamically import heavy components for code-splitting
-const BarChart = defineAsyncComponent(() => import('~/components/charts/BarChart.vue'));
-const PieChart = defineAsyncComponent(() => import('~/components/charts/PieChart.vue'));
-
 const route = useRoute();
-// const store = useBoardsStore();
 
 const { data: serverData, pending, error, refresh } = await useAsyncData(
   `board-${route.params.id}`,
@@ -61,28 +50,6 @@ const showAddCardModal = ref(false)
 const dragOverListId = ref<string | null>(null)
 const draggedCard = ref<{ id: string; fromListId: string } | null>(null)
 
-// Auto-animate for smooth transitions
-const [listAnimateRef] = useAutoAnimate()
-
-const animateRefs = ref(new Map());
-
-// In onMounted or after board is loaded, create for each list
-watch(board, (newBoard) => {
-  if (newBoard) {
-    newBoard.lists.forEach((list) => {
-      if (!animateRefs.value.has(list.id)) {
-        const [refFn] = useAutoAnimate();
-        animateRefs.value.set(list.id, refFn);
-      }
-    });
-  }
-}, { immediate: true });
-
-// Helper function to get animate ref for a list
-function getAnimateRef(listId: string) {
-  return animateRefs.value.get(listId);
-}
-
 function onDragStart(listId: string, cardId: string) {
   draggedCard.value = { id: cardId, fromListId: listId }
 }
@@ -106,13 +73,10 @@ async function onDragEnd(listId: string, event: any) {
   draggedCard.value = null
 
   const { oldIndex, newIndex, to, from } = event
-  console.log('onDragEnd event:', { event, cardId, fromListId, toListId: listId, oldIndex, newIndex, to, from })
 
   // Get the actual target list ID from the draggable event
   // The 'to' element has a data attribute or we can find which list contains the card after the move
   const targetListId = to?.dataset?.listId || listId
-
-  console.log('onDragEnd:', { cardId, fromListId, targetListId, oldIndex, newIndex })
 
   if (oldIndex === newIndex && fromListId === targetListId) return
 
@@ -137,13 +101,6 @@ async function onDragEnd(listId: string, event: any) {
 
   // Send update to server in background
   try {
-    console.log('Sending move request:', {
-      cardId,
-      sourceListId: fromListId,
-      targetListId,
-      newPosition: newIndex,
-    })
-
     const response = await $fetch('/api/cards/move', {
       method: 'POST',
       body: {
@@ -164,7 +121,6 @@ async function onDragEnd(listId: string, event: any) {
     }
   } catch (error) {
     // Rollback on error
-    console.error('Failed to move card:', error)
     board.value = {
       ...board.value,
       lists: previousState
