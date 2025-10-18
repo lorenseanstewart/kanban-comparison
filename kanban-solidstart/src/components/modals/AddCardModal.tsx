@@ -13,7 +13,7 @@ export function AddCardModal(props: {
     id: string;
     title: string;
     description: string | null;
-    assigneeId: string | null;
+    assigneeId: string;
     tagIds: string[];
   }) => void;
 }) {
@@ -47,7 +47,7 @@ export function AddCardModal(props: {
       const input = submission.input?.[0] as FormData | undefined;
       const title = (input?.get("title") as string) ?? "";
       const description = (input?.get("description") as string) || null;
-      const assigneeId = (input?.get("assigneeId") as string) || null;
+      const assigneeId = (input?.get("assigneeId") as string) ?? "";
       const tagIds = submittedTagIds();
       props.onCardAdd({
         id: result.data?.id ?? "",
@@ -58,7 +58,7 @@ export function AddCardModal(props: {
       });
     }
 
-    setSelectedTagIds(new Set());
+    setSelectedTagIds(new Set<string>());
     setSubmittedTagIds([]);
     submission.clear();
     props.onClose();

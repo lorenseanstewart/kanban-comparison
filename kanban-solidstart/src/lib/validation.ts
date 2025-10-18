@@ -11,8 +11,7 @@ export const BoardSchema = v.object({
     v.pipe(
       v.string(),
       v.maxLength(500, "Description must be less than 500 characters")
-    ),
-    null
+    )
   ),
 });
 
@@ -30,11 +29,13 @@ export const CardSchema = v.object({
     v.pipe(
       v.string(),
       v.maxLength(2000, "Description must be less than 2000 characters")
-    ),
-    null
+    )
   ),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), []),
+  assigneeId: v.pipe(
+    v.string("Assignee is required"),
+    v.minLength(1, "Assignee is required")
+  ),
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardInput = v.InferInput<typeof CardSchema>;
@@ -52,11 +53,13 @@ export const CardUpdateSchema = v.object({
     v.pipe(
       v.string(),
       v.maxLength(2000, "Description must be less than 2000 characters")
-    ),
-    null
+    )
   ),
-  assigneeId: v.optional(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), []),
+  assigneeId: v.pipe(
+    v.string("Assignee is required"),
+    v.minLength(1, "Assignee is required")
+  ),
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardUpdateInput = v.InferInput<typeof CardUpdateSchema>;

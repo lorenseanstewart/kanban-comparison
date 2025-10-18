@@ -29,9 +29,9 @@ function DroppableContent(props: {
   return (
     <div
       ref={droppable.ref}
-      class="w-full h-full min-h-[800px] rounded-lg"
+      class="w-full h-full min-h-[800px] rounded-lg transition-all duration-200"
       classList={{
-        "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02] transition-all duration-200": droppable.isActiveDroppable,
+        "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]": droppable.isActiveDroppable === true,
       }}
     >
       {props.children}

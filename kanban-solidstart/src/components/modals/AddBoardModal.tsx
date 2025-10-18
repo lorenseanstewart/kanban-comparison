@@ -37,7 +37,11 @@ export function AddBoardModal(props: {
     }
 
     if (props.onBoardAdd && result.data) {
-      props.onBoardAdd(result.data);
+      props.onBoardAdd({
+        id: result.data.id,
+        title: result.data.title,
+        description: result.data.description ?? null,
+      });
     }
 
     props.onClose();

@@ -13,7 +13,7 @@ const validateCardUpdate = (formData: FormData) =>
   v.safeParse(CardUpdateSchema, {
     cardId: formData.get("cardId"),
     title: formData.get("title"),
-    description: formData.get("description"),
+    description: formData.get("description") || undefined,
     assigneeId: formData.get("assigneeId"),
     tagIds: formData.getAll("tagIds"),
   });
@@ -28,8 +28,8 @@ const validateComment = (formData: FormData) =>
 const validateCardCreate = (formData: FormData) =>
   v.safeParse(CardSchema, {
     title: formData.get("title"),
-    description: formData.get("description") || null,
-    assigneeId: formData.get("assigneeId") || null,
+    description: formData.get("description") || undefined,
+    assigneeId: formData.get("assigneeId"),
     tagIds: formData.getAll("tagIds"),
   });
 
@@ -47,7 +47,7 @@ export const updateCardAction = action(async (formData: FormData): Promise<CardA
     tx.update(cards)
       .set({
         title,
-        description,
+        description: description ?? null,
         assigneeId,
       })
       .where(eq(cards.id, cardId))
@@ -55,7 +55,7 @@ export const updateCardAction = action(async (formData: FormData): Promise<CardA
 
     tx.delete(cardTags).where(eq(cardTags.cardId, cardId)).run();
 
-    if (tagIds.length > 0) {
+    if (tagIds && tagIds.length > 0) {
       tx.insert(cardTags)
         .values(tagIds.map((tagId) => ({ cardId, tagId })))
         .run();
@@ -125,14 +125,14 @@ export const createCardAction = action(async (formData: FormData): Promise<CardA
         id: cardId,
         listId: todoList.id,
         title: validation.output.title,
-        description: validation.output.description,
+        description: validation.output.description ?? null,
         assigneeId: validation.output.assigneeId,
         position: nextPosition,
         completed: false,
       })
       .run();
 
-    if (validation.output.tagIds.length > 0) {
+    if (validation.output.tagIds && validation.output.tagIds.length > 0) {
       tx.insert(cardTags)
         .values(
           validation.output.tagIds.map((tagId) => ({

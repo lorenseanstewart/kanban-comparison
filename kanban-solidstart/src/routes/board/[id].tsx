@@ -53,7 +53,8 @@ export default function BoardPage() {
   const effectiveTags = createMemo(() => allTags() || []);
 
   // Initialize board with boardData to avoid hydration mismatch
-  const [board, setBoard] = createStore<BoardDetails | null>(boardData() ?? null);
+  const initialBoard = boardData() ?? { id: "", title: "", description: null, lists: [] };
+  const [board, setBoard] = createStore<any>(initialBoard);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = createStore({ open: false });
 
   // Sync local state with server data
@@ -77,7 +78,7 @@ export default function BoardPage() {
     // This prevents duplicate card rendering issues
   };
 
-  // Handle card creation with server ID
+  // Handle card creation - don't add optimistically, let server revalidation sync the new card
   const handleCardAdd = (cardData: {
     id: string;
     title: string;
@@ -85,32 +86,9 @@ export default function BoardPage() {
     assigneeId: string | null;
     tagIds: string[];
   }) => {
-    if (!board) return;
-
-    setBoard(
-      produce((draft) => {
-        if (!draft) return;
-
-        const todoList = draft.lists.find((list) => list.title === "Todo");
-        if (!todoList) return;
-
-        const tagLookup = new Set(cardData.tagIds);
-        const resolvedTags = (allTags() || []).filter((tag) => tagLookup.has(tag.id));
-
-        const newCard: BoardCard = {
-          id: cardData.id,
-          title: cardData.title,
-          description: cardData.description,
-          assigneeId: cardData.assigneeId,
-          position: todoList.cards.length,
-          completed: false,
-          tags: resolvedTags,
-          comments: [],
-        };
-
-        todoList.cards = [...todoList.cards, newCard];
-      })
-    );
+    // The server action will revalidate and fetch the new card,
+    // so we don't need to add it optimistically here.
+    // This prevents duplicate cards from appearing.
   };
 
   // Handle card deletion
@@ -118,10 +96,10 @@ export default function BoardPage() {
     if (!board) return;
 
     setBoard(
-      produce((draft) => {
+      produce((draft: any) => {
         if (!draft) return;
         for (const list of draft.lists) {
-          const cardIndex = list.cards.findIndex((c) => c.id === cardId);
+          const cardIndex = list.cards.findIndex((c: any) => c.id === cardId);
           if (cardIndex !== -1) {
             list.cards.splice(cardIndex, 1);
             break;

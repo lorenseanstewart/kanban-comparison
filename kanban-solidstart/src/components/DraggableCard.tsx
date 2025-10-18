@@ -106,7 +106,7 @@ function DraggableContent(props: {
       ref={(el) => sortable(el)}
       class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
       classList={{
-        "opacity-25": sortable.isActiveDraggable,
+        "opacity-25": sortable.isActiveDraggable === true,
       }}
       style={`${transformStyle(sortable.transform)}; view-transition-name: card-${props.card.id};`}
     >

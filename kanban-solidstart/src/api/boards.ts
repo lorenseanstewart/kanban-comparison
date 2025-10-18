@@ -29,6 +29,7 @@ export type BoardDetails = BoardSummary & {
           | "position"
           | "completed"
           | "assigneeId"
+          | "listId"
         > & {
           tags: Array<Pick<Tag, "id" | "name" | "color">>;
           comments: Array<
@@ -41,7 +42,7 @@ export type BoardDetails = BoardSummary & {
 };
 
 export type BoardList = BoardDetails["lists"][number];
-export type BoardCard = Omit<BoardList["cards"][number], "listId"> & { listId: string };
+export type BoardCard = BoardList["cards"][number];
 export type UsersList = Array<{ id: string; name: string }>;
 export type TagsList = Array<Pick<Tag, "id" | "name" | "color">>;
 export type BoardCardWithList = BoardCard & { listId: string };
