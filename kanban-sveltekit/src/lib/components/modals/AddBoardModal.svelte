@@ -30,7 +30,6 @@
 			type="button"
 			class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 			onclick={close}
-			disabled={!!$effect.pending()}
 		>
 			✕
 		</button>
@@ -63,7 +62,6 @@
 					class="input input-bordered w-full"
 					placeholder="Enter board title"
 					required
-					disabled={!!$effect.pending()}
 				/>
 			</div>
 
@@ -76,26 +74,14 @@
 					{...description.as('text')}
 					class="textarea textarea-bordered h-24 w-full"
 					placeholder="Enter board description (optional)"
-					disabled={!!$effect.pending()}
 				></textarea>
 			</div>
 
 			<div class="modal-action">
-				<button
-					type="button"
-					class="btn btn-ghost"
-					onclick={close}
-					disabled={!!$effect.pending()}
-				>
+				<button type="button" class="btn btn-ghost" onclick={close}>
 					Cancel
 				</button>
-				<button
-					type="submit"
-					class="btn btn-primary"
-					disabled={!!$effect.pending()}
-				>
-					{!!$effect.pending() ? 'Adding...' : 'Add Board'}
-				</button>
+				<button type="submit" class="btn btn-primary"> Add Board </button>
 			</div>
 		</form>
 	</div>
