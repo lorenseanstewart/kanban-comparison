@@ -1,4 +1,5 @@
 import { form, query } from '$app/server';
+import { error } from '@sveltejs/kit';
 import { BoardSchema } from '$lib/validation';
 import { db } from '$lib/db';
 import { boards, lists } from '$lib/db/schema';
@@ -35,8 +36,8 @@ export const addBoard = form(BoardSchema, async ({ title, description = null }) 
 			title,
 			description,
 		};
-	} catch (error) {
-		console.error('Failed to create board:', error);
-		return fail(500, { error: 'Failed to create board. Please try again.' });
+	} catch (e) {
+		console.error('Failed to create board:', e);
+		return error(500, 'Failed to create board. Please try again.');
 	}
 });
