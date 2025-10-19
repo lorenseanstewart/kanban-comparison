@@ -52,15 +52,16 @@
 			<div class="form-control w-full mb-4">
 				<label class="label" for="board-title">
 					<span class="label-text">Title</span>
-				</label>
 				<input
 					id="board-title"
 					{...title.as('text')}
 					class="input input-bordered w-full"
 					placeholder="Enter board title"
 					required
-					disabled={!!addBoard.pending}
 				/>
+				{#each title.issues() as issue}
+					<div class="validator-hint">{issue.message}</div>
+				{/each}
 			</div>
 
 			<div class="form-control w-full mb-4">
