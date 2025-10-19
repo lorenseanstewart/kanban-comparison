@@ -52,6 +52,7 @@
 			<div class="form-control w-full mb-4">
 				<label class="label" for="board-title">
 					<span class="label-text">Title</span>
+				</label>
 				<input
 					id="board-title"
 					{...title.as('text')}
@@ -68,7 +69,6 @@
 				<label class="label" for="board-description">
 					<span class="label-text">Description</span>
 				</label>
-				<textarea
 				<textarea
 					id="board-description"
 					{...description.as('text')}
