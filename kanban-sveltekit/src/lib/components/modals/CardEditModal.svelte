@@ -1,79 +1,35 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
 	import type { BoardCard, UsersList, TagsList } from '$lib/server/boards';
+	import { updateCard, deleteCard } from '$lib/board.remote';
 
 	let {
 		card,
+		boardId,
 		users,
 		tags,
 		isOpen,
 		onClose
 	}: {
 		card: BoardCard;
+		boardId: string;
 		users: UsersList;
 		tags: TagsList;
 		isOpen: boolean;
 		onClose: () => void;
 	} = $props();
 
-	let selectedTagIds = $state(new Set<string>(card.tags.map((t) => t.id)));
-	let error = $state<string | null>(null);
-	let isSubmitting = $state(false);
-	let isDeleting = $state(false);
-
-	// Reset selected tags when card changes
-	$effect(() => {
-		selectedTagIds = new Set(card.tags.map((t) => t.id));
-	});
-
-	function toggleTag(tagId: string) {
-		const newSet = new Set(selectedTagIds);
-		if (newSet.has(tagId)) {
-			newSet.delete(tagId);
-		} else {
-			newSet.add(tagId);
-		}
-		selectedTagIds = newSet;
-	}
-
-	function handleClose() {
-		selectedTagIds = new Set(card.tags.map((t) => t.id));
-		error = null;
-		onClose();
-	}
+	const isDisabled = $derived(!!updateCard.pending || !!deleteCard.pending);
 
 	async function handleDelete() {
 		if (!confirm('Are you sure you want to delete this card?')) {
 			return;
 		}
 
-		isDeleting = true;
-		error = null;
-
 		try {
-			const formData = new FormData();
-			formData.append('cardId', card.id);
-
-			const response = await fetch('?/deleteCard', {
-				method: 'POST',
-				body: formData
-			});
-
-			const result = await response.json();
-
-			if (result.type === 'success' && result.data?.success) {
-				handleClose();
-				await invalidate('app:board');
-			} else if (result.type === 'failure' && result.data?.error) {
-				error = result.data.error;
-			} else {
-				error = 'Failed to delete card';
-			}
+			await deleteCard({ cardId: card.id, boardId });
+			onClose();
 		} catch (err) {
-			error = 'Failed to delete card. Please try again.';
-		} finally {
-			isDeleting = false;
+			console.error('Failed to delete card:', err);
 		}
 	}
 </script>
@@ -82,70 +38,59 @@
 	<dialog
 		class="modal modal-open !mt-0"
 		onclick={(e) => {
-			if (e.target === e.currentTarget) handleClose();
+			if (e.target === e.currentTarget) onClose();
 		}}
 	>
 		<div class="modal-backdrop bg-black/70"></div>
 		<div class="modal-box bg-base-200 dark:bg-base-300">
 			<form
-				method="POST"
-				action="?/updateCard"
-				use:enhance={({ formData }) => {
-					isSubmitting = true;
-					error = null;
-
-					formData.delete('tagIds');
-					selectedTagIds.forEach((tagId) => {
-						formData.append('tagIds', tagId);
-					});
-
-					return async ({ result, update }) => {
-						isSubmitting = false;
-
-						if (result.type === 'success' && result.data?.success) {
-							handleClose();
-							await invalidate('app:board');
-						} else if (result.type === 'failure' && result.data?.error) {
-							error = result.data.error;
-						} else {
-							error = 'Failed to update card';
-						}
-
-						update();
-					};
-				}}
+				{...updateCard.enhance(async ({ form, submit }: any) => {
+					try {
+						await submit();
+						form.reset();
+						onClose();
+					} catch (error) {
+						console.error('Failed to update card:', error);
+					}
+				})}
 			>
 				<button
 					type="button"
 					class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-					onclick={handleClose}
-					disabled={isSubmitting || isDeleting}
+					onclick={onClose}
+					disabled={isDisabled}
 				>
 					✕
 				</button>
 				<h3 class="font-bold text-lg mb-4">Edit Card</h3>
 
-				{#if error}
+				{#each updateCard.fields.allIssues() as issue}
 					<div class="alert alert-error mb-4">
-						<span>{error}</span>
+						<span>{issue.message}</span>
 					</div>
-				{/if}
+				{/each}
 
-				<input type="hidden" name="cardId" value={card.id} />
+				<input {...updateCard.fields.cardId.as('hidden', card.id)} />
+				<input {...updateCard.fields.boardId.as('hidden', boardId)} />
 
 				<div class="form-control w-full mb-4">
 					<label class="label" for="edit-card-title-{card.id}">
 						<span class="label-text">Title</span>
 					</label>
 					<input
-						type="text"
-						name="title"
+						{...updateCard.fields.title.as('text')}
 						id="edit-card-title-{card.id}"
 						class="input input-bordered w-full"
+						class:input-error={(updateCard.fields.title.issues() || []).length > 0}
 						value={card.title}
 						required
-						disabled={isSubmitting || isDeleting}
+						disabled={isDisabled}
 					/>
+					{#each updateCard.fields.title.issues() as issue}
+						<div class="label">
+							<span class="label-text-alt text-error">{issue.message}</span>
+						</div>
+					{/each}
 				</div>
 
 				<div class="form-control w-full mb-4">
@@ -153,11 +98,11 @@
 						<span class="label-text">Description</span>
 					</label>
 					<textarea
-						name="description"
+						{...updateCard.fields.description.as('text')}
 						id="edit-card-description-{card.id}"
 						class="textarea textarea-bordered h-24 w-full"
 						value={card.description || ''}
-						disabled={isSubmitting || isDeleting}
+						disabled={isDisabled}
 					></textarea>
 				</div>
 
@@ -166,10 +111,10 @@
 						<span class="label-text">Assignee</span>
 					</label>
 					<select
-						name="assigneeId"
+						{...updateCard.fields.assigneeId.as('select')}
 						id="edit-card-assignee-{card.id}"
 						class="select select-bordered w-full"
-						disabled={isSubmitting || isDeleting}
+						disabled={isDisabled}
 					>
 						<option value="">Unassigned</option>
 						{#each users as user (user.id)}
@@ -186,43 +131,32 @@
 					</div>
 					<div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
 						{#each tags as tag (tag.id)}
-							<button
-								type="button"
-								class="badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
-								class:badge-outline={!selectedTagIds.has(tag.id)}
-								class:text-white={selectedTagIds.has(tag.id)}
-								style={selectedTagIds.has(tag.id)
-									? `background-color: ${tag.color}; border-color: ${tag.color};`
-									: `color: ${tag.color}; border-color: ${tag.color};`}
-								onclick={() => toggleTag(tag.id)}
-								disabled={isSubmitting || isDeleting}
+							<label
+								class="tag-checkbox-label badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
+								style="--tag-color: {tag.color};"
 							>
+								<input
+									{...updateCard.fields.tagIds.as('checkbox', tag.id)}
+									class="sr-only"
+									disabled={isDisabled}
+									checked={card.tags.some((t) => t.id === tag.id)}
+								/>
 								{tag.name}
-							</button>
+							</label>
 						{/each}
 					</div>
 				</div>
 
 				<div class="modal-action justify-between">
-					<button
-						type="button"
-						class="btn btn-error"
-						onclick={handleDelete}
-						disabled={isSubmitting || isDeleting}
-					>
-						{isDeleting ? 'Deleting...' : 'Delete Card'}
+					<button type="button" class="btn btn-error" onclick={handleDelete} disabled={isDisabled}>
+						{deleteCard.pending ? 'Deleting...' : 'Delete Card'}
 					</button>
 					<div class="flex gap-2">
-						<button
-							type="button"
-							class="btn btn-ghost"
-							onclick={handleClose}
-							disabled={isSubmitting || isDeleting}
-						>
+						<button type="button" class="btn btn-ghost" onclick={onClose} disabled={isDisabled}>
 							Cancel
 						</button>
-						<button type="submit" class="btn btn-primary" disabled={isSubmitting || isDeleting}>
-							{isSubmitting ? 'Saving...' : 'Save Changes'}
+						<button type="submit" class="btn btn-primary" disabled={isDisabled}>
+							{updateCard.pending ? 'Saving...' : 'Save Changes'}
 						</button>
 					</div>
 				</div>
@@ -230,3 +164,21 @@
 		</div>
 	</dialog>
 {/if}
+
+<style>
+	.tag-checkbox-label {
+		color: var(--tag-color);
+		border-color: var(--tag-color);
+		background-color: transparent;
+	}
+
+	.tag-checkbox-label:has(input:checked) {
+		background-color: var(--tag-color);
+		color: white;
+	}
+
+	.tag-checkbox-label:has(input:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

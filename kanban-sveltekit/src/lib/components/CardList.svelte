@@ -8,6 +8,7 @@
 
 	let {
 		list,
+		boardId,
 		users,
 		allUsers,
 		allTags,
@@ -15,6 +16,7 @@
 		onFinalize
 	}: {
 		list: BoardList;
+		boardId: string;
 		users: UsersList;
 		allUsers: UsersList;
 		allTags: TagsList;
@@ -41,7 +43,7 @@
 			{#if list.cards.length > 0}
 				{#each list.cards as card (card.id)}
 					<div data-id={card.id}>
-						<Card {card} {users} {allUsers} {allTags} />
+						<Card {card} {boardId} {users} {allUsers} {allTags} />
 					</div>
 				{/each}
 			{:else}
