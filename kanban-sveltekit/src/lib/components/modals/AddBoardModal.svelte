@@ -2,11 +2,9 @@
 	import { addBoard, getBoards } from './boards.remote';
 
 	let dialog: HTMLDialogElement;
-	let error = $state<string | null>(null);
 
 	function close() {
 		dialog.close();
-		error = null;
 	}
 
 	const { title, description } = addBoard.fields;
@@ -22,7 +20,7 @@
 	bind:this={dialog}
 	class="modal !mt-0"
 	onclick={(e) => {
-		if (e.target === e.currentTarget) close();
+		if (e.target === e.currentTarget) dialog.close();
 	}}
 >
 	<div class="modal-box bg-base-200 dark:bg-base-300">
@@ -30,23 +28,24 @@
 			type="button"
 			class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 			onclick={close}
+			disabled={!!addBoard.pending}
 		>
 			✕
 		</button>
 		<form
-			{...addBoard.enhance(async ({ form, data, submit }) => {
-				await submit().updates(
-					getBoards().withOverride((boards) => [...boards, data]),
-				);
-				form.reset();
+			{...addBoard.enhance(async ({ form, submit }) => {
+				await submit();
 				close();
+				form.reset();
 			})}
 		>
 			<h3 class="font-bold text-lg mb-4">Add New Board</h3>
 
-			{#if error}
+			{#if addBoard.fields.issues()}
 				<div class="alert alert-error mb-4">
-					<span>{error}</span>
+					{#each addBoard.fields.issues() as issue}
+						<span>{issue}</span>
+					{/each}
 				</div>
 			{/if}
 
@@ -57,11 +56,10 @@
 				<input
 					id="board-title"
 					{...title.as('text')}
-					type="text"
-					name="title"
 					class="input input-bordered w-full"
 					placeholder="Enter board title"
 					required
+					disabled={!!addBoard.pending}
 				/>
 			</div>
 
@@ -74,14 +72,26 @@
 					{...description.as('text')}
 					class="textarea textarea-bordered h-24 w-full"
 					placeholder="Enter board description (optional)"
+					disabled={!!addBoard.pending}
 				></textarea>
 			</div>
 
 			<div class="modal-action">
-				<button type="button" class="btn btn-ghost" onclick={close}>
+				<button
+					type="button"
+					class="btn btn-ghost"
+					onclick={close}
+					disabled={!!addBoard.pending}
+				>
 					Cancel
 				</button>
-				<button type="submit" class="btn btn-primary"> Add Board </button>
+				<button
+					type="submit"
+					class="btn btn-primary"
+					disabled={!!addBoard.pending}
+				>
+					{!!addBoard.pending ? 'Adding...' : 'Add Board'}
+				</button>
 			</div>
 		</form>
 	</div>
