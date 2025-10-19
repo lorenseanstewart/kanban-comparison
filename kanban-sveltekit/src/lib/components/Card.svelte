@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
 	import CardEditModal from '$lib/components/modals/CardEditModal.svelte';
 	import CommentModal from '$lib/components/modals/CommentModal.svelte';
 	import EditPencil from '$lib/components/icons/EditPencil.svelte';
 	import type { BoardCard, UsersList, TagsList } from '$lib/server/boards';
 
-	let { card, users, allUsers, allTags }: {
+	let {
+		card,
+		boardId,
+		users,
+		allUsers,
+		allTags
+	}: {
 		card: BoardCard;
+		boardId: string;
 		users: UsersList;
 		allUsers: UsersList;
 		allTags: TagsList;
@@ -91,14 +96,16 @@
 	</div>
 
 	<CardEditModal
-		card={card}
+		{card}
+		{boardId}
 		users={allUsers}
 		tags={allTags}
 		isOpen={isEditModalOpen}
 		onClose={() => (isEditModalOpen = false)}
 	/>
 	<CommentModal
-		card={card}
+		{card}
+		{boardId}
 		users={allUsers}
 		isOpen={isCommentModalOpen}
 		onClose={() => (isCommentModalOpen = false)}

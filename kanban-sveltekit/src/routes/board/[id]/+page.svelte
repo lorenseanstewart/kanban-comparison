@@ -1,47 +1,30 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
-	import type { PageData } from './$types';
-	import type { BoardCard, BoardDetails } from '$lib/server/boards';
+	import type { BoardCard } from '$lib/server/boards';
 	import BoardOverview from '$lib/components/BoardOverview.svelte';
 	import CardList from '$lib/components/CardList.svelte';
 	import AddCardModal from '$lib/components/modals/AddCardModal.svelte';
 	import type { DndEvent } from 'svelte-dnd-action';
 	import { debounce } from '$lib/utils';
+	import { getBoardData, updateCardList, updateCardPositions } from '$lib/board.remote';
+	import { isHttpError } from '@sveltejs/kit';
 
-	let { data }: { data: PageData } = $props();
+	let { params } = $props();
 
-	// Local mutable copy for optimistic updates
-	let board = $state<BoardDetails>(data.board);
+	const bordData = $derived(await getBoardData(params.id));
+
 	let isAddCardModalOpen = $state(false);
 	let isUpdating = $state(false);
 
-	// Sync local state with server data
-	$effect(() => {
-		board = data.board;
-	});
-
-	// Helper function to submit form actions
-	async function submitAction(action: string, formData: FormData): Promise<Response> {
-		const response = await fetch(`?/${action}`, {
-			method: 'POST',
-			body: formData
-		});
-
-		if (response.ok) {
-			await invalidate('app:board');
-		}
-
-		return response;
-	}
+	// Local state for optimistic updates during drag
+	let optimisticBoard = $derived(bordData.board);
 
 	// Debounced position update to avoid too many requests
 	const debouncedUpdatePositions = debounce(async (cardIds: string[]) => {
-		const formData = new FormData();
-		cardIds.forEach((id) => formData.append('cardIds', id));
-
 		try {
-			await submitAction('updateCardPositions', formData);
+			await updateCardPositions({
+				cardIds: cardIds,
+				boardId: params.id
+			});
 		} catch (error) {
 			console.error('Failed to update card positions:', error);
 		}
@@ -52,9 +35,11 @@
 		const { items } = e.detail;
 
 		// Update board state optimistically during drag
-		board = {
-			...board,
-			lists: board.lists.map((list) => (list.id === listId ? { ...list, cards: items } : list))
+		optimisticBoard = {
+			...optimisticBoard,
+			lists: optimisticBoard.lists.map((list) =>
+				list.id === listId ? { ...list, cards: items } : list
+			)
 		};
 	}
 
@@ -63,13 +48,15 @@
 		const { items } = e.detail;
 
 		// Find the list that was modified
-		const targetList = board.lists.find((list) => list.id === listId);
+		const targetList = optimisticBoard.lists.find((list) => list.id === listId);
 		if (!targetList) return;
 
 		// Update board state optimistically
-		board = {
-			...board,
-			lists: board.lists.map((list) => (list.id === listId ? { ...list, cards: items } : list))
+		optimisticBoard = {
+			...optimisticBoard,
+			lists: optimisticBoard.lists.map((list) =>
+				list.id === listId ? { ...list, cards: items } : list
+			)
 		};
 
 		isUpdating = true;
@@ -77,8 +64,8 @@
 		try {
 			// Check if any card changed lists
 			const cardMovedToNewList = items.find((card) => {
-				// Find the original list for this card in data.board
-				const originalList = data.board.lists.find((list) =>
+				// Find the original list for this card in board_data.board
+				const originalList = bordData.board.lists.find((list) =>
 					list.cards.some((c) => c.id === card.id)
 				);
 				return originalList && originalList.id !== listId;
@@ -87,25 +74,18 @@
 			// Submit changes to server
 			if (cardMovedToNewList) {
 				// Card moved to a different list
-				const formData = new FormData();
-				formData.append('cardId', cardMovedToNewList.id);
-				formData.append('newListId', listId);
-
-				const response = await submitAction('updateCardList', formData);
-
-				if (!response.ok) {
-					// Rollback on error - reload from server
-					await invalidate('app:board');
-					console.error('Failed to move card');
-					return;
-				}
+				await updateCardList({
+					cardId: cardMovedToNewList.id,
+					newListId: listId,
+					boardId: params.id
+				});
 			}
 
 			// Update positions for all cards in the list (debounced)
 			debouncedUpdatePositions(items.map((card) => card.id));
 		} catch (error) {
 			// Rollback on error - reload from server
-			await invalidate('app:board');
+			getBoardData(params.id).refresh();
 			console.error('Failed to update cards:', error);
 		} finally {
 			isUpdating = false;
@@ -113,55 +93,75 @@
 	}
 </script>
 
-<main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
-	<div class="breadcrumbs text-sm">
-		<ul>
-			<li>
-				<a href="/" class="link link-hover">Boards</a>
-			</li>
-			<li>
-				<span class="text-base-content/60">{data.board.title}</span>
-			</li>
-		</ul>
-	</div>
+<svelte:boundary>
+	{#snippet failed(error: unknown)}
+		<div class="w-full p-8 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+			<div class="alert alert-error">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="stroke-current shrink-0 h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				<span>Error: {isHttpError(error) ? error.body.message : 'Internal error'}</span>
+			</div>
+		</div>
+	{/snippet}
 
-	<div class="space-y-8">
-		<BoardOverview data={data.board} />
-
-		<div class="flex justify-start mb-4">
-			<button
-				type="button"
-				class="btn btn-primary"
-				onclick={() => (isAddCardModalOpen = true)}
-			>
-				Add Card
-			</button>
+	<main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+		<div class="breadcrumbs text-sm">
+			<ul>
+				<li>
+					<a href="/" class="link link-hover">Boards</a>
+				</li>
+				<li>
+					<span class="text-base-content/60">{bordData.board.title}</span>
+				</li>
+			</ul>
 		</div>
 
-		<section class="flex gap-7 overflow-x-auto pb-8 relative">
-			{#if isUpdating}
-				<div class="absolute top-2 right-2 z-10">
-					<span class="loading loading-spinner loading-sm text-primary"></span>
-				</div>
-			{/if}
-			{#each board.lists as list (list.id)}
-				<CardList
-					{list}
-					users={data.users}
-					allUsers={data.users}
-					allTags={data.tags}
-					onConsider={(e) => handleConsider(list.id, e)}
-					onFinalize={(e) => handleFinalize(list.id, e)}
-				/>
-			{/each}
-		</section>
-	</div>
+		<div class="space-y-8">
+			<BoardOverview data={bordData.board} />
 
-	<AddCardModal
-		boardId={board.id}
-		users={data.users}
-		tags={data.tags}
-		isOpen={isAddCardModalOpen}
-		onClose={() => (isAddCardModalOpen = false)}
-	/>
-</main>
+			<div class="flex justify-start mb-4">
+				<button type="button" class="btn btn-primary" onclick={() => (isAddCardModalOpen = true)}>
+					Add Card
+				</button>
+			</div>
+
+			<section class="flex gap-7 overflow-x-auto pb-8 relative">
+				{#if isUpdating}
+					<div class="absolute top-2 right-2 z-10">
+						<span class="loading loading-spinner loading-sm text-primary"></span>
+					</div>
+				{/if}
+				{#each optimisticBoard.lists as list (list.id)}
+					<CardList
+						{list}
+						boardId={params.id}
+						users={bordData.users}
+						allUsers={bordData.users}
+						allTags={bordData.tags}
+						onConsider={(e) => handleConsider(list.id, e)}
+						onFinalize={(e) => handleFinalize(list.id, e)}
+					/>
+				{/each}
+			</section>
+		</div>
+
+		<AddCardModal
+			boardId={bordData.board.id}
+			users={bordData.users}
+			tags={bordData.tags}
+			isOpen={isAddCardModalOpen}
+			onClose={() => (isAddCardModalOpen = false)}
+		/>
+	</main>
+</svelte:boundary>

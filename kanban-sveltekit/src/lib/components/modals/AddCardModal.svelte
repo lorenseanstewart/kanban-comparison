@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
 	import type { UsersList, TagsList } from '$lib/server/boards';
+	import { createCard } from '$lib/board.remote';
 
 	let {
 		boardId,
@@ -17,24 +16,16 @@
 		onClose: () => void;
 	} = $props();
 
-	let selectedTagIds = $state(new Set<string>());
 	let formElement = $state<HTMLFormElement>();
-	let error = $state<string | null>(null);
-	let isSubmitting = $state(false);
-
-	function toggleTag(tagId: string) {
-		const newSet = new Set(selectedTagIds);
-		if (newSet.has(tagId)) {
-			newSet.delete(tagId);
-		} else {
-			newSet.add(tagId);
-		}
-		selectedTagIds = newSet;
-	}
 
 	function handleClose() {
-		selectedTagIds = new Set();
-		error = null;
+		createCard.fields.set({
+			boardId: boardId,
+			title: '',
+			description: undefined,
+			assigneeId: undefined,
+			tagIds: []
+		});
 		onClose();
 	}
 </script>
@@ -50,65 +41,52 @@
 		<div class="modal-box bg-base-200 dark:bg-base-300">
 			<form
 				bind:this={formElement}
-				method="POST"
-				action="?/createCard"
-				use:enhance={({ formData }) => {
-					isSubmitting = true;
-					error = null;
-
-					formData.delete('tagIds');
-					selectedTagIds.forEach((tagId) => {
-						formData.append('tagIds', tagId);
-					});
-
-					return async ({ result, update }) => {
-						isSubmitting = false;
-
-						if (result.type === 'success' && result.data?.success) {
-							formElement?.reset();
-							handleClose();
-							await invalidate('app:board');
-						} else if (result.type === 'failure' && result.data?.error) {
-							error = result.data.error;
-						} else {
-							error = 'Failed to create card';
-						}
-
-						update();
-					};
-				}}
+				{...createCard.enhance(async ({ form, data, submit }: any) => {
+					try {
+						await submit();
+						form.reset();
+						handleClose();
+					} catch (error) {
+						console.error('Failed to create card:', error);
+					}
+				})}
 			>
 				<button
 					type="button"
 					class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
 					onclick={handleClose}
-					disabled={isSubmitting}
+					disabled={!!createCard.pending}
 				>
 					✕
 				</button>
 				<h3 class="font-bold text-lg mb-4">Add New Card</h3>
 
-				{#if error}
+				{#each createCard.fields.allIssues() as issue}
 					<div class="alert alert-error mb-4">
-						<span>{error}</span>
+						<span>{issue.message}</span>
 					</div>
-				{/if}
+				{/each}
 
-				<input type="hidden" name="boardId" value={boardId} />
+				<input {...createCard.fields.boardId.as('hidden', boardId)} />
 
 				<div class="form-control w-full mb-4">
 					<label class="label" for="add-card-title">
 						<span class="label-text">Title</span>
 					</label>
 					<input
-						type="text"
-						name="title"
+						{...createCard.fields.title.as('text')}
 						id="add-card-title"
 						class="input input-bordered w-full"
+						class:input-error={(createCard.fields.title.issues() || []).length > 0}
 						placeholder="Enter card title"
 						required
-						disabled={isSubmitting}
+						disabled={!!createCard.pending}
 					/>
+					{#each createCard.fields.title.issues() as issue}
+						<div class="label">
+							<span class="label-text-alt text-error">{issue.message}</span>
+						</div>
+					{/each}
 				</div>
 
 				<div class="form-control w-full mb-4">
@@ -116,11 +94,11 @@
 						<span class="label-text">Description</span>
 					</label>
 					<textarea
-						name="description"
+						{...createCard.fields.description.as('text')}
 						id="add-card-description"
 						class="textarea textarea-bordered h-24 w-full"
 						placeholder="Enter card description (optional)"
-						disabled={isSubmitting}
+						disabled={!!createCard.pending}
 					></textarea>
 				</div>
 
@@ -128,7 +106,12 @@
 					<label class="label" for="add-card-assignee">
 						<span class="label-text">Assignee</span>
 					</label>
-					<select name="assigneeId" id="add-card-assignee" class="select select-bordered w-full" disabled={isSubmitting}>
+					<select
+						{...createCard.fields.assigneeId.as('select')}
+						id="add-card-assignee"
+						class="select select-bordered w-full"
+						disabled={!!createCard.pending}
+					>
 						<option value="">Unassigned</option>
 						{#each users as user (user.id)}
 							<option value={user.id}>{user.name}</option>
@@ -142,32 +125,53 @@
 					</div>
 					<div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
 						{#each tags as tag (tag.id)}
-							<button
-								type="button"
-								class="badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
-								class:badge-outline={!selectedTagIds.has(tag.id)}
-								class:text-white={selectedTagIds.has(tag.id)}
-								style={selectedTagIds.has(tag.id)
-									? `background-color: ${tag.color}; border-color: ${tag.color};`
-									: `color: ${tag.color}; border-color: ${tag.color};`}
-								onclick={() => toggleTag(tag.id)}
-								disabled={isSubmitting}
+							<label
+								class="tag-checkbox-label badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
+								style="--tag-color: {tag.color};"
 							>
+								<input
+									{...createCard.fields.tagIds.as('checkbox', tag.id)}
+									class="sr-only"
+									disabled={!!createCard.pending}
+								/>
 								{tag.name}
-							</button>
+							</label>
 						{/each}
 					</div>
 				</div>
 
 				<div class="modal-action">
-					<button type="button" class="btn btn-ghost" onclick={handleClose} disabled={isSubmitting}>
+					<button
+						type="button"
+						class="btn btn-ghost"
+						onclick={handleClose}
+						disabled={!!createCard.pending}
+					>
 						Cancel
 					</button>
-					<button type="submit" class="btn btn-primary" disabled={isSubmitting}>
-						{isSubmitting ? 'Adding...' : 'Add Card'}
+					<button type="submit" class="btn btn-primary" disabled={!!createCard.pending}>
+						{createCard.pending ? 'Adding...' : 'Add Card'}
 					</button>
 				</div>
 			</form>
 		</div>
 	</dialog>
 {/if}
+
+<style>
+	.tag-checkbox-label {
+		color: var(--tag-color);
+		border-color: var(--tag-color);
+		background-color: transparent;
+	}
+
+	.tag-checkbox-label:has(input:checked) {
+		background-color: var(--tag-color);
+		color: white;
+	}
+
+	.tag-checkbox-label:has(input:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

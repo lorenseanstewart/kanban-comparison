@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getBoards } from '$lib/components/modals/boards.remote.js';
+	import { getBoards } from '$lib/boards.remote.js';
 	import AddBoardModal from '$lib/components/modals/AddBoardModal.svelte';
 
 	const boards = $derived(await getBoards());
@@ -11,9 +11,7 @@
 	<header class="text-center space-y-3">
 		<p class="text-sm uppercase tracking-wide text-secondary">Your workspace</p>
 		<h1 class="text-4xl font-black text-primary">Boards</h1>
-		<p class="text-base text-base-content/60">
-			Choose a board to jump into your Kanban flow.
-		</p>
+		<p class="text-base text-base-content/60">Choose a board to jump into your Kanban flow.</p>
 	</header>
 
 	<AddBoardModal />
@@ -23,9 +21,7 @@
 			<div class="card bg-base-200 dark:bg-base-300 shadow-xl">
 				<div class="card-body items-center text-center">
 					<h2 class="card-title text-secondary">No boards yet</h2>
-					<p class="text-base-content/60">
-						Create your first board to get started.
-					</p>
+					<p class="text-base-content/60">Create your first board to get started.</p>
 				</div>
 			</div>
 		{:else}
@@ -42,14 +38,10 @@
 								{board.description}
 							</p>
 						{:else}
-							<p class="badge badge-secondary badge-outline w-fit shadow">
-								No description
-							</p>
+							<p class="badge badge-secondary badge-outline w-fit shadow">No description</p>
 						{/if}
 						<div class="card-actions justify-end">
-							<span class="btn btn-secondary btn-sm shadow-lg"
-								>Open board</span
-							>
+							<span class="btn btn-secondary btn-sm shadow-lg">Open board</span>
 						</div>
 					</div>
 				</a>

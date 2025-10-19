@@ -1,36 +1,27 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { invalidate } from '$app/navigation';
 	import type { BoardCard, UsersList } from '$lib/server/boards';
+	import { addComment } from '$lib/board.remote';
 
 	let {
 		card,
+		boardId,
 		users,
 		isOpen,
 		onClose
 	}: {
 		card: BoardCard;
+		boardId: string;
 		users: UsersList;
 		isOpen: boolean;
 		onClose: () => void;
 	} = $props();
-
-	let selectedUserId = $state(users[0]?.id || '');
-	let error = $state<string | null>(null);
-	let isSubmitting = $state(false);
-
-	function handleClose() {
-		error = null;
-		selectedUserId = users[0]?.id || '';
-		onClose();
-	}
 </script>
 
 {#if isOpen}
 	<dialog
 		class="modal modal-open !mt-0"
 		onclick={(e) => {
-			if (e.target === e.currentTarget) handleClose();
+			if (e.target === e.currentTarget) onClose();
 		}}
 	>
 		<div class="modal-backdrop bg-black/70"></div>
@@ -38,8 +29,8 @@
 			<button
 				type="button"
 				class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-				onclick={handleClose}
-				disabled={isSubmitting}
+				onclick={onClose}
+				disabled={!!addComment.pending}
 			>
 				✕
 			</button>
@@ -72,42 +63,28 @@
 			</div>
 
 			<form
-				method="POST"
-				action="?/addComment"
-				use:enhance={({ formData }) => {
-					isSubmitting = true;
-					error = null;
-
-					return async ({ result, update }) => {
-						isSubmitting = false;
-
-						if (result.type === 'success' && result.data?.success) {
-							const textarea = document.getElementById(`comment-text-${card.id}`) as HTMLTextAreaElement | null;
-							textarea?.form?.reset();
-							await invalidate('app:board');
-							handleClose();
-						} else if (result.type === 'failure' && result.data?.error) {
-							error = result.data.error;
-						} else {
-							error = 'Failed to add comment';
-						}
-
-						update();
-					};
-				}}
+				{...addComment.enhance(async ({ form, data, submit }: any) => {
+					try {
+						await submit();
+						form.reset();
+						onClose();
+					} catch (error) {
+						console.error('Failed to add comment:', error);
+					}
+				})}
 			>
-				<input type="hidden" name="cardId" value={card.id} />
+				<input {...addComment.fields.cardId.as('hidden', card.id)} />
+				<input {...addComment.fields.boardId.as('hidden', boardId)} />
 
 				<div class="form-control w-full">
 					<label class="label" for="comment-user-{card.id}">
 						<span class="label-text">Comment as</span>
 					</label>
 					<select
-						name="userId"
+						{...addComment.fields.userId.as('select')}
 						id="comment-user-{card.id}"
 						class="select select-bordered w-full"
-						bind:value={selectedUserId}
-						disabled={isSubmitting}
+						disabled={!!addComment.pending}
 					>
 						{#each users as user (user.id)}
 							<option value={user.id}>{user.name}</option>
@@ -120,27 +97,38 @@
 						<span class="label-text">Your comment</span>
 					</label>
 					<textarea
-						name="text"
+						{...addComment.fields.text.as('text')}
 						id="comment-text-{card.id}"
 						class="textarea textarea-bordered h-24 w-full"
+						class:textarea-error={(addComment.fields.text.issues() || []).length > 0}
 						placeholder="Write your comment..."
 						required
-						disabled={isSubmitting}
+						disabled={!!addComment.pending}
 					></textarea>
+					{#each addComment.fields.text.issues() as issue}
+						<div class="label">
+							<span class="label-text-alt text-error">{issue.message}</span>
+						</div>
+					{/each}
 				</div>
 
-				{#if error}
+				{#each addComment.fields.allIssues() as issue}
 					<div class="alert alert-error mt-4">
-						<span>{error}</span>
+						<span>{issue.message}</span>
 					</div>
-				{/if}
+				{/each}
 
 				<div class="modal-action">
-					<button type="button" class="btn btn-ghost" onclick={handleClose} disabled={isSubmitting}>
+					<button
+						type="button"
+						class="btn btn-ghost"
+						onclick={onClose}
+						disabled={!!addComment.pending}
+					>
 						Close
 					</button>
-					<button type="submit" class="btn btn-primary" disabled={isSubmitting}>
-						{#if isSubmitting}
+					<button type="submit" class="btn btn-primary" disabled={!!addComment.pending}>
+						{#if addComment.pending}
 							<span class="loading loading-spinner"></span>
 							Adding...
 						{:else}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { addBoard, getBoards } from './boards.remote';
+	import { addBoard } from '$lib/boards.remote';
 
 	let dialog: HTMLDialogElement;
 
@@ -11,9 +11,7 @@
 </script>
 
 <div class="flex justify-end">
-	<button class="btn btn-primary" onclick={() => dialog.showModal()}>
-		Add Board
-	</button>
+	<button class="btn btn-primary" onclick={() => dialog.showModal()}> Add Board </button>
 </div>
 
 <dialog
@@ -81,19 +79,10 @@
 			</div>
 
 			<div class="modal-action">
-				<button
-					type="button"
-					class="btn btn-ghost"
-					onclick={close}
-					disabled={!!addBoard.pending}
-				>
+				<button type="button" class="btn btn-ghost" onclick={close} disabled={!!addBoard.pending}>
 					Cancel
 				</button>
-				<button
-					type="submit"
-					class="btn btn-primary"
-					disabled={!!addBoard.pending}
-				>
+				<button type="submit" class="btn btn-primary" disabled={!!addBoard.pending}>
 					{!!addBoard.pending ? 'Adding...' : 'Add Board'}
 				</button>
 			</div>
