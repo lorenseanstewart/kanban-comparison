@@ -1,11 +1,26 @@
-import { Component, signal, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  signal,
+  inject,
+  effect,
+  afterNextRender,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { injectLoad, RouteMeta } from '@analogjs/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CdkDragDrop, CdkDropListGroup, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  CdkDropListGroup,
+  moveItemInArray,
+  transferArrayItem,
+} from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../lib/api.service';
-import type { BoardDetails, UsersList, TagsList, BoardCard } from '../../../lib/types';
+import type {
+  BoardDetails,
+  UsersList,
+  TagsList,
+  BoardCard,
+} from '../../../lib/types';
 import { BoardOverviewComponent } from '../../components/board-overview.component';
 import { CardListComponent } from '../../components/card-list.component';
 import { AddCardModalComponent } from '../../components/modals/add-card-modal.component';
@@ -18,7 +33,6 @@ export const routeMeta: RouteMeta = {
   selector: 'app-board',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
     CdkDropListGroup,
     BoardOverviewComponent,
@@ -27,26 +41,31 @@ export const routeMeta: RouteMeta = {
   ],
   template: `
     @if (errorLoading()) {
-      <main class="w-full max-w-2xl mx-auto p-8 space-y-6 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+      <main
+        class="w-full max-w-2xl mx-auto p-8 space-y-6 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl"
+      >
         <div class="card bg-error/10">
           <div class="card-body items-center text-center">
             <h1 class="card-title text-2xl text-error">Board Error</h1>
             <p class="text-base-content/70">
-              {{ errorMessage() || 'Failed to load this board. It may not exist or there was an error.' }}
+              {{
+                errorMessage() ||
+                  'Failed to load this board. It may not exist or there was an error.'
+              }}
             </p>
             <div class="card-actions justify-center gap-4 mt-4">
               <button (click)="retry()" class="btn btn-primary">
                 Try Again
               </button>
-              <a routerLink="/" class="btn btn-ghost">
-                Back to Boards
-              </a>
+              <a routerLink="/" class="btn btn-ghost"> Back to Boards </a>
             </div>
           </div>
         </div>
       </main>
     } @else if (board(); as boardData) {
-      <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+      <main
+        class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl"
+      >
         <div class="breadcrumbs text-sm">
           <ul>
             <li>
@@ -62,14 +81,20 @@ export const routeMeta: RouteMeta = {
           <!-- Board Overview with Charts -->
           <app-board-overview [data]="boardData"></app-board-overview>
 
-          <button type="button" class="btn btn-primary" (click)="isAddCardModalOpen.set(true)">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="isAddCardModalOpen.set(true)"
+          >
             Add Card
           </button>
 
           <!-- Lists with Drag & Drop -->
           <section cdkDropListGroup class="flex gap-7 overflow-x-auto pb-8">
             @if (boardData.lists.length === 0) {
-              <div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+              <div
+                class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto"
+              >
                 <div class="card-body items-center text-center">
                   <h2 class="card-title text-secondary">No lists yet</h2>
                   <p class="text-base-content/60">
@@ -93,7 +118,9 @@ export const routeMeta: RouteMeta = {
         </div>
       </main>
     } @else {
-      <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+      <main
+        class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl"
+      >
         <div class="flex justify-center py-16">
           <span
             class="loading loading-spinner loading-lg text-primary"
@@ -148,13 +175,17 @@ export default class BoardPageComponent {
         }
       } catch (error) {
         this.errorLoading.set(true);
-        this.errorMessage.set(error instanceof Error ? error.message : 'Failed to load board');
+        this.errorMessage.set(
+          error instanceof Error ? error.message : 'Failed to load board',
+        );
       }
     });
   }
 
   retry() {
-    window.location.reload();
+    afterNextRender(() => {
+      window.location.reload();
+    });
   }
 
   handleDrop(event: CdkDragDrop<BoardCard[]>) {
@@ -163,14 +194,18 @@ export default class BoardPageComponent {
 
     if (event.previousContainer === event.container) {
       // Reorder within same list
-      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      moveItemInArray(
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex,
+      );
 
       // Update board signal to trigger change detection
       this.board.set({ ...board });
 
       // Persist to server
       const listId = event.container.id;
-      const cardIds = event.container.data.map(card => card.id);
+      const cardIds = event.container.data.map((card) => card.id);
       this.apiService.reorderCards(listId, cardIds).subscribe();
     } else {
       // Move to different list
@@ -180,7 +215,7 @@ export default class BoardPageComponent {
         event.previousContainer.data,
         event.container.data,
         event.previousIndex,
-        event.currentIndex
+        event.currentIndex,
       );
 
       // Update board signal to trigger change detection
@@ -188,7 +223,9 @@ export default class BoardPageComponent {
 
       // Persist to server
       const newListId = event.container.id;
-      this.apiService.moveCard(movedCard.id, { newListId, newPosition: event.currentIndex }).subscribe();
+      this.apiService
+        .moveCard(movedCard.id, { newListId, newPosition: event.currentIndex })
+        .subscribe();
     }
   }
 
@@ -199,10 +236,10 @@ export default class BoardPageComponent {
     // Optimistic update
     const updatedBoard = {
       ...board,
-      lists: board.lists.map(list => ({
+      lists: board.lists.map((list) => ({
         ...list,
-        cards: list.cards.map(card =>
-          card.id === update.cardId ? { ...card, ...update.updates } : card
+        cards: list.cards.map((card) =>
+          card.id === update.cardId ? { ...card, ...update.updates } : card,
         ),
       })),
     };
@@ -217,9 +254,9 @@ export default class BoardPageComponent {
     // Remove card from all lists
     const updatedBoard = {
       ...board,
-      lists: board.lists.map(list => ({
+      lists: board.lists.map((list) => ({
         ...list,
-        cards: list.cards.filter(card => card.id !== cardId),
+        cards: list.cards.filter((card) => card.id !== cardId),
       })),
     };
 
@@ -238,7 +275,9 @@ export default class BoardPageComponent {
 
     // Add to first list (Todo)
     const firstList = board.lists[0];
-    const tags = this.allTags().filter(tag => newCard.tagIds.includes(tag.id));
+    const tags = this.allTags().filter((tag) =>
+      newCard.tagIds.includes(tag.id),
+    );
 
     const card: BoardCard = {
       id: newCard.id,
@@ -253,10 +292,10 @@ export default class BoardPageComponent {
 
     const updatedBoard = {
       ...board,
-      lists: board.lists.map(list =>
+      lists: board.lists.map((list) =>
         list.id === firstList.id
           ? { ...list, cards: [...list.cards, card] }
-          : list
+          : list,
       ),
     };
 

@@ -7,7 +7,8 @@
     "measure:bundles": "tsx scripts/performance/measure-bundles.ts",
     "measure:lighthouse": "tsx scripts/performance/lighthouse-all.ts",
     "generate:charts": "tsx scripts/performance/generate-charts.ts",
-    "measure:all": "npm run measure:bundles && npm run measure:lighthouse && npm run generate:charts",
+    "generate:svg": "python3 scripts/performance/generate-bundle-chart.py",
+    "measure:all": "npm run measure:bundles && npm run measure:lighthouse && npm run generate:charts && npm run generate:svg",
     "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done"
   },
   "keywords": [

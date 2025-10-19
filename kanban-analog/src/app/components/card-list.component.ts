@@ -1,13 +1,17 @@
 import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { CdkDropList } from '@angular/cdk/drag-drop';
-import type { BoardList, UsersList, TagsList, BoardCard } from '../../lib/types';
+import type {
+  BoardList,
+  UsersList,
+  TagsList,
+  BoardCard,
+} from '../../lib/types';
 import { CardComponent } from './card.component';
 
 @Component({
   selector: 'app-card-list',
   standalone: true,
-  imports: [CommonModule, CdkDropList, CardComponent],
+  imports: [CdkDropList, CardComponent],
   template: `
     <article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
       <div class="card-body gap-4">
@@ -34,7 +38,6 @@ import { CardComponent } from './card.component';
               @for (card of list().cards; track card.id) {
                 <app-card
                   [card]="card"
-                  [users]="users()"
                   [allUsers]="allUsers()"
                   [allTags]="allTags()"
                   (cardUpdate)="cardUpdate.emit($event)"
@@ -50,7 +53,6 @@ import { CardComponent } from './card.component';
 })
 export class CardListComponent {
   list = input.required<BoardList>();
-  users = input<UsersList>();
   allUsers = input.required<UsersList>();
   allTags = input.required<TagsList>();
   onDrop = output<any>();

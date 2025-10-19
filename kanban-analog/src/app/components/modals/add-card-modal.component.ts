@@ -1,5 +1,11 @@
-import { Component, signal, output, input, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  signal,
+  output,
+  input,
+  inject,
+  effect,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { UsersList, TagsList } from '../../../lib/types';
@@ -7,37 +13,64 @@ import type { UsersList, TagsList } from '../../../lib/types';
 @Component({
   selector: 'app-add-card-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
     @if (isOpen()) {
       <dialog class="modal modal-open !mt-0" (click)="closeOnBackdrop($event)">
         <div class="modal-backdrop bg-black/70"></div>
         <div class="modal-box bg-base-200 dark:bg-base-300">
           <form #cardForm="ngForm" (ngSubmit)="handleSubmit(cardForm)">
-            <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" (click)="close()">✕</button>
+            <button
+              type="button"
+              class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+              (click)="close()"
+            >
+              ✕
+            </button>
             <h3 class="font-bold text-lg mb-4">Add New Card</h3>
 
             @if (error()) {
-              <div class="alert alert-error mb-4"><span>{{ error() }}</span></div>
+              <div class="alert alert-error mb-4">
+                <span>{{ error() }}</span>
+              </div>
             }
 
             <div class="form-control w-full mb-4">
               <label class="label"><span class="label-text">Title</span></label>
-              <input type="text" name="title" [(ngModel)]="formData.title" class="input input-bordered w-full"
-                placeholder="Enter card title" required [disabled]="isSubmitting()" />
+              <input
+                type="text"
+                name="title"
+                [(ngModel)]="formData.title"
+                class="input input-bordered w-full"
+                placeholder="Enter card title"
+                required
+                [disabled]="isSubmitting()"
+              />
             </div>
 
             <div class="form-control w-full mb-4">
-              <label class="label"><span class="label-text">Description</span></label>
-              <textarea name="description" [(ngModel)]="formData.description"
-                class="textarea textarea-bordered h-24 w-full" placeholder="Enter card description (optional)"
-                [disabled]="isSubmitting()"></textarea>
+              <label class="label"
+                ><span class="label-text">Description</span></label
+              >
+              <textarea
+                name="description"
+                [(ngModel)]="formData.description"
+                class="textarea textarea-bordered h-24 w-full"
+                placeholder="Enter card description (optional)"
+                [disabled]="isSubmitting()"
+              ></textarea>
             </div>
 
             <div class="form-control w-full mb-4">
-              <label class="label"><span class="label-text">Assignee</span></label>
-              <select name="assigneeId" [(ngModel)]="formData.assigneeId" class="select select-bordered w-full"
-                [disabled]="isSubmitting()">
+              <label class="label"
+                ><span class="label-text">Assignee</span></label
+              >
+              <select
+                name="assigneeId"
+                [(ngModel)]="formData.assigneeId"
+                class="select select-bordered w-full"
+                [disabled]="isSubmitting()"
+              >
                 <option [ngValue]="null">Unassigned</option>
                 @for (user of users(); track user.id) {
                   <option [value]="user.id">{{ user.name }}</option>
@@ -47,16 +80,24 @@ import type { UsersList, TagsList } from '../../../lib/types';
 
             <div class="form-control w-full mb-4">
               <label class="label"><span class="label-text">Tags</span></label>
-              <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+              <div
+                class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg"
+              >
                 @for (tag of tags(); track tag.id) {
-                  <button type="button"
+                  <button
+                    type="button"
                     class="badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
                     [class.text-white]="selectedTagIds().has(tag.id)"
                     [class.badge-outline]="!selectedTagIds().has(tag.id)"
-                    [style.backgroundColor]="selectedTagIds().has(tag.id) ? tag.color : ''"
+                    [style.backgroundColor]="
+                      selectedTagIds().has(tag.id) ? tag.color : ''
+                    "
                     [style.borderColor]="tag.color"
-                    [style.color]="!selectedTagIds().has(tag.id) ? tag.color : ''"
-                    (click)="toggleTag(tag.id)">
+                    [style.color]="
+                      !selectedTagIds().has(tag.id) ? tag.color : ''
+                    "
+                    (click)="toggleTag(tag.id)"
+                  >
                     {{ tag.name }}
                   </button>
                 }
@@ -64,8 +105,19 @@ import type { UsersList, TagsList } from '../../../lib/types';
             </div>
 
             <div class="modal-action">
-              <button type="button" class="btn btn-ghost" (click)="close()" [disabled]="isSubmitting()">Cancel</button>
-              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting() || !cardForm.valid">
+              <button
+                type="button"
+                class="btn btn-ghost"
+                (click)="close()"
+                [disabled]="isSubmitting()"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="isSubmitting() || !cardForm.valid"
+              >
                 {{ isSubmitting() ? 'Adding...' : 'Add Card' }}
               </button>
             </div>
@@ -83,7 +135,13 @@ export class AddCardModalComponent {
   tags = input.required<TagsList>();
   isOpen = input.required<boolean>();
   onClose = output<void>();
-  cardAdded = output<{ id: string; title: string; description: string | null; assigneeId: string | null; tagIds: string[] }>();
+  cardAdded = output<{
+    id: string;
+    title: string;
+    description: string | null;
+    assigneeId: string | null;
+    tagIds: string[];
+  }>();
 
   error = signal<string | null>(null);
   isSubmitting = signal(false);
@@ -158,7 +216,10 @@ export class AddCardModalComponent {
           this.isSubmitting.set(false);
         },
         error: (err) => {
-          const errorMessage = err?.error?.statusMessage || err?.message || 'An unexpected error occurred. Please try again.';
+          const errorMessage =
+            err?.error?.statusMessage ||
+            err?.message ||
+            'An unexpected error occurred. Please try again.';
           this.error.set(errorMessage);
           this.isSubmitting.set(false);
         },

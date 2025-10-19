@@ -1,5 +1,4 @@
 import { Component, input, output, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { CdkDrag } from '@angular/cdk/drag-drop';
 import type { BoardCard, UsersList, TagsList } from '../../lib/types';
 import { EditPencilIconComponent } from './icons/edit-pencil.component';
@@ -11,7 +10,6 @@ import { CommentModalComponent } from './modals/comment-modal.component';
   selector: 'app-card',
   standalone: true,
   imports: [
-    CommonModule,
     CdkDrag,
     EditPencilIconComponent,
     PlusIconComponent,
@@ -131,7 +129,6 @@ import { CommentModalComponent } from './modals/comment-modal.component';
 })
 export class CardComponent {
   card = input.required<BoardCard>();
-  users = input<UsersList>();
   allUsers = input.required<UsersList>();
   allTags = input.required<TagsList>();
   cardUpdate = output<{ cardId: string; updates: Partial<BoardCard> }>();

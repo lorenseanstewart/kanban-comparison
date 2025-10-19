@@ -1,15 +1,19 @@
-import { Component, input, signal, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, computed } from '@angular/core';
 import type { BoardDetails } from '../../lib/types';
-import { BarChartComponent, type ChartData } from './charts/bar-chart.component';
+import {
+  BarChartComponent,
+  type ChartData,
+} from './charts/bar-chart.component';
 import { PieChartComponent } from './charts/pie-chart.component';
 
 @Component({
   selector: 'app-board-overview',
   standalone: true,
-  imports: [CommonModule, BarChartComponent, PieChartComponent],
+  imports: [BarChartComponent, PieChartComponent],
   template: `
-    <section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
+    <section
+      class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6"
+    >
       <!-- Header Section -->
       <div class="space-y-3">
         <div class="badge badge-secondary badge-outline">Board overview</div>
@@ -22,7 +26,9 @@ import { PieChartComponent } from './charts/pie-chart.component';
       </div>
 
       <!-- Charts Section -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start"
+      >
         <app-bar-chart
           [data]="chartData()"
           [colors]="pastelColors"
@@ -39,25 +45,13 @@ import { PieChartComponent } from './charts/pie-chart.component';
 })
 export class BoardOverviewComponent {
   data = input.required<BoardDetails>();
-  chartData = signal<ChartData[]>([]);
 
-  pastelColors = [
-    '#fbbf24', // amber (warning)
-    '#f472b6', // pink (secondary)
-    '#a78bfa', // purple (primary)
-    '#60a5fa', // blue (info)
-  ];
+  chartData = computed<ChartData[]>(() =>
+    this.data().lists.map((list) => ({
+      label: list.title,
+      value: list.cards.length,
+    })),
+  );
 
-  constructor() {
-    effect(() => {
-      // Prepare chart data
-      const lists = this.data().lists;
-      this.chartData.set(
-        lists.map((list) => ({
-          label: list.title,
-          value: list.cards.length,
-        }))
-      );
-    });
-  }
+  pastelColors = ['#fbbf24', '#f472b6', '#a78bfa', '#60a5fa'];
 }

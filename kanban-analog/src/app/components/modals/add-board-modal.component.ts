@@ -1,5 +1,4 @@
 import { Component, signal, output, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { BoardSummary } from '../../../lib/types';
@@ -7,13 +6,9 @@ import type { BoardSummary } from '../../../lib/types';
 @Component({
   selector: 'app-add-board-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
-    <button
-      type="button"
-      class="btn btn-primary"
-      (click)="isOpen.set(true)"
-    >
+    <button type="button" class="btn btn-primary" (click)="isOpen.set(true)">
       Add Board
     </button>
 

@@ -60,13 +60,40 @@ tsx scripts/performance/generate-charts.ts
 - `metrics/quick-reference.md` - TL;DR summary
 - `metrics/chart-data.json` - Data formatted for chart libraries
 
+### 4. Generate SVG Charts
+
+Creates beautiful, scalable SVG bar charts from bundle size data:
+
+```bash
+python3 scripts/performance/generate-bundle-chart.py
+```
+
+**Requirements:**
+- Python 3.6 or higher (no additional packages needed)
+
+**Outputs:**
+- `metrics/bundle-size-home.svg` - Home page bundle sizes
+- `metrics/bundle-size-board.svg` - Board page bundle sizes
+- `metrics/bundle-size-comparison.svg` - Side-by-side comparison of home vs board
+
+**Features:**
+- Clean, modern design with gradients
+- Responsive SVG format (scales perfectly at any size)
+- Ready to embed in blog posts, presentations, or documentation
+- Framework names sorted by bundle size (smallest to largest)
+- Values displayed in kB (gzipped)
+
 ## Run All Measurements
 
 ```bash
-# Run everything in sequence
-tsx scripts/performance/measure-bundles.ts && \
-tsx scripts/performance/lighthouse-all.ts && \
-tsx scripts/performance/generate-charts.ts
+# Run everything in sequence (recommended)
+npm run measure:all
+
+# Or manually:
+npm run measure:bundles && \
+npm run measure:lighthouse && \
+npm run generate:charts && \
+npm run generate:svg
 ```
 
 ## What Gets Measured
@@ -133,24 +160,42 @@ npx lighthouse http://localhost:3000 --view
 
 ### For the Blog Post
 
-The generated markdown files are ready to drop into `NEW_POST.md`:
+The generated files are ready to use in your blog post:
 
-1. Copy bundle comparison table from `metrics/bundle-comparison.md`
-2. Copy lighthouse scores from `metrics/lighthouse-comparison.md`
-3. Use `metrics/quick-reference.md` for the TL;DR section
+1. **Markdown Tables:**
+   - Copy bundle comparison table from `metrics/bundle-comparison.md`
+   - Copy lighthouse scores from `metrics/lighthouse-comparison.md`
+   - Use `metrics/quick-reference.md` for the TL;DR section
+
+2. **SVG Charts:**
+   - Embed `metrics/bundle-size-home.svg` directly in your blog
+   - Use `metrics/bundle-size-comparison.svg` for side-by-side comparison
+   - SVGs are scalable and look crisp on any screen (including Retina displays)
+
+**Example embedding:**
+```markdown
+![Bundle Size Comparison](./metrics/bundle-size-home.svg)
+```
+
+Or in HTML:
+```html
+<img src="metrics/bundle-size-home.svg" alt="Bundle Size Comparison" width="800">
+```
 
 ### For Charts/Visualizations
 
-Use `metrics/chart-data.json` with libraries like:
+Use `metrics/chart-data.json` with JavaScript chart libraries like:
 - Chart.js
 - Recharts
 - Victory
 - Observable Plot
 - D3.js
 
+Or use the Python script as a template to create custom SVG charts.
+
 ### For Social Media
 
-The quick reference has pre-formatted bullet points perfect for tweets/posts.
+The quick reference has pre-formatted bullet points perfect for tweets/posts. You can also screenshot the SVG charts for visual impact.
 
 ## Customization
 
