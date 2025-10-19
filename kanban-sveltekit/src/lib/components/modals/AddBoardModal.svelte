@@ -69,12 +69,15 @@
 					<span class="label-text">Description</span>
 				</label>
 				<textarea
+				<textarea
 					id="board-description"
 					{...description.as('text')}
 					class="textarea textarea-bordered h-24 w-full"
 					placeholder="Enter board description (optional)"
-					disabled={!!addBoard.pending}
 				></textarea>
+				{#each description.issues() as issue}
+					<div class="validator-hint">{issue.message}</div>
+				{/each}
 			</div>
 
 			<div class="modal-action">
