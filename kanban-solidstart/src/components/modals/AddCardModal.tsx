@@ -1,7 +1,7 @@
-import { createSignal, Show, For, createMemo, createEffect } from "solid-js";
-import type { UsersList, TagsList } from "~/api/boards";
-import { createCardAction } from "~/api/card-actions";
 import { useSubmission } from "@solidjs/router";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import type { TagsList, UsersList } from "~/api/boards";
+import { createCardAction } from "~/api/card-actions";
 
 export function AddCardModal(props: {
   boardId: string;
@@ -19,7 +19,6 @@ export function AddCardModal(props: {
 }) {
   const [selectedTagIds, setSelectedTagIds] = createSignal<Set<string>>(new Set());
   const submission = useSubmission(createCardAction);
-  const [submittedTagIds, setSubmittedTagIds] = createSignal<string[]>([]);
 
   const toggleTag = (tagId: string) => {
     const next = new Set(selectedTagIds());
@@ -33,6 +32,7 @@ export function AddCardModal(props: {
 
   createEffect(() => {
     const result = submission.result;
+    console.log(result);
     if (!result) {
       return;
     }
@@ -43,25 +43,8 @@ export function AddCardModal(props: {
       return;
     }
 
-    if (props.onCardAdd) {
-      const input = submission.input?.[0] as FormData | undefined;
-      const title = (input?.get("title") as string) ?? "";
-      const description = (input?.get("description") as string) || null;
-      const assigneeId = (input?.get("assigneeId") as string) ?? "";
-      const tagIds = submittedTagIds();
-      props.onCardAdd({
-        id: result.data?.id ?? "",
-        title,
-        description,
-        assigneeId,
-        tagIds,
-      });
-    }
-
-    setSelectedTagIds(new Set<string>());
-    setSubmittedTagIds([]);
-    submission.clear();
     props.onClose();
+    setSelectedTagIds(new Set<string>());
   });
 
   const errorMessage = createMemo(() => {
@@ -73,17 +56,12 @@ export function AddCardModal(props: {
 
     // Check submission.error
     if (submission.error) {
-      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+      return typeof submission.error === "string" ? submission.error : submission.error?.error;
     }
 
     return null;
   });
   const pending = () => submission.pending;
-
-  const handleSubmit = () => {
-    const tagIds = Array.from(selectedTagIds());
-    setSubmittedTagIds(tagIds);
-  };
 
   return (
     <Show when={props.isOpen}>
@@ -97,8 +75,15 @@ export function AddCardModal(props: {
       >
         <div class="modal-backdrop bg-black/70" />
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form method="post" action={createCardAction} onSubmit={handleSubmit}>
-            <input type="hidden" name="boardId" value={props.boardId} />
+          <form
+            method="post"
+            action={createCardAction}
+          >
+            <input
+              type="hidden"
+              name="boardId"
+              value={props.boardId}
+            />
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -183,7 +168,13 @@ export function AddCardModal(props: {
                 </For>
               </div>
               <For each={Array.from(selectedTagIds())}>
-                {(tagId) => <input type="hidden" name="tagIds" value={tagId} />}
+                {(tagId) => (
+                  <input
+                    type="hidden"
+                    name="tagIds"
+                    value={tagId}
+                  />
+                )}
               </For>
             </div>
 
@@ -196,7 +187,11 @@ export function AddCardModal(props: {
               >
                 Cancel
               </button>
-              <button type="submit" class="btn btn-primary" disabled={pending()}>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                disabled={pending()}
+              >
                 {pending() ? "Adding..." : "Add Card"}
               </button>
             </div>

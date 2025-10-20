@@ -1,8 +1,8 @@
-import { db } from "./db";
-import { boards, lists } from "../../drizzle/schema";
-import { revalidate, action } from "@solidjs/router";
+import { action, json } from "@solidjs/router";
 import * as v from "valibot";
+import { boards, lists } from "../../drizzle/schema";
 import { BoardSchema } from "../lib/validation";
+import { db } from "./db";
 
 export const createBoardAction = action(async (formData: FormData) => {
   "use server";
@@ -43,13 +43,15 @@ export const createBoardAction = action(async (formData: FormData) => {
       .run();
   });
 
-  revalidate(["boards:list"]);
-  return {
-    success: true,
-    data: {
-      id: boardId,
-      title: result.output.title,
-      description: result.output.description,
-    },
-  } as const;
+  return json(
+    {
+      success: true,
+      data: {
+        id: boardId,
+        title: result.output.title,
+        description: result.output.description,
+      },
+    } as const,
+    { revalidate: ["boards:list"] }
+  );
 }, "boards:create");

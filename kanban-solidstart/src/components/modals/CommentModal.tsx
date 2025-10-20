@@ -12,7 +12,7 @@ export function CommentModal(props: {
 }) {
   const [selectedUserId, setSelectedUserId] = createSignal(props.users[0]?.id || "");
   const submission = useSubmission(addCommentAction);
-  const [submittedComment, setSubmittedComment] = createSignal<{ userId: string; text: string } | null>(null);
+  // const [submittedComment, setSubmittedComment] = createSignal<{ userId: string; text: string } | null>(null);
 
   createEffect(() => {
     const result = submission.result;
@@ -24,18 +24,8 @@ export function CommentModal(props: {
       return;
     }
 
-    const pendingComment = submittedComment();
-    if (pendingComment && props.onCommentAdd) {
-      props.onCommentAdd({
-        userId: pendingComment.userId,
-        text: pendingComment.text,
-        id: result.data?.commentId ?? "",
-        cardId: props.card.id,
-      });
-    }
-
     setSelectedUserId(props.users[0]?.id || "");
-    setSubmittedComment(null);
+    //  setSubmittedComment(null);
     submission.clear();
     props.onClose();
   });
@@ -49,20 +39,20 @@ export function CommentModal(props: {
 
     // Check submission.error
     if (submission.error) {
-      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+      return typeof submission.error === "string" ? submission.error : submission.error?.error;
     }
 
     return null;
   });
   const pending = () => submission.pending;
 
-  const handleSubmit = (event: SubmitEvent) => {
-    const form = event.currentTarget as HTMLFormElement;
-    const formData = new FormData(form);
-    const userId = (formData.get("userId") as string) || selectedUserId();
-    const text = (formData.get("text") as string) || "";
-    setSubmittedComment({ userId, text });
-  };
+  // const handleSubmit = (event: SubmitEvent) => {
+  //   const form = event.currentTarget as HTMLFormElement;
+  //   const formData = new FormData(form);
+  //   const userId = (formData.get("userId") as string) || selectedUserId();
+  //   const text = (formData.get("text") as string) + "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" || "";
+  //   setSubmittedComment({ userId, text });
+  // };
 
   return (
     <Show when={props.isOpen}>
@@ -96,9 +86,7 @@ export function CommentModal(props: {
             <Show
               when={props.card.comments.length > 0}
               fallback={
-                <div class="text-center py-8 text-base-content/60">
-                  No comments yet. Be the first to add one!
-                </div>
+                <div class="text-center py-8 text-base-content/60">No comments yet. Be the first to add one!</div>
               }
             >
               <div class="space-y-3">
@@ -108,9 +96,7 @@ export function CommentModal(props: {
                     return (
                       <div class="bg-base-100 dark:bg-base-200 rounded-lg p-4">
                         <div class="flex items-center gap-2 mb-2">
-                          <span class="font-semibold text-base-content">
-                            {user?.name || "Unknown"}
-                          </span>
+                          <span class="font-semibold text-base-content">{user?.name || "Unknown"}</span>
                           <span class="text-xs text-base-content/50">
                             {new Date(comment.createdAt).toLocaleDateString()}
                           </span>
@@ -125,8 +111,16 @@ export function CommentModal(props: {
           </div>
 
           {/* Add Comment Form */}
-          <form method="post" action={addCommentAction} onSubmit={handleSubmit}>
-            <input type="hidden" name="cardId" value={props.card.id} />
+          <form
+            method="post"
+            action={addCommentAction}
+            // onSubmit={handleSubmit}
+          >
+            <input
+              type="hidden"
+              name="cardId"
+              value={props.card.id}
+            />
 
             <div class="form-control w-full">
               <label class="label">
@@ -139,9 +133,7 @@ export function CommentModal(props: {
                 onChange={(e) => setSelectedUserId(e.currentTarget.value)}
                 disabled={pending()}
               >
-                <For each={props.users}>
-                  {(user) => <option value={user.id}>{user.name}</option>}
-                </For>
+                <For each={props.users}>{(user) => <option value={user.id}>{user.name}</option>}</For>
               </select>
             </div>
 
@@ -159,10 +151,19 @@ export function CommentModal(props: {
             </div>
 
             <div class="modal-action">
-              <button type="button" class="btn btn-ghost" onClick={() => !pending() && props.onClose()} disabled={pending()}>
+              <button
+                type="button"
+                class="btn btn-ghost"
+                onClick={() => !pending() && props.onClose()}
+                disabled={pending()}
+              >
                 Close
               </button>
-              <button type="submit" class="btn btn-primary" disabled={pending()}>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                disabled={pending()}
+              >
                 {pending() ? "Adding..." : "Add Comment"}
               </button>
             </div>
