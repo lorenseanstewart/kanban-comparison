@@ -1,23 +1,18 @@
+import { action, json } from "@solidjs/router";
 import { eq } from "drizzle-orm";
-import { db } from "./db";
 import { cards } from "../../drizzle/schema";
-import { revalidate, action } from "@solidjs/router";
+import { db } from "./db";
 
-const normalizeListId = (listId: string) =>
-  listId.startsWith("list-") ? listId : listId.replace(/^card-/, "");
+const normalizeListId = (listId: string) => (listId.startsWith("list-") ? listId : listId.replace(/^card-/, ""));
 
 export const updateCardListAction = action(async (cardId: string, targetId: string) => {
   "use server";
   const normalizedTarget = normalizeListId(targetId);
 
   try {
-    await db
-      .update(cards)
-      .set({ listId: normalizedTarget })
-      .where(eq(cards.id, cardId));
+    await db.update(cards).set({ listId: normalizedTarget }).where(eq(cards.id, cardId));
 
-    revalidate("boards:detail");
-    return { success: true, listId: normalizedTarget } as const;
+    return json({ success: true, listId: normalizedTarget } as const, { revalidate: "boards:detail" });
   } catch (error) {
     console.error("Failed to update card list:", error);
     return { success: false, error: "Failed to move card. Please try again." } as const;
@@ -29,15 +24,11 @@ export const updateCardPositionsAction = action(async (cardIds: string[]) => {
   try {
     await db.transaction((tx) => {
       cardIds.forEach((cardId, index) => {
-        tx.update(cards)
-          .set({ position: index })
-          .where(eq(cards.id, cardId))
-          .run();
+        tx.update(cards).set({ position: index }).where(eq(cards.id, cardId)).run();
       });
     });
 
-    revalidate("boards:detail");
-    return { success: true } as const;
+    return json({ success: true } as const, { revalidate: "boards:detail" });
   } catch (error) {
     console.error("Failed to update card positions:", error);
     return { success: false, error: "Failed to reorder cards. Please try again." } as const;

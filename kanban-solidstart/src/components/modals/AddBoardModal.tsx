@@ -5,7 +5,7 @@ import { useSubmission } from "@solidjs/router";
 export function AddBoardModal(props: {
   isOpen: boolean;
   onClose: () => void;
-  onBoardAdd?: (board: { id: string; title: string; description: string | null }) => void;
+  // onBoardAdd?: (board: { id: string; title: string; description: string | null }) => void;
 }) {
   const submission = useSubmission(createBoardAction);
   const errorMessage = createMemo(() => {
@@ -17,7 +17,7 @@ export function AddBoardModal(props: {
 
     // Check submission.error
     if (submission.error) {
-      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+      return typeof submission.error === "string" ? submission.error : submission.error?.error;
     }
 
     return null;
@@ -34,14 +34,6 @@ export function AddBoardModal(props: {
     if (!result.success) {
       // Error will be displayed via errorMessage() memo
       return;
-    }
-
-    if (props.onBoardAdd && result.data) {
-      props.onBoardAdd({
-        id: result.data.id,
-        title: result.data.title,
-        description: result.data.description ?? null,
-      });
     }
 
     props.onClose();
@@ -63,7 +55,10 @@ export function AddBoardModal(props: {
       >
         <div class="modal-backdrop bg-black/70" />
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form method="post" action={createBoardAction}>
+          <form
+            method="post"
+            action={createBoardAction}
+          >
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -115,7 +110,11 @@ export function AddBoardModal(props: {
               >
                 Cancel
               </button>
-              <button type="submit" class="btn btn-primary" disabled={pending()}>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                disabled={pending()}
+              >
                 {pending() ? "Adding..." : "Add Board"}
               </button>
             </div>

@@ -1,7 +1,7 @@
-import { createSignal, Show, For, createMemo, createEffect } from "solid-js";
-import type { BoardCard, UsersList, TagsList } from "~/api/boards";
-import { updateCardAction, deleteCardAction } from "~/api/card-actions";
-import { useSubmission, useNavigate, useAction } from "@solidjs/router";
+import { useAction, useSubmission } from "@solidjs/router";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import type { BoardCard, TagsList, UsersList } from "~/api/boards";
+import { deleteCardAction, updateCardAction } from "~/api/card-actions";
 
 export function CardEditModal(props: {
   card: BoardCard;
@@ -13,10 +13,7 @@ export function CardEditModal(props: {
   onDelete?: (cardId: string) => void;
   boardId?: string;
 }) {
-  const navigate = useNavigate();
-  const [selectedTagIds, setSelectedTagIds] = createSignal<Set<string>>(
-    new Set(props.card.tags.map((t) => t.id))
-  );
+  const [selectedTagIds, setSelectedTagIds] = createSignal<Set<string>>(new Set(props.card.tags.map((t) => t.id)));
   const [deleteError, setDeleteError] = createSignal<string | null>(null);
   const [isDeleting, setIsDeleting] = createSignal(false);
   const submission = useSubmission(updateCardAction);
@@ -32,22 +29,9 @@ export function CardEditModal(props: {
       return;
     }
 
-    // Success case
-    if (props.onUpdate) {
-      const updatedTags = props.tags.filter((tag) => selectedTagIds().has(tag.id));
-      const input = submission.input?.[0] as FormData | undefined;
-      props.onUpdate({
-        title: (input?.get("title") as string) ?? props.card.title,
-        description: (input?.get("description") as string) || null,
-        assigneeId: ((input?.get("assigneeId") as string) || "") || null,
-        tags: updatedTags,
-      });
-    }
-
     submission.clear();
     props.onClose();
   });
-
 
   const toggleTag = (tagId: string) => {
     const newSet = new Set(selectedTagIds());
@@ -94,7 +78,7 @@ export function CardEditModal(props: {
 
     // Check submission.error
     if (submission.error) {
-      return typeof submission.error === 'string' ? submission.error : submission.error?.error;
+      return typeof submission.error === "string" ? submission.error : submission.error?.error;
     }
 
     return null;
@@ -111,7 +95,10 @@ export function CardEditModal(props: {
       >
         <div class="modal-backdrop bg-black/70" />
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form method="post" action={updateCardAction}>
+          <form
+            method="post"
+            action={updateCardAction}
+          >
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -128,7 +115,11 @@ export function CardEditModal(props: {
               </div>
             </Show>
 
-            <input type="hidden" name="cardId" value={props.card.id} />
+            <input
+              type="hidden"
+              name="cardId"
+              value={props.card.id}
+            />
 
             <div class="form-control w-full mb-4">
               <label class="label">
@@ -168,7 +159,10 @@ export function CardEditModal(props: {
                 <option value="">Unassigned</option>
                 <For each={props.users}>
                   {(user) => (
-                    <option value={user.id} selected={user.id === props.card.assigneeId}>
+                    <option
+                      value={user.id}
+                      selected={user.id === props.card.assigneeId}
+                    >
                       {user.name}
                     </option>
                   )}
@@ -204,7 +198,13 @@ export function CardEditModal(props: {
                 </For>
               </div>
               <For each={Array.from(selectedTagIds())}>
-                {(tagId) => <input type="hidden" name="tagIds" value={tagId} />}
+                {(tagId) => (
+                  <input
+                    type="hidden"
+                    name="tagIds"
+                    value={tagId}
+                  />
+                )}
               </For>
             </div>
 
@@ -226,7 +226,11 @@ export function CardEditModal(props: {
                 >
                   Cancel
                 </button>
-                <button type="submit" class="btn btn-primary" disabled={pending()}>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  disabled={pending()}
+                >
                   {submission.pending ? "Saving..." : "Save Changes"}
                 </button>
               </div>
