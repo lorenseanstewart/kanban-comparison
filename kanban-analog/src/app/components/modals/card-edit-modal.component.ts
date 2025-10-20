@@ -12,7 +12,6 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
 
 @Component({
   selector: 'app-card-edit-modal',
-  standalone: true,
   imports: [FormsModule],
   template: `
     @if (isOpen()) {

@@ -12,7 +12,6 @@ import type { UsersList, TagsList } from '../../../lib/types';
 
 @Component({
   selector: 'app-add-card-modal',
-  standalone: true,
   imports: [FormsModule],
   template: `
     @if (isOpen()) {

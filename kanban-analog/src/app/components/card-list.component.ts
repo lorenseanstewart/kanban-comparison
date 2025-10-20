@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, computed } from '@angular/core';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import type {
   BoardList,
@@ -10,7 +10,6 @@ import { CardComponent } from './card.component';
 
 @Component({
   selector: 'app-card-list',
-  standalone: true,
   imports: [CdkDropList, CardComponent],
   template: `
     <article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
@@ -18,7 +17,7 @@ import { CardComponent } from './card.component';
         <header class="flex items-center justify-between">
           <h2 class="card-title text-base-content">{{ list().title }}</h2>
           <div class="badge badge-primary badge-outline badge-lg shadow">
-            {{ list().cards.length }} cards
+            {{ cardCount() }} cards
           </div>
         </header>
 
@@ -58,4 +57,6 @@ export class CardListComponent {
   onDrop = output<any>();
   cardUpdate = output<{ cardId: string; updates: Partial<BoardCard> }>();
   cardDeleted = output<string>();
+
+  cardCount = computed(() => this.list().cards.length);
 }

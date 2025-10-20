@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 
 export interface ChartData {
   label: string;
@@ -7,7 +7,6 @@ export interface ChartData {
 
 @Component({
   selector: 'app-bar-chart',
-  standalone: true,
   imports: [],
   template: `
     <div class="card bg-base-100 shadow-lg">
@@ -60,8 +59,11 @@ export class BarChartComponent {
   colors = input.required<string[]>();
   title = input.required<string>();
 
+  maxValue = computed(() =>
+    Math.max(...this.data().map((d) => d.value), 1)
+  );
+
   getSize(value: number): string {
-    const max = Math.max(...this.data().map((d) => d.value), 1);
-    return (value / max).toString();
+    return (value / this.maxValue()).toString();
   }
 }

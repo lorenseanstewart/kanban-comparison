@@ -5,7 +5,6 @@ import type { BoardSummary } from '../../../lib/types';
 
 @Component({
   selector: 'app-add-board-modal',
-  standalone: true,
   imports: [FormsModule],
   template: `
     <button type="button" class="btn btn-primary" (click)="isOpen.set(true)">

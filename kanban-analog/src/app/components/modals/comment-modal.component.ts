@@ -5,7 +5,6 @@ import type { BoardCard, UsersList } from '../../../lib/types';
 
 @Component({
   selector: 'app-comment-modal',
-  standalone: true,
   imports: [FormsModule],
   template: `
     @if (isOpen()) {

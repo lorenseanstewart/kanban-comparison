@@ -166,7 +166,7 @@ const { board, users, tags } = Astro.props;
   </form>
 </dialog>
 
-<script define:vars={{ board }}>
+<script define:vars={{ board }} type="ts">
   // Initialize namespace if not exists
   if (!window.kanban) {
     window.kanban = {};

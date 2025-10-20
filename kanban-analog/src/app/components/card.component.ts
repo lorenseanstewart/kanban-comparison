@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal, computed } from '@angular/core';
 import { CdkDrag } from '@angular/cdk/drag-drop';
 import type { BoardCard, UsersList, TagsList } from '../../lib/types';
 import { EditPencilIconComponent } from './icons/edit-pencil.component';
@@ -8,7 +8,6 @@ import { CommentModalComponent } from './modals/comment-modal.component';
 
 @Component({
   selector: 'app-card',
-  standalone: true,
   imports: [
     CdkDrag,
     EditPencilIconComponent,
@@ -41,7 +40,7 @@ import { CommentModalComponent } from './modals/comment-modal.component';
 
         @if (card().assigneeId) {
           <div class="badge badge-outline badge-secondary badge-sm">
-            Assigned to {{ getUserName(card().assigneeId) }}
+            Assigned to {{ assignedUserName() }}
           </div>
         }
 
@@ -136,6 +135,8 @@ export class CardComponent {
 
   isEditModalOpen = signal(false);
   isCommentModalOpen = signal(false);
+
+  assignedUserName = computed(() => this.getUserName(this.card().assigneeId));
 
   getUserName(userId: string | null): string {
     if (!userId) return 'Unknown';

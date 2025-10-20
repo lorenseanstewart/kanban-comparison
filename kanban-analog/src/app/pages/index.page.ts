@@ -11,7 +11,6 @@ export const routeMeta: RouteMeta = {
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [RouterLink, AddBoardModalComponent],
   template: `
     <main

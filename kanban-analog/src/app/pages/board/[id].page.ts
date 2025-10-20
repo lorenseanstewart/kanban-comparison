@@ -2,7 +2,7 @@ import {
   Component,
   signal,
   inject,
-  effect,
+  computed,
   afterNextRender,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -31,7 +31,6 @@ export const routeMeta: RouteMeta = {
 
 @Component({
   selector: 'app-board',
-  standalone: true,
   imports: [
     RouterLink,
     CdkDropListGroup,
@@ -153,34 +152,14 @@ export default class BoardPageComponent {
     requireSync: true,
   });
 
-  board = signal<BoardDetails | null>(null);
-  allUsers = signal<UsersList>([]);
-  allTags = signal<TagsList>([]);
+  board = computed<BoardDetails | null>(() => this.data()?.board ?? null);
+  allUsers = computed<UsersList>(() => this.data()?.allUsers ?? []);
+  allTags = computed<TagsList>(() => this.data()?.allTags ?? []);
   isAddCardModalOpen = signal(false);
-  errorLoading = signal<boolean>(false);
-  errorMessage = signal<string>('');
-
-  constructor() {
-    effect(() => {
-      try {
-        const loadedData = this.data();
-        if (!loadedData?.board) {
-          this.errorLoading.set(true);
-          this.errorMessage.set('Board not found');
-        } else {
-          this.board.set(loadedData.board);
-          this.allUsers.set(loadedData.allUsers);
-          this.allTags.set(loadedData.allTags);
-          this.errorLoading.set(false);
-        }
-      } catch (error) {
-        this.errorLoading.set(true);
-        this.errorMessage.set(
-          error instanceof Error ? error.message : 'Failed to load board',
-        );
-      }
-    });
-  }
+  errorLoading = computed<boolean>(() => !this.data()?.board);
+  errorMessage = computed<string>(() =>
+    !this.data()?.board ? 'Board not found' : ''
+  );
 
   retry() {
     afterNextRender(() => {

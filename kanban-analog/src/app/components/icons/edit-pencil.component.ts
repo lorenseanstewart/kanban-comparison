@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-edit-pencil-icon',
-  standalone: true,
   template: `
     <svg
       class="cursor-pointer"

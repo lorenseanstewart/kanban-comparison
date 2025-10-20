@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 
 export interface ChartData {
   label: string;
@@ -7,7 +7,6 @@ export interface ChartData {
 
 @Component({
   selector: 'app-pie-chart',
-  standalone: true,
   imports: [],
   template: `
     <div class="card bg-base-100 shadow-lg">
@@ -63,8 +62,12 @@ export class PieChartComponent {
     '--labels-size': '0',
   };
 
+  total = computed(() =>
+    this.data().reduce((sum, d) => sum + d.value, 0)
+  );
+
   getStart(index: number): string {
-    const total = this.data().reduce((sum, d) => sum + d.value, 0);
+    const total = this.total();
     if (total === 0) return '0';
 
     let start = 0;
@@ -75,14 +78,14 @@ export class PieChartComponent {
   }
 
   getEnd(index: number): string {
-    const total = this.data().reduce((sum, d) => sum + d.value, 0);
+    const total = this.total();
     const start = parseFloat(this.getStart(index));
     const size = total > 0 ? this.data()[index].value / total : 0;
     return (start + size).toString();
   }
 
   getPercentage(value: number): string {
-    const total = this.data().reduce((sum, d) => sum + d.value, 0);
+    const total = this.total();
     const percentage = total > 0 ? (value / total) * 100 : 0;
     return percentage.toFixed(0);
   }

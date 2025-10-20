@@ -8,7 +8,6 @@ import { PieChartComponent } from './charts/pie-chart.component';
 
 @Component({
   selector: 'app-board-overview',
-  standalone: true,
   imports: [BarChartComponent, PieChartComponent],
   template: `
     <section
