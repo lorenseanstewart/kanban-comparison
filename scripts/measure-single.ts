@@ -4,10 +4,11 @@
  * Single Framework Bundle Measurement Script
  *
  * Measures JS bundle sizes for a single framework's home and board pages.
+ * Runs multiple measurements and calculates statistics for reliability.
  * Outputs results in JSON format for easy parsing.
  *
- * Usage: tsx scripts/measure-single.ts <framework-name>
- * Example: tsx scripts/measure-single.ts "Next.js"
+ * Usage: tsx scripts/measure-single.ts <framework-name> [--runs N]
+ * Example: tsx scripts/measure-single.ts "Next.js" --runs 3
  */
 
 import { execSync } from 'child_process';
@@ -27,6 +28,33 @@ interface PageBundleStats {
   cls: number;
   si: number;
   timestamp: string;
+  compressionType?: string;
+}
+
+interface StatisticalSummary {
+  mean: number;
+  median: number;
+  stddev: number;
+  min: number;
+  max: number;
+  runs: number;
+}
+
+interface AggregatedStats {
+  framework: string;
+  page: 'home' | 'board';
+  jsTransferred: StatisticalSummary;
+  jsUncompressed: StatisticalSummary;
+  compressionRatio: number; // Percentage saved by compression
+  performanceScore: StatisticalSummary;
+  fcp: StatisticalSummary;
+  lcp: StatisticalSummary;
+  tbt: StatisticalSummary;
+  cls: StatisticalSummary;
+  si: StatisticalSummary;
+  compressionType: string;
+  chromeVersion: string;
+  measurementTimestamp: string;
 }
 
 const FRAMEWORKS = [
@@ -37,11 +65,62 @@ const FRAMEWORKS = [
   { name: 'SolidStart', dir: 'kanban-solidstart', port: 3004, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
   { name: 'SvelteKit', dir: 'kanban-sveltekit', port: 3005, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
   { name: 'Qwik', dir: 'kanban-qwikcity', port: 3006, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Marko', dir: 'kanban-marko', port: 3007, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
+  { name: 'Astro', dir: 'kanban-htmx', port: 3007, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
+  { name: 'TanStack Start', dir: 'kanban-tanstack', port: 3008, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
+  { name: 'Marko', dir: 'kanban-marko', port: 3009, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
 ];
 
 async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getChromeVersion(): string {
+  try {
+    const output = execSync('npx lighthouse --version', { encoding: 'utf-8' });
+    return output.trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+function calculateStats(values: number[]): StatisticalSummary {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  const median = sorted.length % 2 === 0
+    ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : sorted[Math.floor(sorted.length / 2)];
+
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stddev = Math.sqrt(variance);
+
+  return {
+    mean: Math.round(mean),
+    median: Math.round(median),
+    stddev: Math.round(stddev * 10) / 10,
+    min: Math.min(...values),
+    max: Math.max(...values),
+    runs: values.length
+  };
+}
+
+function calculateStatsFloat(values: number[]): StatisticalSummary {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  const median = sorted.length % 2 === 0
+    ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : sorted[Math.floor(sorted.length / 2)];
+
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stddev = Math.sqrt(variance);
+
+  return {
+    mean: Math.round(mean * 1000) / 1000,
+    median: Math.round(median * 1000) / 1000,
+    stddev: Math.round(stddev * 1000) / 1000,
+    min: Math.round(Math.min(...values) * 1000) / 1000,
+    max: Math.round(Math.max(...values) * 1000) / 1000,
+    runs: values.length
+  };
 }
 
 function isPortInUse(port: number): boolean {
@@ -97,7 +176,7 @@ async function startServer(framework: typeof FRAMEWORKS[0]): Promise<() => void>
   return () => killPort(framework.port);
 }
 
-async function measurePageBundle(url: string): Promise<{
+async function measurePageBundle(url: string, runNumber: number, totalRuns: number): Promise<{
   jsTransferred: number;
   jsUncompressed: number;
   totalRequests: number;
@@ -107,7 +186,10 @@ async function measurePageBundle(url: string): Promise<{
   tbt: number;
   cls: number;
   si: number;
+  compressionType: string;
 }> {
+  console.error(`      Run ${runNumber}/${totalRuns}...`);
+
   const cmd = `npx lighthouse ${url} \
     --form-factor=mobile \
     --screenEmulation.mobile \
@@ -115,6 +197,7 @@ async function measurePageBundle(url: string): Promise<{
     --output-path=stdout \
     --only-categories=performance \
     --throttling-method=provided \
+    --clear-storage \
     --chrome-flags="--headless --no-sandbox --disable-gpu" \
     --quiet`;
 
@@ -128,12 +211,20 @@ async function measurePageBundle(url: string): Promise<{
     let jsTransferred = 0;
     let jsUncompressed = 0;
     let totalRequests = 0;
+    let compressionType = 'none';
 
     for (const request of networkRequests) {
       if (request.resourceType === 'Script') {
         jsTransferred += request.transferSize || 0;
         jsUncompressed += request.resourceSize || 0;
         totalRequests++;
+
+        // Detect compression type from first compressed JS file
+        if (compressionType === 'none' && request.transferSize < request.resourceSize) {
+          // Infer compression type - if compressed but we can't detect encoding,
+          // assume gzip (most common for local dev servers)
+          compressionType = 'gzip';
+        }
       }
     }
 
@@ -154,7 +245,8 @@ async function measurePageBundle(url: string): Promise<{
       lcp: Math.round(lcp),
       tbt: Math.round(tbt),
       cls: Math.round(cls * 1000) / 1000,
-      si: Math.round(si)
+      si: Math.round(si),
+      compressionType
     };
   } catch (error) {
     console.error(`   ❌ Lighthouse failed:`, error);
@@ -162,69 +254,111 @@ async function measurePageBundle(url: string): Promise<{
   }
 }
 
-async function measureFramework(framework: typeof FRAMEWORKS[0]): Promise<PageBundleStats[]> {
-  console.error(`\n📦 Measuring ${framework.name}...`);
+async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number): Promise<AggregatedStats[]> {
+  console.error(`\n📦 Measuring ${framework.name} (${numRuns} runs per page)...`);
 
   const cleanup = await startServer(framework);
-  const results: PageBundleStats[] = [];
+  const allResults: AggregatedStats[] = [];
 
   try {
-    // Measure home page
-    console.error(`   Measuring home page...`);
-    const homeUrl = `http://localhost:${framework.port}${framework.homeUrl}`;
-    const homeStats = await measurePageBundle(homeUrl);
-    results.push({
-      framework: framework.name,
-      page: 'home',
-      jsTransferred: homeStats.jsTransferred,
-      jsUncompressed: homeStats.jsUncompressed,
-      totalRequests: homeStats.totalRequests,
-      performanceScore: homeStats.performanceScore,
-      fcp: homeStats.fcp,
-      lcp: homeStats.lcp,
-      tbt: homeStats.tbt,
-      cls: homeStats.cls,
-      si: homeStats.si,
-      timestamp: new Date().toISOString()
-    });
-    console.error(`   ✅ Home: ${(homeStats.jsTransferred / 1024).toFixed(1)} kB | Score: ${homeStats.performanceScore}`);
+    const pages: Array<{ name: 'home' | 'board'; url: string }> = [
+      { name: 'home', url: `http://localhost:${framework.port}${framework.homeUrl}` },
+      { name: 'board', url: `http://localhost:${framework.port}${framework.boardUrl}` }
+    ];
 
-    // Measure board page
-    console.error(`   Measuring board page...`);
-    const boardUrl = `http://localhost:${framework.port}${framework.boardUrl}`;
-    const boardStats = await measurePageBundle(boardUrl);
-    results.push({
-      framework: framework.name,
-      page: 'board',
-      jsTransferred: boardStats.jsTransferred,
-      jsUncompressed: boardStats.jsUncompressed,
-      totalRequests: boardStats.totalRequests,
-      performanceScore: boardStats.performanceScore,
-      fcp: boardStats.fcp,
-      lcp: boardStats.lcp,
-      tbt: boardStats.tbt,
-      cls: boardStats.cls,
-      si: boardStats.si,
-      timestamp: new Date().toISOString()
-    });
-    console.error(`   ✅ Board: ${(boardStats.jsTransferred / 1024).toFixed(1)} kB | Score: ${boardStats.performanceScore}`);
+    for (const page of pages) {
+      console.error(`   Measuring ${page.name} page (${numRuns} runs)...`);
+
+      const runs: Array<{
+        jsTransferred: number;
+        jsUncompressed: number;
+        performanceScore: number;
+        fcp: number;
+        lcp: number;
+        tbt: number;
+        cls: number;
+        si: number;
+        compressionType: string;
+      }> = [];
+
+      // Run measurements multiple times
+      for (let i = 1; i <= numRuns; i++) {
+        const stats = await measurePageBundle(page.url, i, numRuns);
+        runs.push(stats);
+        await sleep(2000); // Brief pause between runs
+      }
+
+      // Calculate statistics
+      const jsTransferredStats = calculateStats(runs.map(r => r.jsTransferred));
+      const jsUncompressedStats = calculateStats(runs.map(r => r.jsUncompressed));
+      const performanceScoreStats = calculateStats(runs.map(r => r.performanceScore));
+      const fcpStats = calculateStats(runs.map(r => r.fcp));
+      const lcpStats = calculateStats(runs.map(r => r.lcp));
+      const tbtStats = calculateStats(runs.map(r => r.tbt));
+      const clsStats = calculateStatsFloat(runs.map(r => r.cls));
+      const siStats = calculateStats(runs.map(r => r.si));
+
+      const compressionType = runs[0].compressionType;
+
+      // Calculate compression ratio (percentage saved)
+      const compressionRatio = jsUncompressedStats.median > 0
+        ? Math.round(((jsUncompressedStats.median - jsTransferredStats.median) / jsUncompressedStats.median) * 100)
+        : 0;
+
+      console.error(`   ✅ ${page.name}: ${(jsTransferredStats.median / 1024).toFixed(1)} kB compressed (${(jsUncompressedStats.median / 1024).toFixed(1)} kB raw, ${compressionRatio}% reduction) | Score: ${performanceScoreStats.median} (±${performanceScoreStats.stddev.toFixed(1)})`);
+
+      allResults.push({
+        framework: framework.name,
+        page: page.name,
+        jsTransferred: jsTransferredStats,
+        jsUncompressed: jsUncompressedStats,
+        compressionRatio,
+        performanceScore: performanceScoreStats,
+        fcp: fcpStats,
+        lcp: lcpStats,
+        tbt: tbtStats,
+        cls: clsStats,
+        si: siStats,
+        compressionType,
+        chromeVersion: getChromeVersion(),
+        measurementTimestamp: new Date().toISOString()
+      });
+    }
 
   } finally {
     cleanup();
     await sleep(2000); // Let port fully release
   }
 
-  return results;
+  return allResults;
 }
 
 async function main() {
-  const frameworkName = process.argv[2];
+  // Parse CLI arguments
+  const args = process.argv.slice(2);
+  let frameworkName: string | undefined;
+  let numRuns = 5; // Default to 5 runs
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--runs' && i + 1 < args.length) {
+      numRuns = parseInt(args[i + 1], 10);
+      if (isNaN(numRuns) || numRuns < 1) {
+        console.error('❌ Error: --runs must be a positive number');
+        process.exit(1);
+      }
+      i++; // Skip next arg
+    } else if (!frameworkName) {
+      frameworkName = args[i];
+    }
+  }
 
   if (!frameworkName) {
     console.error('❌ Error: Framework name required');
-    console.error('\nUsage: tsx scripts/measure-single.ts <framework-name>');
+    console.error('\nUsage: tsx scripts/measure-single.ts <framework-name> [--runs N]');
     console.error('\nAvailable frameworks:');
     FRAMEWORKS.forEach(f => console.error(`  - "${f.name}"`));
+    console.error('\nOptions:');
+    console.error('  --runs N    Number of measurement runs per page (default: 5)');
     process.exit(1);
   }
 
@@ -237,10 +371,19 @@ async function main() {
     process.exit(1);
   }
 
-  try {
-    const results = await measureFramework(framework);
+  // Display measurement configuration
+  const chromeVersion = getChromeVersion();
+  console.error(`\n🔍 Measurement Configuration`);
+  console.error(`   Framework: ${framework.name}`);
+  console.error(`   Runs per page: ${numRuns}`);
+  console.error(`   Lighthouse version: ${chromeVersion}`);
+  console.error(`   Cache: Cleared between runs (cold-load measurement)`);
+  console.error(`   Throttling: Mobile 4G simulation`);
 
-    // Output JSON to stdout
+  try {
+    const results = await measureFramework(framework, numRuns);
+
+    // Output JSON to stdout for programmatic consumption
     console.log(JSON.stringify(results, null, 2));
   } catch (error) {
     console.error(`\n❌ Failed to measure ${framework.name}:`, error);

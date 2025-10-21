@@ -22,9 +22,8 @@
 	let isCommentModalOpen = $state(false);
 </script>
 
-<div>
-	<div class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out">
-		<div class="card-body gap-3 p-4">
+<article class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out">
+	<div class="card-body gap-3 p-4">
 			<div class="flex items-start justify-between gap-2">
 				<h3 class="card-title text-lg text-base-content">{card.title}</h3>
 				{#if card.completed}
@@ -92,10 +91,10 @@
 					</ul>
 				{/if}
 			</div>
-		</div>
 	</div>
+</article>
 
-	<CardEditModal
+<CardEditModal
 		{card}
 		{boardId}
 		users={allUsers}
@@ -110,4 +109,3 @@
 		isOpen={isCommentModalOpen}
 		onClose={() => (isCommentModalOpen = false)}
 	/>
-</div>

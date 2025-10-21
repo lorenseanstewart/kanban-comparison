@@ -14,6 +14,8 @@ const frameworks = [
   'SolidStart',
   'SvelteKit',
   'Qwik',
+  'Astro',
+  'TanStack Start',
   'Marko'
 ];
 

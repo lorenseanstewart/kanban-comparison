@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import draggable from 'vuedraggable';
-import { useAutoAnimate } from '@formkit/auto-animate/vue';
+import { initializeDragAndDrop, type DragDropState } from '../lib/drag-and-drop'
 
 const route = useRoute();
 
@@ -47,87 +46,68 @@ watchEffect(() => {
 });
 
 const showAddCardModal = ref(false)
-const dragOverListId = ref<string | null>(null)
-const draggedCard = ref<{ id: string; fromListId: string } | null>(null)
 
-function onDragStart(listId: string, cardId: string) {
-  draggedCard.value = { id: cardId, fromListId: listId }
+// Drag and drop state
+const dragDropState: DragDropState = {
+  dropZoneRefs: new Map<string, Element>(),
+  isUpdatingFromDrag: ref(false),
+  lastTransferTime: ref(0),
+  dragOverListId: ref<string | null>(null),
 }
 
-function onDragOver(listId: string) {
-  dragOverListId.value = listId
-}
-
-function onDragLeave() {
-  dragOverListId.value = null
-}
-
-async function onDragEnd(listId: string, event: any) {
-  dragOverListId.value = null
-
-  if (!board.value || !draggedCard.value) {
-    return
+// Helper to update board state
+function updateBoard(updater: (board: any) => any) {
+  if (board.value) {
+    board.value = updater(board.value)
   }
+}
 
-  const { fromListId, id: cardId } = draggedCard.value
-  draggedCard.value = null
-
-  const { oldIndex, newIndex, to, from } = event
-
-  // Get the actual target list ID from the draggable event
-  // The 'to' element has a data attribute or we can find which list contains the card after the move
-  const targetListId = to?.dataset?.listId || listId
-
-  if (oldIndex === newIndex && fromListId === targetListId) return
-
-  // Store previous state for rollback
-  const previousState = JSON.parse(JSON.stringify(board.value.lists))
-
-  // Optimistically update the UI - vuedraggable already moved the card in the DOM
-  // We just need to update positions
-  const updatedLists = board.value.lists.map(list => ({
-    ...list,
-    cards: list.cards.map((card, index) => ({
-      ...card,
-      position: index,
-      listId: list.id
-    }))
-  }))
-
-  board.value = {
-    ...board.value,
-    lists: updatedLists
-  }
-
-  // Send update to server in background
+// API handlers
+async function handleReorder(cardIds: string[], listId: string) {
   try {
-    const response = await $fetch('/api/cards/move', {
+    await $fetch('/api/cards/reorder', {
       method: 'POST',
-      body: {
-        cardId,
-        sourceListId: fromListId,
-        targetListId,
-        newPosition: newIndex,
-      },
+      body: { cardIds, listId },
     })
-
-    if (!response?.success) {
-      // Rollback on failure
-      board.value = {
-        ...board.value,
-        lists: previousState
-      }
-      await refresh()
-    }
   } catch (error) {
-    // Rollback on error
-    board.value = {
-      ...board.value,
-      lists: previousState
-    }
-    await refresh()
+    console.error('Failed to update card positions:', error)
+    refresh()
   }
 }
+
+async function handleMove(cardId: string, targetListId: string) {
+  try {
+    await $fetch('/api/cards/move', {
+      method: 'POST',
+      body: { cardId, targetListId },
+    })
+  } catch (error) {
+    console.error('Failed to move card:', error)
+    refresh()
+  }
+}
+
+// Initialize drag and drop on mount
+onMounted(() => {
+  if (board.value) {
+    initializeDragAndDrop(dragDropState, board.value, updateBoard, handleReorder, handleMove)
+  }
+})
+
+// Watch for board changes to reinitialize drag-and-drop
+watch(
+  () => board.value?.lists,
+  () => {
+    if (!dragDropState.isUpdatingFromDrag.value && board.value) {
+      nextTick(() => {
+        if (!dragDropState.isUpdatingFromDrag.value) {
+          initializeDragAndDrop(dragDropState, board.value, updateBoard, handleReorder, handleMove)
+        }
+      })
+    }
+  },
+  { deep: true, flush: 'post' }
+)
 
 // Handle optimistic card updates
 function handleCardUpdate(cardId: string, updates: Partial<BoardCard>) {
@@ -269,6 +249,7 @@ async function handleCardAdd(cardData: {
         <article
           v-for="list in board.lists"
           :key="list.id"
+          :data-list-id="list.id"
           class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl"
         >
           <div class="card-body gap-4">
@@ -279,41 +260,38 @@ async function handleCardAdd(cardData: {
               </div>
             </header>
 
-            <draggable
-              v-model="list.cards"
-              item-key="id"
-              :group="{ name: 'cards', pull: true, put: true }"
-              :data-list-id="list.id"
+            <div
+              data-drop-zone
               :class="[
                 'space-y-3 min-h-[600px] transition-all duration-200 rounded-lg p-2',
-                dragOverListId === list.id
+                dragDropState.dragOverListId.value === list.id
                   ? 'ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]'
                   : ''
               ]"
-              @start="onDragStart(list.id, $event.item?.__draggable_context?.element?.id ?? '')"
-              @end="onDragEnd(list.id, $event)"
-              @dragover="onDragOver(list.id)"
-              @dragleave="onDragLeave"
             >
-              <template #item="{ element }">
+              <div
+                v-for="card in list.cards"
+                :key="card.id"
+                :data-card-id="card.id"
+                data-draggable-card
+              >
                 <Card
-                  :card="element"
+                  :card="card"
                   :users="board.users"
                   :all-users="board.users"
                   :all-tags="board.tags"
                   @card-update="handleCardUpdate"
                   @card-delete="handleCardDelete"
                 />
-              </template>
-              <template #footer>
-                <div
-                  v-if="list.cards.length === 0"
-                  class="alert alert-info text-sm mt-2"
-                >
-                  <span>No cards yet</span>
-                </div>
-              </template>
-            </draggable>
+              </div>
+
+              <div
+                v-if="list.cards.length === 0"
+                class="alert alert-info text-sm mt-2"
+              >
+                <span>No cards yet</span>
+              </div>
+            </div>
           </div>
         </article>
       </section>

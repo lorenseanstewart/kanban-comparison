@@ -166,7 +166,7 @@ const { board, users, tags } = Astro.props;
   </form>
 </dialog>
 
-<script define:vars={{ board }} type="ts">
+<script define:vars={{ board }}>
   // Initialize namespace if not exists
   if (!window.kanban) {
     window.kanban = {};
@@ -176,25 +176,34 @@ const { board, users, tags } = Astro.props;
   if (!window.kanban.board) {
     window.kanban.board = board;
   }
+</script>
 
+<script>
   // Handle tag selection
   document.querySelectorAll(".edit-tag-checkbox").forEach((checkbox) => {
+    const tagId = checkbox.dataset.editTagId;
+    const badge = document.querySelector(
+      `[data-edit-tag-badge="${tagId}"]`
+    ) as HTMLElement;
+
+    // Store original color ONCE
+    if (!badge.dataset.originalColor) {
+      badge.dataset.originalColor = badge.style.color;
+    }
+
     checkbox.addEventListener("change", (e: Event) => {
       const target = e.target as HTMLInputElement;
-      const tagId = target.dataset.editTagId;
-      const badge = document.querySelector(
-        `[data-edit-tag-badge="${tagId}"]`
-      ) as HTMLElement;
 
       if (target.checked) {
         badge.classList.remove("badge-outline");
         badge.classList.add("text-white");
-        const bgColor = badge.style.color;
-        badge.style.backgroundColor = bgColor;
+        badge.style.backgroundColor = badge.dataset.originalColor;
+        badge.style.color = "white";
       } else {
         badge.classList.add("badge-outline");
         badge.classList.remove("text-white");
         badge.style.backgroundColor = "";
+        badge.style.color = badge.dataset.originalColor;
       }
     });
   });

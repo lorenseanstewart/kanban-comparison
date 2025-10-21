@@ -1,5 +1,5 @@
 import { A, createAsync, useParams, type RouteDefinition } from "@solidjs/router";
-import { createMemo, createSignal, For, Show, Suspense } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show, Suspense } from "solid-js";
 import { fetchBoard, listTags, listUsers } from "~/api";
 import type { BoardCard, BoardDetails, TagsList, UsersList } from "~/api/boards";
 import { BoardOverview } from "~/components/BoardOverview";
@@ -39,22 +39,23 @@ export default function BoardPage() {
   const effectiveUsers = createMemo(() => allUsers() || []);
   const effectiveTags = createMemo(() => allTags() || []);
 
-  // Initialize board with boardData to avoid hydration mismatch
+  // Local board state for optimistic updates during drag-and-drop
+  const [board, setBoard] = createSignal<BoardDetails | null>(boardData() || null);
 
   const [isAddCardModalOpen, setIsAddCardModalOpen] = createSignal(false);
 
-  // Sync local state with server data - not needed - rely in single-flight-mutation updates
-  // createEffect(() => {
-  //   const data = boardData();
-  //   if (data) {
-  //     setBoard(data);
-  //   }
-  // });
+  // Sync local board state with server data after mutations
+  createEffect(() => {
+    const data = boardData();
+    if (data && data.id) {
+      setBoard(data);
+    }
+  });
 
-  // Drag-and-drop handler using composable hook
+  // Drag-and-drop handler using composable hook with optimistic updates
   const { handleDragEnd } = useBoardDragDrop({
-    board: boardData,
-    setBoard: () => void 0,
+    board,
+    setBoard,
     boardData,
   });
 
@@ -108,7 +109,7 @@ export default function BoardPage() {
           </li>
           <li>
             <Show
-              when={boardData()}
+              when={board()}
               fallback={<span>Loading...</span>}
             >
               {(data) => <span class="text-base-content/60">{data().title}</span>}
@@ -129,19 +130,19 @@ export default function BoardPage() {
           }
         >
           <Show
-            when={boardData()}
+            when={board()}
             keyed
           >
-            {(board) => (
+            {(boardState) => (
               <>
                 <ErrorBoundary>
                   <DragDropBoard
                     onDragEnd={handleDragEnd}
-                    board={() => board}
+                    board={() => boardState}
                   >
                     <div class="space-y-8">
                       <ErrorBoundary>
-                        <Show when={board}>{(boardState) => <BoardOverview data={boardState()} />}</Show>
+                        <Show when={boardState}>{(data) => <BoardOverview data={data()} />}</Show>
                       </ErrorBoundary>
 
                       <div class="flex justify-start mb-4">
@@ -155,10 +156,10 @@ export default function BoardPage() {
                       </div>
 
                       <section class="flex gap-7 overflow-x-auto pb-8">
-                        <Show when={board}>
-                          {(boardState) => (
+                        <Show when={boardState}>
+                          {(data) => (
                             <For
-                              each={boardState().lists}
+                              each={data().lists}
                               fallback={<CardListFallback />}
                             >
                               {(list) => (
@@ -182,10 +183,10 @@ export default function BoardPage() {
                   </DragDropBoard>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <Show when={board}>
-                    {(boardState) => (
+                  <Show when={boardState}>
+                    {(data) => (
                       <AddCardModal
-                        boardId={boardState().id}
+                        boardId={data().id}
                         users={effectiveUsers()}
                         tags={effectiveTags()}
                         isOpen={isAddCardModalOpen()}

@@ -17,8 +17,7 @@
 }
 
 [draggable="true"].dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
+  opacity: 0.25;
 }
 
 .drop-zone {

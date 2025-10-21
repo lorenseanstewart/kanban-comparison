@@ -4,11 +4,11 @@
   "description": "Framework comparison project: Same app built in 7 frameworks",
   "private": true,
   "scripts": {
-    "measure:bundles": "tsx scripts/performance/measure-bundles.ts",
-    "measure:lighthouse": "tsx scripts/performance/lighthouse-all.ts",
-    "generate:charts": "tsx scripts/performance/generate-charts.ts",
-    "generate:svg": "python3 scripts/performance/generate-bundle-chart.py",
-    "measure:all": "npm run measure:bundles && npm run measure:lighthouse && npm run generate:charts && npm run generate:svg",
+    "measure:single": "tsx scripts/measure-single.ts",
+    "measure:final": "tsx scripts/measure-final.ts --runs 5",
+    "measure:all": "npm run measure:final && npm run generate:charts",
+    "measure:legacy": "tsx scripts/measure-all-lighthouse.ts",
+    "generate:charts": "python3 scripts/generate-charts.py",
     "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done"
   },
   "keywords": [

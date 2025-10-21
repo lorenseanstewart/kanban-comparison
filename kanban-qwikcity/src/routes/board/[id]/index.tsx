@@ -86,7 +86,19 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
       });
 
       // Add tags if any
-      const tagIds = data.tagIds as string[] | undefined;
+      // Parse tagIds - it comes as a JSON string from the form
+      let tagIds: string[] = [];
+      if (data.tagIds) {
+        try {
+          tagIds =
+            typeof data.tagIds === "string"
+              ? JSON.parse(data.tagIds as string)
+              : (data.tagIds as string[]);
+        } catch (e) {
+          console.error("Failed to parse tagIds:", e);
+        }
+      }
+
       if (tagIds && tagIds.length > 0) {
         await db.insert(cardTags).values(
           tagIds.map((tagId: string) => ({
@@ -516,12 +528,10 @@ export default component$(() => {
 
   // Handle card drop with optimistic updates
   const handleCardDrop = $(
-    async (cardId: string, targetListId: string, newPosition: number) => {
+    (cardId: string, targetListId: string, newPosition: number) => {
       if (!boardState.value) {
         return;
       }
-
-      const originalState = structuredClone(boardState.value);
 
       const updatedLists = boardState.value.lists.map((list) => ({
         ...list,
@@ -564,22 +574,6 @@ export default component$(() => {
         ...boardState.value,
         lists: updatedLists,
       };
-
-      try {
-        const result = await moveCardAction.submit({
-          cardId,
-          targetListId,
-          newPosition,
-        });
-
-        if (!result.value?.success) {
-          boardState.value = originalState;
-          console.error("Failed to move card:", result.value?.error);
-        }
-      } catch (error) {
-        boardState.value = originalState;
-        console.error("Failed to move card:", error);
-      }
     },
   );
 
@@ -660,6 +654,7 @@ export default component$(() => {
                 updateCardAction={updateCardAction}
                 deleteCardAction={deleteCardAction}
                 createCommentAction={createCommentAction}
+                moveCardAction={moveCardAction}
               />
             ))
           )}

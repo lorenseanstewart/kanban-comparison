@@ -51,10 +51,9 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
 </script>
 
 <template>
-  <div>
-    <div
-      class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
-    >
+  <article
+    class="card bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
+  >
       <div class="card-body gap-3 p-4">
         <div class="flex items-start justify-between gap-2">
           <h3 class="card-title text-lg text-base-content">{{ card.title }}</h3>
@@ -133,11 +132,11 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
               {{ comment.text }}
             </li>
           </ul>
-        </div>
       </div>
     </div>
+  </article>
 
-    <CardEditModal
+  <CardEditModal
       v-if="isEditModalOpen"
       :card="card"
       :users="allUsers"
@@ -152,6 +151,5 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
       :users="allUsers"
       @close="isCommentModalOpen = false"
       @comment-add="handleCommentAdd"
-    />
-  </div>
+  />
 </template>

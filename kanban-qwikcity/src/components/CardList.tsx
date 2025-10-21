@@ -23,6 +23,7 @@ interface CardListProps {
   updateCardAction?: ActionStore<any, any, true>;
   deleteCardAction?: ActionStore<any, any, true>;
   createCommentAction?: ActionStore<any, any, true>;
+  moveCardAction?: ActionStore<any, any, true>;
 }
 
 export const CardList = component$<CardListProps>(
@@ -37,14 +38,15 @@ export const CardList = component$<CardListProps>(
     updateCardAction,
     deleteCardAction,
     createCommentAction,
+    moveCardAction,
   }) => {
     const draggedCardId = useContext(DraggedCardContext);
     const isDragOver = useSignal(false);
 
-    const handleDrop = $((event: DragEvent, target: HTMLElement) => {
+    const handleDrop = $(async (event: DragEvent, target: HTMLElement) => {
       const cardId = draggedCardId.value;
 
-      if (!cardId || !onCardDrop) {
+      if (!cardId) {
         return;
       }
 
@@ -78,8 +80,19 @@ export const CardList = component$<CardListProps>(
         }
       }
 
-      // Trigger the callback to update the card
-      onCardDrop(cardId, list.id, targetPosition);
+      // Call the optimistic update callback if provided
+      if (onCardDrop) {
+        onCardDrop(cardId, list.id, targetPosition);
+      }
+
+      // Submit the move action if provided
+      if (moveCardAction) {
+        await moveCardAction.submit({
+          cardId,
+          targetListId: list.id,
+          newPosition: targetPosition,
+        });
+      }
 
       // Clear the dragged card context and drag over state
       draggedCardId.value = "";

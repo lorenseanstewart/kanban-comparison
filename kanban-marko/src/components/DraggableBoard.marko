@@ -5,6 +5,7 @@ import {
 } from "../lib/drag-drop/index";
 import type { BoardDetails, UsersList, TagsList, BoardCard } from "../lib/api";
 static var sharedDragDropState: DragDropState | null = null;
+static var boardStateRef: { current: BoardDetails | null } = { current: null };
 static const chartColors = ["#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"];
 import type { User } from "../../drizzle/schema";
 import AddCardModal from "./modals/AddCardModal.marko";
@@ -27,9 +28,13 @@ export interface Input {
   if (!sharedDragDropState) {
     sharedDragDropState = createDragDropState();
   }
-  const getBoard = () => board;
+  // Initialize the ref with current board
+  boardStateRef.current = board;
+
+  const getBoard = () => boardStateRef.current!;
   const setBoard = (newBoard: BoardDetails) => {
     board = newBoard;
+    boardStateRef.current = newBoard;
   };
   const setDragOverListId = (id: string | null) => {
     dragOverListId = id;
@@ -381,7 +386,7 @@ export interface Input {
     assigneeId: string | null;
     tagIds?: string[];
   }) => {
-    board = {
+    const updatedBoard = {
       ...board,
       lists: board.lists.map((list: BoardDetails["lists"][number]) => {
         if (list.title === "Todo") {
@@ -408,6 +413,9 @@ export interface Input {
         return list;
       }),
     };
+
+    board = updatedBoard;
+    boardStateRef.current = updatedBoard;
   }/>
 
 <if=selectedCard>

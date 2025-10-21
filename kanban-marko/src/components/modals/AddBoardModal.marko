@@ -29,7 +29,7 @@ export interface Input {
     <div class="modal-box bg-base-200 dark:bg-base-300">
       <form onSubmit=async (e) => {
         e.preventDefault();
-        const form = e.currentTarget as HTMLFormElement;
+        const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
 
         const title = formData.get("title");

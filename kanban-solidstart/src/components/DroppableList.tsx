@@ -27,14 +27,23 @@ function DroppableContent(props: {
   const droppable = createDroppable(`list-${props.listId}`);
 
   return (
-    <div
-      ref={droppable.ref}
-      class="w-full h-full min-h-[800px] rounded-lg transition-all duration-200"
-      classList={{
-        "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]": droppable.isActiveDroppable === true,
-      }}
-    >
-      {props.children}
+    <div class="relative w-full min-h-[800px]">
+      {/* Visual indicator - sits behind content */}
+      <div
+        class="absolute inset-0 rounded-lg transition-all duration-200 pointer-events-none"
+        classList={{
+          "ring-4 ring-primary ring-offset-2 bg-primary/5 scale-[1.02]": droppable.isActiveDroppable,
+        }}
+      />
+      {/* Droppable detection layer - sits on top to catch all hover events */}
+      <div
+        ref={droppable.ref}
+        class="absolute inset-0 pointer-events-auto"
+      />
+      {/* Content */}
+      <div class="relative">
+        {props.children}
+      </div>
     </div>
   );
 }

@@ -7,12 +7,11 @@ export const BoardSchema = v.object({
     v.minLength(1, "Title cannot be empty"),
     v.maxLength(255, "Title must be less than 255 characters")
   ),
-  description: v.nullish(
+  description: v.optional(
     v.pipe(
       v.string(),
       v.maxLength(500, "Description must be less than 500 characters")
-    ),
-    null
+    )
   ),
 });
 
@@ -32,37 +31,12 @@ export const CardSchema = v.object({
       v.maxLength(2000, "Description must be less than 2000 characters")
     )
   ),
-  assigneeId: v.pipe(
-    v.string("Assignee is required"),
-    v.minLength(1, "Assignee is required")
-  ),
+  assigneeId: v.optional(v.string()),
   tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardInput = v.InferInput<typeof CardSchema>;
 export type CardOutput = v.InferOutput<typeof CardSchema>;
-
-// Card create validation schema (includes boardId)
-export const CardCreateSchema = v.object({
-  boardId: v.pipe(v.string("Board ID is required"), v.minLength(1, "Board ID is required")),
-  title: v.pipe(
-    v.string("Card title is required"),
-    v.minLength(1, "Card title cannot be empty"),
-    v.maxLength(255, "Card title must be less than 255 characters")
-  ),
-  description: v.nullish(
-    v.pipe(
-      v.string(),
-      v.maxLength(2000, "Card description must be less than 2000 characters")
-    ),
-    null
-  ),
-  assigneeId: v.nullish(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), () => []),
-});
-
-export type CardCreateInput = v.InferInput<typeof CardCreateSchema>;
-export type CardCreateOutput = v.InferOutput<typeof CardCreateSchema>;
 
 // Card update validation schema
 export const CardUpdateSchema = v.object({
@@ -72,15 +46,14 @@ export const CardUpdateSchema = v.object({
     v.minLength(1, "Title cannot be empty"),
     v.maxLength(255, "Title must be less than 255 characters")
   ),
-  description: v.nullish(
+  description: v.optional(
     v.pipe(
       v.string(),
       v.maxLength(2000, "Description must be less than 2000 characters")
-    ),
-    null
+    )
   ),
-  assigneeId: v.nullish(v.string(), null),
-  tagIds: v.optional(v.array(v.string()), () => []),
+  assigneeId: v.optional(v.string()),
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardUpdateInput = v.InferInput<typeof CardUpdateSchema>;
@@ -89,10 +62,7 @@ export type CardUpdateOutput = v.InferOutput<typeof CardUpdateSchema>;
 // Comment validation schema
 export const CommentSchema = v.object({
   cardId: v.string("Card ID is required"),
-  userId: v.pipe(
-    v.string("User is required"),
-    v.minLength(1, "User is required")
-  ),
+  userId: v.string("User ID is required"),
   text: v.pipe(
     v.string("Comment text is required"),
     v.minLength(1, "Comment text cannot be empty"),

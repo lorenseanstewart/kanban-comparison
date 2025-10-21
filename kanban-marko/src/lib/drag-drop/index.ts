@@ -40,6 +40,19 @@ export function initializeDragAndDrop(
       return;
     }
 
+    // Set up a MutationObserver to watch for new cards being added
+    const observer = new MutationObserver((mutations) => {
+      // Only remap if we're not in a drag operation and nodes were actually added
+      if (!state.isUpdatingFromDrag) {
+        const hasAddedNodes = mutations.some(mutation => mutation.addedNodes.length > 0);
+        if (hasAddedNodes) {
+          remapNodes(container as HTMLElement);
+        }
+      }
+    });
+    observer.observe(container, { childList: true });
+
+
     // Mark as initialized
     state.dropZoneRefs.set(listId, container);
 
@@ -168,6 +181,11 @@ export function initializeDragAndDrop(
 
         // Handle moving cards between lists
         onTransfer: async ({ sourceParent, targetParent, draggedNodes }) => {
+          // Prevent duplicate calls during the same drag operation
+          if (state.isUpdatingFromDrag) {
+            return;
+          }
+
           let sourceListEl: HTMLElement | null = sourceParent.el.parentElement;
           while (sourceListEl && !sourceListEl.hasAttribute("data-list-id")) {
             sourceListEl = sourceListEl.parentElement;

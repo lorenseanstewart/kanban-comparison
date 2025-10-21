@@ -19,30 +19,6 @@ export type BoardInput = v.InferInput<typeof BoardSchema>;
 export type BoardOutput = v.InferOutput<typeof BoardSchema>;
 
 // Card validation schema
-const tagIdsField = v.optional(
-  v.pipe(
-    v.union([v.string(), v.array(v.string())]),
-    v.transform((value) => {
-      if (Array.isArray(value)) {
-        return value;
-      }
-
-      if (value.trim().length === 0) {
-        return [];
-      }
-
-      try {
-        const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }),
-    v.array(v.string())
-  ),
-  []
-);
-
 export const CardSchema = v.object({
   title: v.pipe(
     v.string("Title is required"),
@@ -56,7 +32,7 @@ export const CardSchema = v.object({
     )
   ),
   assigneeId: v.optional(v.string()),
-  tagIds: tagIdsField,
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardInput = v.InferInput<typeof CardSchema>;
@@ -77,7 +53,7 @@ export const CardUpdateSchema = v.object({
     )
   ),
   assigneeId: v.optional(v.string()),
-  tagIds: tagIdsField,
+  tagIds: v.optional(v.array(v.string())),
 });
 
 export type CardUpdateInput = v.InferInput<typeof CardUpdateSchema>;
@@ -97,27 +73,21 @@ export const CommentSchema = v.object({
 export type CommentInput = v.InferInput<typeof CommentSchema>;
 export type CommentOutput = v.InferOutput<typeof CommentSchema>;
 
-const positionField = v.pipe(
-  v.union([v.string(), v.number()]),
-  v.transform((value) =>
-    typeof value === "string" ? Number.parseInt(value, 10) : value
-  ),
-  v.number("Position must be a number"),
-  v.transform((value) => Math.max(0, Math.floor(value)))
-);
-
+// Move card validation schema
 export const MoveCardSchema = v.object({
   cardId: v.string("Card ID is required"),
-  listId: v.string("Target list ID is required"),
-  newPosition: positionField,
+  listId: v.string("List ID is required"),
+  newPosition: v.number("Position must be a number"),
 });
 
 export type MoveCardInput = v.InferInput<typeof MoveCardSchema>;
+export type MoveCardOutput = v.InferOutput<typeof MoveCardSchema>;
 
+// Update card position validation schema
 export const UpdateCardPositionSchema = v.object({
   cardId: v.string("Card ID is required"),
-  position: positionField,
+  position: v.number("Position must be a number"),
 });
 
 export type UpdateCardPositionInput = v.InferInput<typeof UpdateCardPositionSchema>;
-
+export type UpdateCardPositionOutput = v.InferOutput<typeof UpdateCardPositionSchema>;

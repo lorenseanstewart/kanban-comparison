@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
+    "@formkit/drag-and-drop": "^0.5.3",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@unhead/schema": "^2.0.17",
     "@unhead/vue": "^2.0.17",
@@ -23,8 +24,7 @@
     "drizzle-orm": "^0.38.3",
     "nuxt": "^4.1.2",
     "valibot": "^1.0.0-beta.9",
-    "vue": "latest",
-    "vuedraggable": "^4.1.0"
+    "vue": "latest"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

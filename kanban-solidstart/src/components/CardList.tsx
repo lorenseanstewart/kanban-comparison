@@ -58,7 +58,7 @@ export function CardList(props: {
         </header>
 
         <DroppableList listId={list.id}>
-          <div class="min-h-[800px] space-y-3 -mt-4 pt-4">
+          <div class="space-y-3 -mt-4 pt-4">
             <Show when={mounted()} fallback={cardList()}>
               <SortableProvider ids={cardIds()}>{cardList()}</SortableProvider>
             </Show>

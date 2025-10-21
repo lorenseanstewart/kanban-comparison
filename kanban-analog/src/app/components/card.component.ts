@@ -16,7 +16,7 @@ import { CommentModalComponent } from './modals/comment-modal.component';
     CommentModalComponent,
   ],
   template: `
-    <div
+    <article
       cdkDrag
       [cdkDragData]="card()"
       class="card mt-2 bg-base-100 dark:bg-neutral shadow-lg cursor-grab active:cursor-grabbing transition-all duration-300 ease-in-out"
@@ -105,7 +105,7 @@ import { CommentModalComponent } from './modals/comment-modal.component';
           </div>
         }
       </div>
-    </div>
+    </article>
 
     <app-card-edit-modal
       [card]="card()"

@@ -4,6 +4,7 @@ import {
   inject,
   computed,
   afterNextRender,
+  effect,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { injectLoad, RouteMeta } from '@analogjs/router';
@@ -152,7 +153,7 @@ export default class BoardPageComponent {
     requireSync: true,
   });
 
-  board = computed<BoardDetails | null>(() => this.data()?.board ?? null);
+  board = signal<BoardDetails | null>(this.data()?.board ?? null);
   allUsers = computed<UsersList>(() => this.data()?.allUsers ?? []);
   allTags = computed<TagsList>(() => this.data()?.allTags ?? []);
   isAddCardModalOpen = signal(false);
@@ -160,6 +161,16 @@ export default class BoardPageComponent {
   errorMessage = computed<string>(() =>
     !this.data()?.board ? 'Board not found' : ''
   );
+
+  constructor() {
+    // Keep board in sync with data changes
+    effect(() => {
+      const loadedBoard = this.data()?.board ?? null;
+      if (loadedBoard) {
+        this.board.set(loadedBoard);
+      }
+    });
+  }
 
   retry() {
     afterNextRender(() => {

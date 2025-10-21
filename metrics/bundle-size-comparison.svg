@@ -1,80 +1,92 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" font-family="system-ui, -apple-system, sans-serif">
-  <rect width="900" height="500" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" font-family="system-ui, -apple-system, sans-serif">
+  <!-- Background -->
+  <rect width="1200" height="500" fill="#ffffff"/>
 
-  <text x="450.0" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1f2937">
-    Bundle Size Comparison: Home vs Board Page
+  <!-- Title -->
+  <text x="600.0" y="30" text-anchor="middle" font-size="20" font-weight="600" fill="#1f2937">
+    Bundle Size Comparison: Board vs Home Page
   </text>
-  <text x="450.0" y="48" text-anchor="middle" font-size="12" fill="#6b7280">
-    JavaScript transferred (gzipped, in kB)
+  <text x="600.0" y="48" text-anchor="middle" font-size="12" fill="#6b7280">
+    Raw (uncompressed) JavaScript bundle sizes
   </text>
 
-  <g transform="translate(100, 60)">
-    <line x1="0" y1="360.0" x2="680" y2="360.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="360.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">0 kB</text>
-    <line x1="0" y1="288.0" x2="680" y2="288.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="288.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">40 kB</text>
-    <line x1="0" y1="216.0" x2="680" y2="216.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="216.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">80 kB</text>
-    <line x1="0" y1="144.0" x2="680" y2="144.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="144.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">120 kB</text>
-    <line x1="0" y1="72.0" x2="680" y2="72.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="72.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">160 kB</text>
-    <line x1="0" y1="0.0" x2="680" y2="0.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
-    <text x="-10" y="0.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">200 kB</text>
-    <rect x="9.3" y="347.7" width="26.4" height="12.3" fill="#3b82f6" rx="3"/>
-    <text x="22.6" y="342.7" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">6.8</text>
-    <rect x="39.8" y="308.4" width="26.4" height="51.6" fill="#16a34a" rx="3"/>
-    <text x="53.0" y="303.4" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">28.7</text>
-    <text x="37.8" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 37.8, 375.0)">Marko</text>
-    <rect x="84.9" y="321.4" width="26.4" height="38.6" fill="#3b82f6" rx="3"/>
-    <text x="98.1" y="316.4" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">21.4</text>
-    <rect x="115.3" y="298.4" width="26.4" height="61.6" fill="#16a34a" rx="3"/>
-    <text x="128.6" y="293.4" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">34.2</text>
-    <text x="113.3" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 113.3, 375.0)">Astro/HTMX</text>
-    <rect x="160.4" y="306.3" width="26.4" height="53.7" fill="#3b82f6" rx="3"/>
-    <text x="173.7" y="301.3" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">29.8</text>
-    <rect x="190.9" y="286.7" width="26.4" height="73.3" fill="#16a34a" rx="3"/>
-    <text x="204.1" y="281.7" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">40.7</text>
-    <text x="188.9" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 188.9, 375.0)">SolidStart</text>
-    <rect x="236.0" y="285.2" width="26.4" height="74.8" fill="#3b82f6" rx="3"/>
-    <text x="249.2" y="280.2" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">41.5</text>
-    <rect x="266.4" y="254.4" width="26.4" height="105.6" fill="#16a34a" rx="3"/>
-    <text x="279.7" y="249.4" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">58.6</text>
-    <text x="264.4" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 264.4, 375.0)">SvelteKit</text>
-    <rect x="311.6" y="281.1" width="26.4" height="78.9" fill="#3b82f6" rx="3"/>
-    <text x="324.8" y="276.1" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">43.9</text>
-    <rect x="342.0" y="253.1" width="26.4" height="106.9" fill="#16a34a" rx="3"/>
-    <text x="355.2" y="248.1" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">59.4</text>
-    <text x="340.0" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 340.0, 375.0)">Qwik</text>
-    <rect x="387.1" y="183.5" width="26.4" height="176.5" fill="#3b82f6" rx="3"/>
-    <text x="400.3" y="178.5" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">98.0</text>
-    <rect x="417.6" y="147.7" width="26.4" height="212.3" fill="#16a34a" rx="3"/>
-    <text x="430.8" y="142.7" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">117.9</text>
-    <text x="415.6" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 415.6, 375.0)">TanStack Start</text>
-    <rect x="462.7" y="135.7" width="26.4" height="224.3" fill="#3b82f6" rx="3"/>
-    <text x="475.9" y="130.7" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">124.6</text>
-    <rect x="493.1" y="113.9" width="26.4" height="246.1" fill="#16a34a" rx="3"/>
-    <text x="506.3" y="108.9" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">136.7</text>
-    <text x="491.1" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 491.1, 375.0)">Analog</text>
-    <rect x="538.2" y="125.2" width="26.4" height="234.8" fill="#3b82f6" rx="3"/>
-    <text x="551.4" y="120.2" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">130.5</text>
-    <rect x="568.7" y="124.4" width="26.4" height="235.6" fill="#16a34a" rx="3"/>
-    <text x="581.9" y="119.4" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">130.9</text>
-    <text x="566.7" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 566.7, 375.0)">Nuxt</text>
-    <rect x="613.8" y="118.3" width="26.4" height="241.7" fill="#3b82f6" rx="3"/>
-    <text x="627.0" y="113.3" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">134.3</text>
-    <rect x="644.2" y="73.9" width="26.4" height="286.1" fill="#16a34a" rx="3"/>
-    <text x="657.4" y="68.9" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">158.9</text>
-    <text x="642.2" y="375.0" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 642.2, 375.0)">Next.js</text>
-    <line x1="0" y1="360" x2="680" y2="360" stroke="#1f2937" stroke-width="2"/>
-    <line x1="0" y1="0" x2="0" y2="360" stroke="#1f2937" stroke-width="2"/>
+  <!-- Chart area -->
+  <g transform="translate(120, 100)">
+
+    <line x1="0" y1="320.0" x2="1000" y2="320.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="320.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">0 kB</text>
+    <line x1="0" y1="256.0" x2="1000" y2="256.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="256.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">150 kB</text>
+    <line x1="0" y1="192.0" x2="1000" y2="192.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="192.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">300 kB</text>
+    <line x1="0" y1="128.0" x2="1000" y2="128.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="128.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">450 kB</text>
+    <line x1="0" y1="64.0" x2="1000" y2="64.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="64.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">600 kB</text>
+    <line x1="0" y1="0.0" x2="1000" y2="0.0" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="-10" y="0.0" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">750 kB</text>
+
+    <rect x="5.555555555555556" y="282.2325" width="27.77777777777778" height="37.7675" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="19.444444444444446" y="277.2325" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">89</text>
+    <rect x="38.88888888888889" y="314.7266666666667" width="27.77777777777778" height="5.273333333333333" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="52.777777777777786" y="309.7266666666667" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">12</text>
+    <text x="55.55555555555556" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 55.55555555555556, 335)">Marko</text>
+    <rect x="116.66666666666667" y="270.64708333333334" width="27.77777777777778" height="49.35291666666667" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="130.55555555555557" y="265.64708333333334" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">116</text>
+    <rect x="150.0" y="282.8179166666667" width="27.77777777777778" height="37.18208333333333" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="163.88888888888889" y="277.8179166666667" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">87</text>
+    <text x="166.66666666666669" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 166.66666666666669, 335)">Qwik</text>
+    <rect x="227.77777777777777" y="266.1225" width="27.77777777777778" height="53.8775" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="241.66666666666666" y="261.1225" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">126</text>
+    <rect x="261.1111111111111" y="284.18041666666664" width="27.77777777777778" height="35.819583333333334" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="275.0" y="279.18041666666664" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">84</text>
+    <text x="277.77777777777777" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 277.77777777777777, 335)">SolidStart</text>
+    <rect x="338.8888888888889" y="265.70166666666665" width="27.77777777777778" height="54.29833333333334" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="352.7777777777778" y="260.70166666666665" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">127</text>
+    <rect x="372.22222222222223" y="282.98875" width="27.77777777777778" height="37.011250000000004" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="386.11111111111114" y="277.98875" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">87</text>
+    <text x="388.8888888888889" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 388.8888888888889, 335)">Astro/HTMX</text>
+    <rect x="450.0" y="257.6479166666667" width="27.77777777777778" height="62.35208333333333" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="463.8888888888889" y="252.64791666666667" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">146</text>
+    <rect x="483.3333333333333" y="274.94083333333333" width="27.77777777777778" height="45.05916666666667" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="497.22222222222223" y="269.94083333333333" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">106</text>
+    <text x="500.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 500.0, 335)">SvelteKit</text>
+    <rect x="561.1111111111111" y="160.99041666666668" width="27.77777777777778" height="159.00958333333332" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="575.0" y="155.99041666666668" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">373</text>
+    <rect x="594.4444444444445" y="188.49916666666667" width="27.77777777777778" height="131.50083333333333" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="608.3333333333334" y="183.49916666666667" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">308</text>
+    <text x="611.1111111111111" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 611.1111111111111, 335)">TanStack Start</text>
+    <rect x="672.2222222222223" y="145.33" width="27.77777777777778" height="174.67" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="686.1111111111112" y="140.33" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">409</text>
+    <rect x="705.5555555555557" y="146.51958333333334" width="27.77777777777778" height="173.48041666666666" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="719.4444444444446" y="141.51958333333334" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">407</text>
+    <text x="722.2222222222223" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 722.2222222222223, 335)">Nuxt</text>
+    <rect x="783.3333333333334" y="96.16708333333332" width="27.77777777777778" height="223.83291666666668" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="797.2222222222223" y="91.16708333333332" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">525</text>
+    <rect x="816.6666666666667" y="129.00041666666667" width="27.77777777777778" height="190.99958333333333" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="830.5555555555557" y="124.00041666666667" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">448</text>
+    <text x="833.3333333333334" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 833.3333333333334, 335)">Next.js</text>
+    <rect x="894.4444444444445" y="20.508333333333326" width="27.77777777777778" height="299.4916666666667" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="908.3333333333334" y="15.508333333333326" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">702</text>
+    <rect x="927.7777777777778" y="121.3175" width="27.77777777777778" height="198.6825" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="941.6666666666667" y="116.3175" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">466</text>
+    <text x="944.4444444444445" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 944.4444444444445, 335)">Analog</text>
+
+    <!-- X-axis -->
+    <line x1="0" y1="320" x2="1000" y2="320" stroke="#1f2937" stroke-width="2"/>
+
+    <!-- Y-axis -->
+    <line x1="0" y1="0" x2="0" y2="320" stroke="#1f2937" stroke-width="2"/>
+
   </g>
 
-  <g transform="translate(790, 80)">
-    <rect x="0" y="0" width="15" height="15" fill="#3b82f6" rx="2"/>
-    <text x="20" y="12" font-size="12" fill="#374151">Home Page</text>
-    <rect x="0" y="25" width="15" height="15" fill="#16a34a" rx="2"/>
-    <text x="20" y="37" font-size="12" fill="#374151">Board Page</text>
-  </g>
-
+  <!-- Legend -->
+  <rect x="500.0" y="65" width="20" height="15" fill="#3b82f6" opacity="0.8" rx="2"/>
+  <text x="525.0" y="77" font-size="11" fill="#374151">Board Page</text>
+  <rect x="620.0" y="65" width="20" height="15" fill="#10b981" opacity="0.8" rx="2"/>
+  <text x="645.0" y="77" font-size="11" fill="#374151">Home Page</text>
+  <!-- Footer note -->
+  <text x="600.0" y="490" text-anchor="middle" font-size="10" fill="#9ca3af">
+    Generated from Lighthouse measurements • 9 frameworks compared
+  </text>
 </svg>

@@ -42,6 +42,8 @@ export function handleAddCardSuccess(event: any, form: HTMLFormElement) {
         badge.classList.add("badge-outline");
         badge.classList.remove("text-white");
         badge.style.backgroundColor = "";
+        const borderColor = getComputedStyle(badge).borderColor;
+        badge.style.color = borderColor;
       }
     });
   } else if (event.detail.xhr.status === 400) {
@@ -164,15 +166,17 @@ export function openEditCardModal(cardId: string) {
       `[data-edit-tag-badge="${tagId}"]`
     ) as HTMLElement;
     if (badge) {
+      const originalColor = badge.dataset.originalColor;
       if (isSelected) {
         badge.classList.remove("badge-outline");
         badge.classList.add("text-white");
-        const bgColor = badge.style.color;
-        badge.style.backgroundColor = bgColor;
+        badge.style.backgroundColor = originalColor;
+        badge.style.color = "white";
       } else {
         badge.classList.add("badge-outline");
         badge.classList.remove("text-white");
         badge.style.backgroundColor = "";
+        badge.style.color = originalColor;
       }
     }
   });
