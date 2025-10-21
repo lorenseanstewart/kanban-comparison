@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { BoardDetails, BoardCard, UsersList, TagsList } from "../lib/api";
 import { BoardOverview } from "./BoardOverview";
@@ -18,13 +18,8 @@ export function BoardPageClient({
   allTags: TagsList;
 }) {
   // Local mutable copy for optimistic updates
-  const [board, setBoard] = useState<BoardDetails | null>(initialBoard);
+  const [board, setBoard] = useState<BoardDetails>(initialBoard);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
-
-  // Sync local state with server data when initialBoard changes
-  useEffect(() => {
-    setBoard(initialBoard);
-  }, [initialBoard]);
 
   const revertToServerState = () => {
     setBoard(initialBoard);
@@ -39,8 +34,6 @@ export function BoardPageClient({
 
   // Handle optimistic card updates
   const handleCardUpdate = (cardId: string, updates: Partial<BoardCard>) => {
-    if (!board) return;
-
     const updatedBoard = {
       ...board,
       lists: board.lists.map((list) => ({
@@ -62,8 +55,6 @@ export function BoardPageClient({
     assigneeId: string | null;
     tagIds: string[];
   }) => {
-    if (!board) return;
-
     // Find the Todo list
     const todoList = board.lists.find((list) => list.title === "Todo");
     if (!todoList) return;
@@ -80,47 +71,26 @@ export function BoardPageClient({
       comments: [],
     };
 
-    setBoard((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        lists: prev.lists.map((list) =>
-          list.title === "Todo"
-            ? { ...list, cards: [...list.cards, newCard] }
-            : list
-        ),
-      };
-    });
+    setBoard((prev) => ({
+      ...prev,
+      lists: prev.lists.map((list) =>
+        list.title === "Todo"
+          ? { ...list, cards: [...list.cards, newCard] }
+          : list
+      ),
+    }));
   };
 
   // Handle card deletion
   const handleCardDelete = (cardId: string) => {
-    if (!board) return;
-
-    setBoard((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        lists: prev.lists.map((list) => ({
-          ...list,
-          cards: list.cards.filter((card) => card.id !== cardId),
-        })),
-      };
-    });
+    setBoard((prev) => ({
+      ...prev,
+      lists: prev.lists.map((list) => ({
+        ...list,
+        cards: list.cards.filter((card) => card.id !== cardId),
+      })),
+    }));
   };
-
-  if (!board) {
-    return (
-      <main className="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
-        <div className="flex justify-center py-16">
-          <span
-            className="loading loading-spinner loading-lg text-primary"
-            aria-label="Loading board"
-          />
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">

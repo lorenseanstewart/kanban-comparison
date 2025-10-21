@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { BoardSummary } from "../lib/api";
 import { AddBoardModal } from "./AddBoardModal";
@@ -9,11 +9,6 @@ export function HomePageClient({
   initialBoards: BoardSummary[];
 }) {
   const [boards, setBoards] = useState<BoardSummary[]>(initialBoards);
-
-  // Sync local state with server data when initialBoards changes
-  useEffect(() => {
-    setBoards(initialBoards);
-  }, [initialBoards]);
 
   // Handle board creation with server-generated ID
   const handleBoardAdd = (boardData: {
