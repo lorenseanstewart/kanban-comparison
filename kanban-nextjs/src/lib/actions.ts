@@ -74,7 +74,7 @@ export async function updateCard(formData: FormData) {
     }
 
     // Use a transaction to update card and tags atomically
-    db.transaction((tx) => {
+    await db.transaction((tx) => {
       // Update card basic fields
       tx.update(cards)
         .set({
@@ -191,7 +191,7 @@ export async function createCard(formData: FormData) {
     const cardId = crypto.randomUUID();
 
     // Use a transaction to create card and tags atomically
-    db.transaction((tx) => {
+    await db.transaction((tx) => {
       tx.insert(cards)
         .values({
           id: cardId,
@@ -249,15 +249,15 @@ export async function updateCardList(cardId: string, newListId: string, newPosit
 
 export async function updateCardPositions(cardIds: string[]) {
   try {
-    // Update each card's position based on its index in the array
-    await Promise.all(
-      cardIds.map((cardId, index) =>
-        db
-          .update(cards)
+    // Use a transaction to update all positions atomically
+    await db.transaction((tx) => {
+      cardIds.forEach((cardId, index) => {
+        tx.update(cards)
           .set({ position: index })
           .where(eq(cards.id, cardId))
-      )
-    );
+          .run();
+      });
+    });
 
     revalidatePath("/board/[id]", "page");
     return { success: true };
