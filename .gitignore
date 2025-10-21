@@ -74,3 +74,8 @@ drizzle/db.sqlite
 metrics/*.json
 metrics/*.md
 !metrics/.gitkeep
+
+# Documentation files
+METHODOLOGY.md
+PERFORMANCE_METRICS_GUIDE.md
+README.md
