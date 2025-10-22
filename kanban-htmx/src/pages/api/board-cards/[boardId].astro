@@ -4,7 +4,7 @@ import BoardCardsSection from '../../../components/BoardCardsSection.astro';
 import BarChart from '../../../components/charts/BarChart.astro';
 import PieChart from '../../../components/charts/PieChart.astro';
 import * as v from 'valibot';
-import { CardCreateSchema } from '../../../lib/validation';
+import { CardSchema } from '../../../lib/validation';
 
 const { boardId } = Astro.params;
 
@@ -23,7 +23,7 @@ if (Astro.request.method === 'POST') {
     const tagIds = formData.getAll('tagIds') as string[];
 
     // Validate with Valibot
-    const result = v.safeParse(CardCreateSchema, {
+    const result = v.safeParse(CardSchema, {
       title,
       description: description || null,
       assigneeId: assigneeId || null,

@@ -20,6 +20,7 @@ export type BoardOutput = v.InferOutput<typeof BoardSchema>;
 
 // Card validation schema
 export const CardSchema = v.object({
+  boardId: v.string("Board ID is required"),
   title: v.pipe(
     v.string("Title is required"),
     v.minLength(1, "Title cannot be empty"),
@@ -72,3 +73,31 @@ export const CommentSchema = v.object({
 
 export type CommentInput = v.InferInput<typeof CommentSchema>;
 export type CommentOutput = v.InferOutput<typeof CommentSchema>;
+
+// Card list update schema
+export const CardListUpdateSchema = v.object({
+  cardId: v.string("Card ID is required"),
+  newListId: v.string("List ID is required"),
+  boardId: v.string("Board ID is required"),
+});
+
+export type CardListUpdateInput = v.InferInput<typeof CardListUpdateSchema>;
+export type CardListUpdateOutput = v.InferOutput<typeof CardListUpdateSchema>;
+
+// Card position update schema
+export const CardPositionUpdateSchema = v.object({
+  cardIds: v.array(v.string()),
+  boardId: v.string("Board ID is required"),
+});
+
+export type CardPositionUpdateInput = v.InferInput<typeof CardPositionUpdateSchema>;
+export type CardPositionUpdateOutput = v.InferOutput<typeof CardPositionUpdateSchema>;
+
+// Delete card schema
+export const DeleteCardSchema = v.object({
+  cardId: v.string("Card ID is required"),
+  boardId: v.string("Board ID is required"),
+});
+
+export type DeleteCardInput = v.InferInput<typeof DeleteCardSchema>;
+export type DeleteCardOutput = v.InferOutput<typeof DeleteCardSchema>;

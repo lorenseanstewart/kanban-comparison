@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createCard } from '../../lib/api';
 import * as v from 'valibot';
-import { CardCreateSchema } from '../../lib/validation';
+import { CardSchema } from '../../lib/validation';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Validate with Valibot
-    const result = v.safeParse(CardCreateSchema, {
+    const result = v.safeParse(CardSchema, {
       boardId,
       title,
       description: description || null,
