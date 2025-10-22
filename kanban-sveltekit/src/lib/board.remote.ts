@@ -135,8 +135,7 @@ export const addComment = form(CommentSchema, async (data) => {
 export const updateCardList = command(CardListUpdateSchema, async (data) => {
 	await db.update(cards).set({ listId: data.newListId }).where(eq(cards.id, data.cardId));
 
-	// Refresh the board query
-	await getBoardData(data.boardId).refresh();
+	// Refreshing the board query happens below in updateCardPositions
 });
 
 export const updateCardPositions = command(CardPositionUpdateSchema, async (data) => {

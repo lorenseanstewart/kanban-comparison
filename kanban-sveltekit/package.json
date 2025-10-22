@@ -37,7 +37,6 @@
 		"charts.css": "^1.2.0",
 		"daisyui": "^5.3.7",
 		"drizzle-orm": "^0.44.6",
-		"svelte-dnd-action": "^0.9.65",
 		"valibot": "^1.1.0"
 	}
 }
