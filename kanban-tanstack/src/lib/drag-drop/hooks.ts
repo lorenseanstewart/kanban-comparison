@@ -9,8 +9,8 @@ import {
 } from "./logic";
 
 export interface UseBoardDragDropOptions {
-  board: BoardDetails | null;
-  setBoard: (board: BoardDetails | null) => void;
+  board: BoardDetails;
+  setBoard: (board: BoardDetails) => void;
   revertToServerState: () => void;
 }
 
@@ -25,14 +25,11 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
     const { active, over } = event;
     if (!over || !active) return;
 
-    const currentBoard = board;
-    if (!currentBoard) return;
-
     // Parse the drag event to extract all relevant information
     const result = parseDragEvent(
       active.id as string,
       over.id as string,
-      currentBoard
+      board
     );
 
     if (!result) {
@@ -42,7 +39,7 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
     // Perform optimistic UI update
     if (result.isSameList) {
       // Same-list reorder
-      const sourceList = currentBoard.lists.find((l) => l.id === result.sourceListId);
+      const sourceList = board.lists.find((l) => l.id === result.sourceListId);
       if (!sourceList) return;
 
       const reorderResult = calculateReorder(
@@ -53,7 +50,7 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
 
       if (!reorderResult) return;
 
-      setBoard(createReorderUpdate(currentBoard, result, reorderResult.reorderedCards));
+      setBoard(createReorderUpdate(board, result, reorderResult.reorderedCards));
 
       // Persist to database
       try {
@@ -63,7 +60,7 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
       }
     } else {
       // Cross-list move
-      setBoard(createCrossListUpdate(currentBoard, result));
+      setBoard(createCrossListUpdate(board, result));
 
       // Persist to database
       try {

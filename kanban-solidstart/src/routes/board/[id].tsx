@@ -1,5 +1,6 @@
-import { A, createAsync, useParams, type RouteDefinition } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, For, Show, Suspense } from "solid-js";
+import { A, createAsync, useParams, type RouteDefinition, useSubmissions } from "@solidjs/router";
+import { batch, createEffect, createMemo, createSignal, For, Show, Suspense, untrack } from "solid-js";
+import { createStore, produce, reconcile } from "solid-js/store";
 import { fetchBoard, listTags, listUsers } from "~/api";
 import type { BoardCard, BoardDetails, TagsList, UsersList } from "~/api/boards";
 import { BoardOverview } from "~/components/BoardOverview";
@@ -8,6 +9,16 @@ import { DragDropBoard } from "~/components/DragDropBoard";
 import { ErrorBoundary } from "~/components/ErrorBoundary";
 import { AddCardModal } from "~/components/modals/AddCardModal";
 import { useBoardDragDrop } from "~/lib/drag-drop/hooks";
+import {
+  updateCardListAction,
+  updateCardPositionsAction
+} from "~/api/drag-drop-actions";
+import {
+  updateCardAction,
+  createCardAction,
+  deleteCardAction,
+  addCommentAction
+} from "~/api/card-actions";
 
 function CardListFallback() {
   return (
@@ -28,6 +39,125 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
+type Mutation =
+  | {
+      type: "moveCard";
+      cardId: string;
+      targetListId: string;
+      timestamp: number;
+    }
+  | {
+      type: "reorderCards";
+      cardIds: string[];
+      timestamp: number;
+    }
+  | {
+      type: "updateCard";
+      cardId: string;
+      updates: Partial<BoardCard>;
+      timestamp: number;
+    }
+  | {
+      type: "createCard";
+      cardId: string;
+      listId: string;
+      timestamp: number;
+    }
+  | {
+      type: "deleteCard";
+      cardId: string;
+      timestamp: number;
+    };
+
+function applyMutations(mutations: Mutation[], board: BoardDetails): BoardDetails {
+  // Create a mutable copy
+  const result: BoardDetails = {
+    ...board,
+    lists: board.lists.map((list) => ({
+      ...list,
+      cards: [...list.cards],
+    })),
+  };
+
+  for (const mut of mutations.sort((a, b) => a.timestamp - b.timestamp)) {
+    switch (mut.type) {
+      case "moveCard": {
+        // Find and remove card from source list
+        let movedCard: BoardCard | null = null;
+        for (const list of result.lists) {
+          const cardIndex = list.cards.findIndex((c) => c.id === mut.cardId);
+          if (cardIndex !== -1) {
+            movedCard = list.cards[cardIndex];
+            list.cards.splice(cardIndex, 1);
+            break;
+          }
+        }
+
+        // Add card to target list
+        if (movedCard) {
+          const targetList = result.lists.find((l) => l.id === mut.targetListId);
+          if (targetList) {
+            targetList.cards.push({ ...movedCard, listId: mut.targetListId });
+          }
+        }
+        break;
+      }
+
+      case "reorderCards": {
+        // Reorder cards based on the provided order
+        for (const list of result.lists) {
+          const cardMap = new Map(list.cards.map((c) => [c.id, c]));
+          const reorderedCards: BoardCard[] = [];
+
+          for (const cardId of mut.cardIds) {
+            const card = cardMap.get(cardId);
+            if (card && card.listId === list.id) {
+              reorderedCards.push(card);
+              cardMap.delete(cardId);
+            }
+          }
+
+          // Add any remaining cards not in the reorder list
+          cardMap.forEach((card) => {
+            if (card.listId === list.id) {
+              reorderedCards.push(card);
+            }
+          });
+
+          if (reorderedCards.length > 0) {
+            list.cards = reorderedCards;
+          }
+        }
+        break;
+      }
+
+      case "deleteCard": {
+        for (const list of result.lists) {
+          const cardIndex = list.cards.findIndex((c) => c.id === mut.cardId);
+          if (cardIndex !== -1) {
+            list.cards.splice(cardIndex, 1);
+            break;
+          }
+        }
+        break;
+      }
+
+      case "updateCard": {
+        for (const list of result.lists) {
+          const card = list.cards.find((c) => c.id === mut.cardId);
+          if (card) {
+            Object.assign(card, mut.updates);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
 export default function BoardPage() {
   const params = useParams();
   const boardData = createAsync<BoardDetails | null>(() => fetchBoard({ id: params.id }), {
@@ -39,33 +169,106 @@ export default function BoardPage() {
   const effectiveUsers = createMemo(() => allUsers() || []);
   const effectiveTags = createMemo(() => allTags() || []);
 
-  // Local board state for optimistic updates during drag-and-drop
-  const [board, setBoard] = createSignal<BoardDetails | null>(boardData() || null);
+  // Store-based state for efficient diffing
+  const [boardStore, setBoardStore] = createStore({
+    board: boardData() || { id: "", title: "", description: null, lists: [] },
+    timestamp: 0,
+  });
 
   const [isAddCardModalOpen, setIsAddCardModalOpen] = createSignal(false);
 
-  // Sync local board state with server data after mutations
-  createEffect(() => {
-    const data = boardData();
-    if (data && data.id) {
-      setBoard(data);
+  // Track all pending submissions
+  const moveCardSubmissions = useSubmissions(updateCardListAction);
+  const reorderCardsSubmissions = useSubmissions(updateCardPositionsAction);
+  const updateCardSubmissions = useSubmissions(updateCardAction);
+  const createCardSubmissions = useSubmissions(createCardAction);
+  const deleteCardSubmissions = useSubmissions(deleteCardAction);
+
+  function getMutations(): Mutation[] {
+    const mutations: Mutation[] = [];
+
+    // Track move card mutations
+    for (const submission of moveCardSubmissions.values()) {
+      if (!submission.pending) continue;
+      const [cardId, targetListId] = submission.input;
+      mutations.push({
+        type: "moveCard",
+        cardId,
+        targetListId,
+        timestamp: Date.now(),
+      });
     }
+
+    // Track reorder mutations
+    for (const submission of reorderCardsSubmissions.values()) {
+      if (!submission.pending) continue;
+      const [cardIds] = submission.input;
+      mutations.push({
+        type: "reorderCards",
+        cardIds,
+        timestamp: Date.now(),
+      });
+    }
+
+    // Track card deletion mutations
+    for (const submission of deleteCardSubmissions.values()) {
+      if (!submission.pending) continue;
+      const [cardId] = submission.input;
+      mutations.push({
+        type: "deleteCard",
+        cardId,
+        timestamp: Date.now(),
+      });
+    }
+
+    return mutations;
+  }
+
+  // Effect to reconcile server data with pending mutations
+  createEffect(() => {
+    const mutations = untrack(() => getMutations());
+    const data = boardData();
+
+    if (!data || !data.id) return;
+
+    // Apply mutations to server data
+    const reconciledBoard = applyMutations(mutations, data);
+
+    batch(() => {
+      setBoardStore("board", reconcile(reconciledBoard));
+      setBoardStore("timestamp", Date.now());
+    });
+  });
+
+  // Effect for optimistic updates on new submissions
+  createEffect(() => {
+    const mutations = getMutations();
+    const prevTimestamp = untrack(() => boardStore.timestamp);
+    const latestMutations = mutations.filter((m) => m.timestamp > prevTimestamp);
+
+    if (latestMutations.length === 0) return;
+
+    setBoardStore(
+      produce((store) => {
+        store.board = applyMutations(latestMutations, store.board);
+        store.timestamp = Date.now();
+      })
+    );
   });
 
   // Drag-and-drop handler using composable hook with optimistic updates
   const { handleDragEnd } = useBoardDragDrop({
-    board,
-    setBoard,
+    board: () => boardStore.board,
+    setBoard: (updater) => {
+      if (typeof updater === "function") {
+        setBoardStore("board", updater(boardStore.board));
+      } else {
+        setBoardStore("board", updater);
+      }
+    },
     boardData,
   });
 
-  // Handle optimistic card updates
-  const handleCardUpdate = (cardId: string, updates: Partial<BoardCard>) => {
-    // Optimistic updates disabled - rely on server revalidation
-    // This prevents duplicate card rendering issues
-  };
-
-  // Handle card creation - don't add optimistically, let server revalidation sync the new card
   const handleCardAdd = (cardData: {
     id: string;
     title: string;
@@ -73,26 +276,7 @@ export default function BoardPage() {
     assigneeId: string | null;
     tagIds: string[];
   }) => {
-    // The server action will revalidate and fetch the new card,
-    // so we don't need to add it optimistically here.
-    // This prevents duplicate cards from appearing.
-  };
-
-  // Handle card deletion - don't delete optimistically, let server revalidation sync data
-  const handleCardDelete = (cardId: string) => {
-    //   if (!board) return;
-    //   setBoard(
-    //     produce((draft: any) => {
-    //       if (!draft) return;
-    //       for (const list of draft.lists) {
-    //         const cardIndex = list.cards.findIndex((c: any) => c.id === cardId);
-    //         if (cardIndex !== -1) {
-    //           list.cards.splice(cardIndex, 1);
-    //           break;
-    //         }
-    //       }
-    //     })
-    //   );
+    // Let server revalidation handle this
   };
 
   return (
@@ -109,10 +293,10 @@ export default function BoardPage() {
           </li>
           <li>
             <Show
-              when={board()}
+              when={boardStore.board.id}
               fallback={<span>Loading...</span>}
             >
-              {(data) => <span class="text-base-content/60">{data().title}</span>}
+              <span class="text-base-content/60">{boardStore.board.title}</span>
             </Show>
           </li>
         </ul>
@@ -129,75 +313,58 @@ export default function BoardPage() {
             </div>
           }
         >
-          <Show
-            when={board()}
-            keyed
-          >
-            {(boardState) => (
-              <>
-                <ErrorBoundary>
-                  <DragDropBoard
-                    onDragEnd={handleDragEnd}
-                    board={() => boardState}
-                  >
-                    <div class="space-y-8">
-                      <ErrorBoundary>
-                        <Show when={boardState}>{(data) => <BoardOverview data={data()} />}</Show>
-                      </ErrorBoundary>
+          <Show when={boardStore.board.id}>
+            <ErrorBoundary>
+              <DragDropBoard
+                onDragEnd={handleDragEnd}
+                board={() => boardStore.board}
+              >
+                <div class="space-y-8">
+                  <ErrorBoundary>
+                    <BoardOverview data={boardStore.board} />
+                  </ErrorBoundary>
 
-                      <div class="flex justify-start mb-4">
-                        <button
-                          type="button"
-                          class="btn btn-primary"
-                          onClick={() => setIsAddCardModalOpen(true)}
-                        >
-                          Add Card
-                        </button>
-                      </div>
+                  <div class="flex justify-start mb-4">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      onClick={() => setIsAddCardModalOpen(true)}
+                    >
+                      Add Card
+                    </button>
+                  </div>
 
-                      <section class="flex gap-7 overflow-x-auto pb-8">
-                        <Show when={boardState}>
-                          {(data) => (
-                            <For
-                              each={data().lists}
-                              fallback={<CardListFallback />}
-                            >
-                              {(list) => (
-                                <ErrorBoundary>
-                                  <CardList
-                                    list={list}
-                                    users={effectiveUsers()}
-                                    allUsers={effectiveUsers()}
-                                    allTags={effectiveTags()}
-                                    boardId={params.id}
-                                    // onCardUpdate={handleCardUpdate}
-                                    // onCardDelete={handleCardDelete}
-                                  />
-                                </ErrorBoundary>
-                              )}
-                            </For>
-                          )}
-                        </Show>
-                      </section>
-                    </div>
-                  </DragDropBoard>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                  <Show when={boardState}>
-                    {(data) => (
-                      <AddCardModal
-                        boardId={data().id}
-                        users={effectiveUsers()}
-                        tags={effectiveTags()}
-                        isOpen={isAddCardModalOpen()}
-                        onClose={() => setIsAddCardModalOpen(false)}
-                        onCardAdd={handleCardAdd}
-                      />
-                    )}
-                  </Show>
-                </ErrorBoundary>
-              </>
-            )}
+                  <section class="flex gap-7 overflow-x-auto pb-8">
+                    <For
+                      each={boardStore.board.lists}
+                      fallback={<CardListFallback />}
+                    >
+                      {(list) => (
+                        <ErrorBoundary>
+                          <CardList
+                            list={list}
+                            users={effectiveUsers()}
+                            allUsers={effectiveUsers()}
+                            allTags={effectiveTags()}
+                            boardId={params.id}
+                          />
+                        </ErrorBoundary>
+                      )}
+                    </For>
+                  </section>
+                </div>
+              </DragDropBoard>
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <AddCardModal
+                boardId={boardStore.board.id}
+                users={effectiveUsers()}
+                tags={effectiveTags()}
+                isOpen={isAddCardModalOpen()}
+                onClose={() => setIsAddCardModalOpen(false)}
+                onCardAdd={handleCardAdd}
+              />
+            </ErrorBoundary>
           </Show>
         </Suspense>
       </ErrorBoundary>

@@ -1,21 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import type { BoardSummary } from "@/lib/api";
 import { AddBoardModal } from "./AddBoardModal";
 
 export function HomePageClient({
-  initialBoards,
+  boardsPromise,
 }: {
-  initialBoards: BoardSummary[];
+  boardsPromise: Promise<BoardSummary[]>;
 }) {
+  const initialBoards = use(boardsPromise);
   const [boards, setBoards] = useState<BoardSummary[]>(initialBoards);
-
-  // Sync local state with server data when initialBoards changes
-  useEffect(() => {
-    setBoards(initialBoards);
-  }, [initialBoards]);
 
   // Handle board creation with server-generated ID
   const handleBoardAdd = (boardData: {

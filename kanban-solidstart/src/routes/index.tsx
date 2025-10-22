@@ -1,5 +1,5 @@
 import { A, createAsync, type RouteDefinition } from "@solidjs/router";
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, Suspense, createSignal } from "solid-js";
 import { listBoards } from "~/api";
 import { ErrorBoundary } from "~/components/ErrorBoundary";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
@@ -33,8 +33,7 @@ export default function Home() {
       </div>
 
       <ErrorBoundary>
-        <Show
-          when={boards()}
+        <Suspense
           fallback={
             <div class="flex justify-center py-16">
               <span
@@ -44,43 +43,41 @@ export default function Home() {
             </div>
           }
         >
-          {(items) => (
-            <Show
-              when={items().length > 0}
-              fallback={
-                <div class="card bg-base-200 dark:bg-base-300 shadow-xl">
-                  <div class="card-body items-center text-center">
-                    <h2 class="card-title text-secondary">No boards yet</h2>
-                    <p class="text-base-content/60">Create your first board to get started.</p>
-                  </div>
+          <Show
+            when={boards()?.length ?? 0 > 0}
+            fallback={
+              <div class="card bg-base-200 dark:bg-base-300 shadow-xl">
+                <div class="card-body items-center text-center">
+                  <h2 class="card-title text-secondary">No boards yet</h2>
+                  <p class="text-base-content/60">Create your first board to get started.</p>
                 </div>
-              }
-            >
-              <section class="grid gap-8 md:grid-cols-2">
-                <For each={items()}>
-                  {(board) => (
-                    <A
-                      href={`/board/${board.id}`}
-                      class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
-                    >
-                      <div class="card-body">
-                        <h2 class="card-title text-primary">{board.title}</h2>
-                        {board.description ? (
-                          <p class="text-sm text-base-content/60">{board.description}</p>
-                        ) : (
-                          <p class="badge badge-secondary badge-outline w-fit shadow">No description</p>
-                        )}
-                        <div class="card-actions justify-end">
-                          <span class="btn btn-secondary btn-sm shadow-lg">Open board</span>
-                        </div>
+              </div>
+            }
+          >
+            <section class="grid gap-8 md:grid-cols-2">
+              <For each={boards()}>
+                {(board) => (
+                  <A
+                    href={`/board/${board.id}`}
+                    class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
+                  >
+                    <div class="card-body">
+                      <h2 class="card-title text-primary">{board.title}</h2>
+                      {board.description ? (
+                        <p class="text-sm text-base-content/60">{board.description}</p>
+                      ) : (
+                        <p class="badge badge-secondary badge-outline w-fit shadow">No description</p>
+                      )}
+                      <div class="card-actions justify-end">
+                        <span class="btn btn-secondary btn-sm shadow-lg">Open board</span>
                       </div>
-                    </A>
-                  )}
-                </For>
-              </section>
-            </Show>
-          )}
-        </Show>
+                    </div>
+                  </A>
+                )}
+              </For>
+            </section>
+          </Show>
+        </Suspense>
       </ErrorBoundary>
 
       <ErrorBoundary>

@@ -1,28 +1,7 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { getBoard, getUsers, getTags } from "@/lib/api";
 import { BoardPageClient } from "./BoardPageClient";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const boardData = await getBoard(id);
-
-  if (!boardData) {
-    return {
-      title: "Board Not Found | Kanban Board",
-      description: "The requested board could not be found.",
-    };
-  }
-
-  return {
-    title: `${boardData.title} | Kanban Board`,
-    description: boardData.description || `Manage tasks on the ${boardData.title} board`,
-  };
-}
+import { Suspense } from "react";
+import LoadingFallback from "./loading";
 
 export default async function BoardPage({
   params,
@@ -31,21 +10,17 @@ export default async function BoardPage({
 }) {
   const { id } = await params;
 
-  const [boardData, allUsers, allTags] = await Promise.all([
-    getBoard(id),
-    getUsers(),
-    getTags(),
-  ]);
-
-  if (!boardData) {
-    notFound();
-  }
+  const boardPromise = getBoard(id);
+  const usersPromise = getUsers();
+  const tagsPromise = getTags();
 
   return (
-    <BoardPageClient
-      initialBoard={boardData}
-      allUsers={allUsers}
-      allTags={allTags}
-    />
+    <Suspense fallback={<LoadingFallback />}>
+      <BoardPageClient
+        boardPromise={boardPromise}
+        usersPromise={usersPromise}
+        tagsPromise={tagsPromise}
+      />
+    </Suspense>
   );
 }

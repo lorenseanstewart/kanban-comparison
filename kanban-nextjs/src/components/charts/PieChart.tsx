@@ -1,5 +1,3 @@
-"use client";
-
 export function PieChart(props: {
   data: Array<{ label: string; value: number }>;
   colors: string[];
