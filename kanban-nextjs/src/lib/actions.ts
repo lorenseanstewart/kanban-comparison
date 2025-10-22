@@ -74,7 +74,7 @@ export async function updateCard(formData: FormData) {
     }
 
     // Use a transaction to update card and tags atomically
-    db.transaction((tx) => {
+    await db.transaction((tx) => {
       // Update card basic fields
       tx.update(cards)
         .set({
@@ -191,7 +191,7 @@ export async function createCard(formData: FormData) {
     const cardId = crypto.randomUUID();
 
     // Use a transaction to create card and tags atomically
-    db.transaction((tx) => {
+    await db.transaction((tx) => {
       tx.insert(cards)
         .values({
           id: cardId,
