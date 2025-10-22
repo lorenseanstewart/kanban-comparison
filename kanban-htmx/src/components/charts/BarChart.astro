@@ -31,9 +31,8 @@ const maxValue = Math.max(...data.map((item) => item.value), 1);
                 style="height: 150px;"
               >
                 <div
-                  class="bar-column w-full rounded-t"
-                  style={`height: 0%; background-color: ${color};`}
-                  data-height={heightPercent}
+                  class="w-full rounded-t"
+                  style={`height: ${heightPercent}%; background-color: ${color}; transition: height 400ms cubic-bezier(0.4, 0, 0.2, 1), background-color 400ms cubic-bezier(0.4, 0, 0.2, 1);`}
                 >
                   <div class="text-xs text-white font-semibold text-center pt-1">
                     {item.value}
@@ -52,33 +51,3 @@ const maxValue = Math.max(...data.map((item) => item.value), 1);
   </div>
 </div>
 
-<script>
-  // Animate bars on load
-  function animateBars() {
-    const bars = document.querySelectorAll('.bar-column');
-    bars.forEach((bar) => {
-      const heightPercent = bar.getAttribute('data-height');
-      if (heightPercent) {
-        // Set initial state
-        (bar as HTMLElement).style.transition = 'none';
-        (bar as HTMLElement).style.height = '0%';
-
-        // Trigger animation
-        requestAnimationFrame(() => {
-          (bar as HTMLElement).style.transition = 'height 500ms ease-out';
-          (bar as HTMLElement).style.height = `${heightPercent}%`;
-        });
-      }
-    });
-  }
-
-  // Run on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', animateBars);
-  } else {
-    animateBars();
-  }
-
-  // Re-run after HTMX swaps (if using HTMX)
-  document.body.addEventListener('htmx:afterSwap', animateBars);
-</script>

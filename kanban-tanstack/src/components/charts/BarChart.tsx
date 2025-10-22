@@ -56,6 +56,7 @@ function BarColumn({
           style={{
             height: `${heightPercent}%`,
             backgroundColor: color,
+            transition: "height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <div className="text-xs text-white font-semibold text-center pt-1">

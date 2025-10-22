@@ -10,6 +10,15 @@ export default defineConfig({
   }),
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      cssCodeSplit: true,
+      cssMinify: true,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
     ssr: {
       external: ["better-sqlite3"],
     },

@@ -8,6 +8,15 @@ export default defineConfig({
   server: {
     port: 3008,
   },
+  build: {
+    cssCodeSplit: false,
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
   plugins: [
     tsConfigPaths({
       projects: ["./tsconfig.json"],

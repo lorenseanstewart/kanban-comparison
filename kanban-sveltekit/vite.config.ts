@@ -4,6 +4,15 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [sveltekit(), tailwindcss()],
+	build: {
+		cssCodeSplit: true,
+		cssMinify: true,
+		rollupOptions: {
+			output: {
+				manualChunks: undefined,
+			},
+		},
+	},
 	preview: {
 		port: 3005
 	}

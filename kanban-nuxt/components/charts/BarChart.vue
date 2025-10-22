@@ -6,39 +6,6 @@ const props = defineProps<{
 }>()
 
 const maxValue = computed(() => Math.max(...props.data.map((item) => item.value), 1))
-const barRefs = ref<HTMLDivElement[]>([])
-
-const animateBars = () => {
-  props.data.forEach((item, index) => {
-    const barEl = barRefs.value[index]
-    if (barEl) {
-      const heightPercent = (item.value / maxValue.value) * 100
-      const color = props.colors[index % props.colors.length]
-
-      // Set initial state without transition
-      barEl.style.transition = 'none'
-      barEl.style.height = '0%'
-      barEl.style.backgroundColor = color
-
-      // Trigger animation after a brief delay
-      requestAnimationFrame(() => {
-        if (barEl) {
-          barEl.style.transition = 'height 500ms ease-out, background-color 500ms ease-out'
-          barEl.style.height = `${heightPercent}%`
-        }
-      })
-    }
-  })
-}
-
-onMounted(() => {
-  animateBars()
-})
-
-// Watch for data changes and re-animate
-watch(() => props.data.map(item => item.value), () => {
-  animateBars()
-}, { deep: true })
 </script>
 
 <template>
@@ -59,9 +26,12 @@ watch(() => props.data.map(item => item.value), () => {
           <!-- Bar container - grows from bottom -->
           <div class="w-full flex flex-col justify-end" style="height: 150px">
             <div
-              :ref="(el) => (barRefs[index] = el as HTMLDivElement)"
               class="w-full rounded-t"
-              style="height: 0%"
+              :style="{
+                height: `${(item.value / maxValue) * 100}%`,
+                backgroundColor: colors[index % colors.length],
+                transition: 'height 400ms cubic-bezier(0.4, 0, 0.2, 1), background-color 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+              }"
             >
               <div class="text-xs text-white font-semibold text-center pt-1">
                 {{ item.value }}
