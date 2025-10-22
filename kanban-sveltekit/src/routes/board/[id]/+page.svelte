@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { BoardCard } from '$lib/server/boards';
+	import type { BoardCard, BoardList } from '$lib/server/boards';
 	import BoardOverview from '$lib/components/BoardOverview.svelte';
 	import CardList from '$lib/components/CardList.svelte';
 	import AddCardModal from '$lib/components/modals/AddCardModal.svelte';
-	import type { DndEvent } from 'svelte-dnd-action';
 	import { debounce } from '$lib/utils';
 	import { getBoardData, updateCardList, updateCardPositions } from '$lib/board.remote';
 	import { isHttpError } from '@sveltejs/kit';
@@ -15,7 +14,7 @@
 	let isAddCardModalOpen = $state(false);
 	let isUpdating = $state(false);
 
-	// Local state for optimistic updates during drag
+	// Create optimistic board derived from current data
 	let optimisticBoard = $derived(bordData.board);
 
 	// Debounced position update to avoid too many requests
@@ -30,59 +29,67 @@
 		}
 	}, 300);
 
-	// Handle drag and drop consider event (during drag)
-	function handleConsider(listId: string, e: CustomEvent<DndEvent<BoardCard>>) {
-		const { items } = e.detail;
-
-		// Update board state optimistically during drag
-		optimisticBoard = {
-			...optimisticBoard,
-			lists: optimisticBoard.lists.map((list) =>
-				list.id === listId ? { ...list, cards: items } : list
-			)
-		};
-	}
-
-	// Handle drag and drop finalize event (on drop)
-	async function handleFinalize(listId: string, e: CustomEvent<DndEvent<BoardCard>>) {
-		const { items } = e.detail;
-
-		// Find the list that was modified
-		const targetList = optimisticBoard.lists.find((list) => list.id === listId);
-		if (!targetList) return;
-
-		// Update board state optimistically
-		optimisticBoard = {
-			...optimisticBoard,
-			lists: optimisticBoard.lists.map((list) =>
-				list.id === listId ? { ...list, cards: items } : list
-			)
-		};
-
+	// Handle card drop
+	async function handleCardDrop(cardId: string, newListId: string, newPosition: number) {
 		isUpdating = true;
 
 		try {
-			// Check if any card changed lists
-			const cardMovedToNewList = items.find((card) => {
-				// Find the original list for this card in board_data.board
-				const originalList = bordData.board.lists.find((list) =>
-					list.cards.some((c) => c.id === card.id)
-				);
-				return originalList && originalList.id !== listId;
-			});
+			// Find the card and its current list
+			let source_list: BoardList | undefined;
+			let card: BoardCard | undefined;
 
-			// Submit changes to server
-			if (cardMovedToNewList) {
-				// Card moved to a different list
+			for (const list of bordData.board.lists) {
+				const found_card = list.cards.find((c) => c.id === cardId);
+				if (found_card) {
+					source_list = list;
+					card = found_card;
+					break;
+				}
+			}
+
+			if (!card || !source_list) {
+				console.error('Card not found');
+				return;
+			}
+
+			// Update optimistically
+			const optimistic_lists = optimisticBoard.lists.map((list) => {
+				if (list.id === source_list!.id) {
+					// Remove card from source list
+					return {
+						...list,
+						cards: list.cards.filter((c) => c.id !== cardId)
+					};
+				} else if (list.id === newListId) {
+					// Add card to target list at the specified position
+					const new_cards = [...list.cards];
+					new_cards.splice(newPosition, 0, card!);
+					return {
+						...list,
+						cards: new_cards
+					};
+				}
+				return list;
+			});
+			optimisticBoard = {
+				...optimisticBoard,
+				lists: optimistic_lists
+			};
+
+			// Update card list if it changed
+			if (source_list.id !== newListId) {
 				await updateCardList({
-					cardId: cardMovedToNewList.id,
-					newListId: listId,
+					cardId: cardId,
+					newListId: newListId,
 					boardId: params.id
 				});
 			}
 
-			// Update positions for all cards in the list (debounced)
-			debouncedUpdatePositions(items.map((card) => card.id));
+			// Update positions for all cards in the target list
+			const target_list = optimistic_lists.find((l) => l.id === newListId);
+			if (target_list) {
+				debouncedUpdatePositions(target_list.cards.map((c) => c.id));
+			}
 		} catch (error) {
 			// Rollback on error - reload from server
 			getBoardData(params.id).refresh();
@@ -149,8 +156,7 @@
 						users={bordData.users}
 						allUsers={bordData.users}
 						allTags={bordData.tags}
-						onConsider={(e) => handleConsider(list.id, e)}
-						onFinalize={(e) => handleFinalize(list.id, e)}
+						onCardDrop={handleCardDrop}
 					/>
 				{/each}
 			</section>
