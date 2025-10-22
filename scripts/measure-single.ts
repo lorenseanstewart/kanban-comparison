@@ -83,41 +83,76 @@ function getChromeVersion(): string {
   }
 }
 
-function calculateStats(values: number[]): StatisticalSummary {
+/**
+ * Remove outliers using IQR (Interquartile Range) method
+ * Values outside Q1 - 1.5×IQR and Q3 + 1.5×IQR are considered outliers
+ * Returns filtered values with outliers removed, or original if too few values
+ */
+function removeOutliers(values: number[]): number[] {
+  if (values.length < 7) {
+    // Need at least 7 values for reliable IQR calculation
+    // With fewer values, don't remove outliers
+    return values;
+  }
+
   const sorted = [...values].sort((a, b) => a - b);
-  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  const q1Index = Math.floor(sorted.length * 0.25);
+  const q3Index = Math.floor(sorted.length * 0.75);
+
+  const q1 = sorted[q1Index];
+  const q3 = sorted[q3Index];
+  const iqr = q3 - q1;
+
+  const lowerBound = q1 - 1.5 * iqr;
+  const upperBound = q3 + 1.5 * iqr;
+
+  const filtered = values.filter(v => v >= lowerBound && v <= upperBound);
+
+  // Only use filtered values if we still have at least half the original data
+  return filtered.length >= values.length / 2 ? filtered : values;
+}
+
+function calculateStats(values: number[]): StatisticalSummary {
+  // Remove outliers before calculating statistics
+  const cleanedValues = removeOutliers(values);
+
+  const sorted = [...cleanedValues].sort((a, b) => a - b);
+  const mean = cleanedValues.reduce((sum, val) => sum + val, 0) / cleanedValues.length;
   const median = sorted.length % 2 === 0
     ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
     : sorted[Math.floor(sorted.length / 2)];
 
-  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const variance = cleanedValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / cleanedValues.length;
   const stddev = Math.sqrt(variance);
 
   return {
     mean: Math.round(mean),
     median: Math.round(median),
     stddev: Math.round(stddev * 10) / 10,
-    min: Math.min(...values),
+    min: Math.min(...values), // Use original values for min/max to show full range
     max: Math.max(...values),
     runs: values.length
   };
 }
 
 function calculateStatsFloat(values: number[]): StatisticalSummary {
-  const sorted = [...values].sort((a, b) => a - b);
-  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+  // Remove outliers before calculating statistics
+  const cleanedValues = removeOutliers(values);
+
+  const sorted = [...cleanedValues].sort((a, b) => a - b);
+  const mean = cleanedValues.reduce((sum, val) => sum + val, 0) / cleanedValues.length;
   const median = sorted.length % 2 === 0
     ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
     : sorted[Math.floor(sorted.length / 2)];
 
-  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const variance = cleanedValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / cleanedValues.length;
   const stddev = Math.sqrt(variance);
 
   return {
     mean: Math.round(mean * 1000) / 1000,
     median: Math.round(median * 1000) / 1000,
     stddev: Math.round(stddev * 1000) / 1000,
-    min: Math.round(Math.min(...values) * 1000) / 1000,
+    min: Math.round(Math.min(...values) * 1000) / 1000, // Use original values for min/max to show full range
     max: Math.round(Math.max(...values) * 1000) / 1000,
     runs: values.length
   };
@@ -174,6 +209,31 @@ async function startServer(framework: typeof FRAMEWORKS[0]): Promise<() => void>
 
   // Return cleanup function
   return () => killPort(framework.port);
+}
+
+/**
+ * Perform warmup requests to stabilize server/database performance
+ * This helps reduce variance by ensuring caches are warm and database
+ * connections are established before actual measurements
+ */
+async function warmupServer(urls: string[]): Promise<void> {
+  console.error(`   Warming up server (${urls.length} requests)...`);
+
+  for (const url of urls) {
+    try {
+      execSync(`curl -s -o /dev/null "${url}"`, {
+        stdio: 'ignore',
+        timeout: 10000
+      });
+    } catch (error) {
+      console.error(`   ⚠️  Warmup request failed for ${url}`);
+    }
+    await sleep(500); // Small delay between warmup requests
+  }
+
+  // Additional delay to let server fully stabilize
+  await sleep(2000);
+  console.error(`   ✅ Warmup complete`);
 }
 
 async function measurePageBundle(url: string, runNumber: number, totalRuns: number): Promise<{
@@ -265,6 +325,12 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
       { name: 'home', url: `http://localhost:${framework.port}${framework.homeUrl}` },
       { name: 'board', url: `http://localhost:${framework.port}${framework.boardUrl}` }
     ];
+
+    // Warmup: request each page twice to stabilize server/database performance
+    await warmupServer([
+      ...pages.map(p => p.url),
+      ...pages.map(p => p.url) // Request each page twice
+    ]);
 
     for (const page of pages) {
       console.error(`   Measuring ${page.name} page (${numRuns} runs)...`);

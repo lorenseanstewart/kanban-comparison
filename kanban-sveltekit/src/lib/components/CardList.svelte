@@ -24,20 +24,20 @@
 	function handle_drag_over(e: DragEvent) {
 		e.preventDefault();
 		if (drop_zone_element) {
-			drop_zone_element.classList.add('bg-base-300', 'dark:bg-base-100');
+			drop_zone_element.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
 		}
 	}
 
 	function handle_drag_leave(e: DragEvent) {
 		if (drop_zone_element) {
-			drop_zone_element.classList.remove('bg-base-300', 'dark:bg-base-100');
+			drop_zone_element.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
 		}
 	}
 
 	function handle_drop(e: DragEvent) {
 		e.preventDefault();
 		if (drop_zone_element) {
-			drop_zone_element.classList.remove('bg-base-300', 'dark:bg-base-100');
+			drop_zone_element.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
 		}
 
 		const card_id = e.dataTransfer?.getData('cardId')!;
@@ -72,7 +72,7 @@
 
 		<div
 			bind:this={drop_zone_element}
-			class="min-h-[200px] space-y-4 rounded-lg transition-colors"
+			class="min-h-[200px] space-y-4 rounded-lg transition-all duration-200"
 			role="region"
 			ondragover={handle_drag_over}
 			ondragleave={handle_drag_leave}

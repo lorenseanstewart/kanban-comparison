@@ -307,15 +307,47 @@ async function handleCardAdd(cardData: {
     />
   </main>
 
+  <!-- Loading skeleton that matches final layout to prevent CLS -->
   <main
     v-else
     class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl"
   >
-    <div class="flex justify-center py-16">
-      <span
-        class="loading loading-spinner loading-lg text-primary"
-        aria-label="Loading board"
-      />
+    <!-- Breadcrumbs skeleton -->
+    <div class="breadcrumbs text-sm">
+      <ul>
+        <li><div class="skeleton h-4 w-16"></div></li>
+        <li><div class="skeleton h-4 w-32"></div></li>
+      </ul>
     </div>
+
+    <!-- Board overview skeleton -->
+    <div class="space-y-4">
+      <div class="skeleton h-8 w-64"></div>
+      <div class="skeleton h-20 w-full"></div>
+    </div>
+
+    <!-- Add button skeleton -->
+    <div class="flex justify-start mb-4">
+      <div class="skeleton h-12 w-32"></div>
+    </div>
+
+    <!-- Lists skeleton -->
+    <section class="flex gap-7 overflow-x-auto pb-8">
+      <div
+        v-for="i in 4"
+        :key="i"
+        class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl"
+      >
+        <div class="card-body gap-4">
+          <div class="flex items-center justify-between">
+            <div class="skeleton h-6 w-32"></div>
+            <div class="skeleton h-8 w-20"></div>
+          </div>
+          <div class="space-y-3 min-h-[600px] p-2">
+            <div v-for="j in 3" :key="j" class="skeleton h-24 w-full"></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </template>

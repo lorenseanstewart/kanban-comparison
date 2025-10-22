@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "measure:single": "tsx scripts/measure-single.ts",
-    "measure:final": "tsx scripts/measure-final.ts --runs 5",
+    "measure:final": "tsx scripts/measure-final.ts --runs 10",
     "measure:all": "npm run measure:final && npm run generate:charts",
     "measure:legacy": "tsx scripts/measure-all-lighthouse.ts",
     "generate:charts": "python3 scripts/generate-charts.py",

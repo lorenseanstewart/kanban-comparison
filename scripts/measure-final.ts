@@ -8,7 +8,7 @@
  * both JSON (for charts) and markdown (for blog posts).
  *
  * Usage: tsx scripts/measure-final.ts [--runs N]
- * Example: tsx scripts/measure-final.ts --runs 5
+ * Example: tsx scripts/measure-final.ts --runs 10
  */
 
 import { execSync } from 'child_process';
@@ -103,7 +103,7 @@ function generateMarkdownTable(results: AggregatedStats[], page: 'home' | 'board
 async function main() {
   // Parse CLI arguments
   const args = process.argv.slice(2);
-  let numRuns = 5; // Default to 5 runs
+  let numRuns = 10; // Default to 10 runs for better statistical power with IQR outlier removal
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--runs' && i + 1 < args.length) {
