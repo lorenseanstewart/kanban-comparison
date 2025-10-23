@@ -50,6 +50,7 @@ const FRAMEWORKS = [
   { name: 'Qwik', dir: 'kanban-qwikcity', buildCheck: ['dist'] },
   { name: 'Astro', dir: 'kanban-htmx', buildCheck: ['dist'] },
   { name: 'TanStack Start', dir: 'kanban-tanstack', buildCheck: ['.output', 'dist'] },
+  { name: 'TanStack Start + Solid', dir: 'kanban-tanstack-solid', buildCheck: ['.output', 'dist'] },
   { name: 'Marko', dir: 'kanban-marko', buildCheck: ['dist', 'build'] },
 ];
 

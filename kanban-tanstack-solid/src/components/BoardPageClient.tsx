@@ -6,7 +6,7 @@ import { EmptyList } from "./EmptyList";
 import { DragDropBoard } from "./DragDropBoard";
 import { AddCardModal } from "./modals/AddCardModal";
 import { useBoardDragDrop } from "../lib/drag-drop/hooks";
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 export function BoardPageClient(props: {
   initialBoard: BoardDetails;
@@ -121,15 +121,17 @@ export function BoardPageClient(props: {
             {board().lists.length === 0 ? (
               <EmptyList />
             ) : (
-              board().lists.map((list) => (
-                <CardList
-                  list={list}
-                  allUsers={props.allUsers}
-                  allTags={props.allTags}
-                  onCardUpdate={handleCardUpdate}
-                  onCardDelete={handleCardDelete}
-                />
-              ))
+              <For each={board().lists}>
+                {(list) => (
+                  <CardList
+                    list={list}
+                    allUsers={props.allUsers}
+                    allTags={props.allTags}
+                    onCardUpdate={handleCardUpdate}
+                    onCardDelete={handleCardDelete}
+                  />
+                )}
+              </For>
             )}
           </div>
         </DragDropBoard>

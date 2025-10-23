@@ -3,7 +3,7 @@ import { EditPencil } from "./icons/EditPencil";
 import { Plus } from "./icons/Plus";
 import { CardEditModal } from "./modals/CardEditModal";
 import { CommentModal } from "./modals/CommentModal";
-import { createSignal } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { createDraggable, createDroppable } from "@thisbeyond/solid-dnd";
 
 interface CardProps {
@@ -80,34 +80,40 @@ export function Card(props: CardProps) {
             </button>
           </div>
 
-          {props.card.assigneeId && (
-            <div class="badge badge-outline badge-secondary badge-sm">
-              Assigned to{" "}
-              {props.allUsers.find((u) => u.id === props.card.assigneeId)
-                ?.name ?? "Unassigned"}
-            </div>
-          )}
+          <Show when={props.card.assigneeId}>
+            {(assigneeId) => (
+              <div class="badge badge-outline badge-secondary badge-sm">
+                Assigned to{" "}
+                {props.allUsers.find((u) => u.id === assigneeId())?.name ??
+                  "Unassigned"}
+              </div>
+            )}
+          </Show>
 
-          {props.card.description && (
-            <p class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2">
-              {props.card.description}
-            </p>
-          )}
+          <Show when={props.card.description}>
+            {(description) => (
+              <p class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2">
+                {description()}
+              </p>
+            )}
+          </Show>
 
-          {props.card.tags.length > 0 && (
+          <Show when={props.card.tags.length > 0}>
             <div class="flex flex-wrap gap-2.5 rounded-xl px-3 py-2 bg-base-200 dark:bg-base-100">
-              {props.card.tags.map((tag) => (
-                <span
-                  class="badge border-0 shadow font-semibold text-white"
-                  style={{ "background-color": tag.color }}
-                >
-                  {tag.name}
-                </span>
-              ))}
+              <For each={props.card.tags}>
+                {(tag) => (
+                  <span
+                    class="badge border-0 shadow font-semibold text-white"
+                    style={{ "background-color": tag.color }}
+                  >
+                    {tag.name}
+                  </span>
+                )}
+              </For>
             </div>
-          )}
+          </Show>
 
-          {props.card.comments && props.card.comments.length === 0 ? (
+          <Show when={props.card.comments.length === 0}>
             <div class="flex items-center justify-between">
               <p class="text-xs font-semibold text-base-content/50">Comments</p>
               <button
@@ -121,7 +127,9 @@ export function Card(props: CardProps) {
                 <Plus />
               </button>
             </div>
-          ) : (
+          </Show>
+
+          <Show when={props.card.comments.length > 0}>
             <div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
               <div class="flex items-center justify-between">
                 <p class="text-xs font-semibold text-base-content/50">
@@ -139,19 +147,21 @@ export function Card(props: CardProps) {
                 </button>
               </div>
               <ul class="space-y-1 text-sm text-base-content/70">
-                {props.card.comments?.map((comment) => (
-                  <li>
-                    <span class="font-semibold text-base-content">
-                      {props.allUsers.find((u) => u.id === comment.userId)
-                        ?.name ?? "Unknown"}
-                      :
-                    </span>{" "}
-                    {comment.text}
-                  </li>
-                ))}
+                <For each={props.card.comments}>
+                  {(comment) => (
+                    <li>
+                      <span class="font-semibold text-base-content">
+                        {props.allUsers.find((u) => u.id === comment.userId)
+                          ?.name ?? "Unknown"}
+                        :
+                      </span>{" "}
+                      {comment.text}
+                    </li>
+                  )}
+                </For>
               </ul>
             </div>
-          )}
+          </Show>
         </div>
       </article>
       <CardEditModal

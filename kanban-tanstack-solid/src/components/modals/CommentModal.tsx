@@ -1,6 +1,6 @@
 import type { BoardCard, UsersList } from "@/lib/api";
 import { addComment } from "../../utils/api";
-import { createSignal, Show } from "solid-js";
+import { createSignal, Show, For } from "solid-js";
 
 export function CommentModal(props: {
   card: BoardCard;
@@ -70,8 +70,8 @@ export function CommentModal(props: {
               </div>
             ) : (
               <div class="space-y-3">
-                {props.card.comments.map(
-                  (comment: {
+                <For each={props.card.comments}>
+                  {(comment: {
                     id: string;
                     userId: string;
                     text: string;
@@ -96,8 +96,8 @@ export function CommentModal(props: {
                         </p>
                       </div>
                     );
-                  }
-                )}
+                  }}
+                </For>
               </div>
             )}
           </div>
@@ -116,9 +116,11 @@ export function CommentModal(props: {
                 value={selectedUserId()}
                 onChange={(e) => setSelectedUserId(e.currentTarget.value)}
               >
-                {props.users.map((user: { id: string; name: string }) => (
-                  <option value={user.id}>{user.name}</option>
-                ))}
+                <For each={props.users}>
+                  {(user: { id: string; name: string }) => (
+                    <option value={user.id}>{user.name}</option>
+                  )}
+                </For>
               </select>
             </div>
 

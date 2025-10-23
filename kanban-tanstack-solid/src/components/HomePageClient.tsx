@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/solid-router";
 import type { BoardSummary } from "../lib/api";
 import { AddBoardModal } from "./AddBoardModal";
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 export function HomePageClient(props: { initialBoards: BoardSummary[] }) {
   const [boards, setBoards] = createSignal<BoardSummary[]>(props.initialBoards);
@@ -42,31 +42,33 @@ export function HomePageClient(props: { initialBoards: BoardSummary[] }) {
             </div>
           </div>
         ) : (
-          boards().map((board) => (
-            <Link
-              to="/board/$id"
-              params={{ id: board.id }}
-              class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
-            >
-              <div class="card-body">
-                <h2 class="card-title text-primary">{board.title}</h2>
-                {board.description ? (
-                  <p class="text-sm text-base-content/60">
-                    {board.description}
-                  </p>
-                ) : (
-                  <p class="badge badge-secondary badge-outline w-fit shadow">
-                    No description
-                  </p>
-                )}
-                <div class="card-actions justify-end">
-                  <span class="btn btn-secondary btn-sm shadow-lg">
-                    Open board
-                  </span>
+          <For each={boards()}>
+            {(board) => (
+              <Link
+                to="/board/$id"
+                params={{ id: board.id }}
+                class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
+              >
+                <div class="card-body">
+                  <h2 class="card-title text-primary">{board.title}</h2>
+                  {board.description ? (
+                    <p class="text-sm text-base-content/60">
+                      {board.description}
+                    </p>
+                  ) : (
+                    <p class="badge badge-secondary badge-outline w-fit shadow">
+                      No description
+                    </p>
+                  )}
+                  <div class="card-actions justify-end">
+                    <span class="btn btn-secondary btn-sm shadow-lg">
+                      Open board
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            )}
+          </For>
         )}
       </section>
     </main>

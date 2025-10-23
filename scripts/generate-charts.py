@@ -25,6 +25,7 @@ COLORS = [
     "#84cc16",  # lime
     "#f97316",  # orange
     "#14b8a6",  # teal
+    "#ef4444",  # red
 ]
 
 

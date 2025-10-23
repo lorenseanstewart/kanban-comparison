@@ -1,3 +1,4 @@
+import { For } from "solid-js";
 import type { BoardDetails, UsersList, TagsList, BoardCard } from "../lib/api";
 import { Card } from "./Card";
 import { createDroppable } from "@thisbeyond/solid-dnd";
@@ -35,15 +36,17 @@ export function CardList(props: {
             </div>
           ) : (
             <div class="space-y-3">
-              {props.list.cards.map((card) => (
-                <Card
-                  card={card}
-                  allUsers={props.allUsers}
-                  allTags={props.allTags}
-                  onCardUpdate={props.onCardUpdate}
-                  onCardDelete={props.onCardDelete}
-                />
-              ))}
+              <For each={props.list.cards}>
+                {(card) => (
+                  <Card
+                    card={card}
+                    allUsers={props.allUsers}
+                    allTags={props.allTags}
+                    onCardUpdate={props.onCardUpdate}
+                    onCardDelete={props.onCardDelete}
+                  />
+                )}
+              </For>
             </div>
           )}
         </div>

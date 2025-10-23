@@ -1,6 +1,6 @@
 import type { BoardCard, UsersList, TagsList } from "@/lib/api";
 import { updateCard, deleteCard } from "../../utils/api";
-import { createEffect, createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show, For } from "solid-js";
 
 export function CardEditModal(props: {
   card: BoardCard;
@@ -151,9 +151,11 @@ export function CardEditModal(props: {
                 value={props.card.assigneeId || ""}
               >
                 <option value="">Unassigned</option>
-                {props.users.map((user: { id: string; name: string }) => (
-                  <option value={user.id}>{user.name}</option>
-                ))}
+                <For each={props.users}>
+                  {(user: { id: string; name: string }) => (
+                    <option value={user.id}>{user.name}</option>
+                  )}
+                </For>
               </select>
             </div>
 
@@ -162,8 +164,8 @@ export function CardEditModal(props: {
                 <span class="label-text">Tags</span>
               </label>
               <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-                {props.tags.map(
-                  (tag: { id: string; name: string; color: string }) => (
+                <For each={props.tags}>
+                  {(tag: { id: string; name: string; color: string }) => (
                     <button
                       type="button"
                       class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
@@ -186,8 +188,8 @@ export function CardEditModal(props: {
                     >
                       {tag.name}
                     </button>
-                  )
-                )}
+                  )}
+                </For>
               </div>
             </div>
 

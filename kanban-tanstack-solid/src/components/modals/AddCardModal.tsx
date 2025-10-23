@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show, For } from "solid-js";
 import type { UsersList, TagsList } from "../../lib/api";
 import { createCard } from "../../utils/api";
 import { useRouter } from "@tanstack/solid-router";
@@ -166,9 +166,9 @@ export function AddCardModal(props: {
                 disabled={isSubmitting()}
               >
                 <option value="">Unassigned</option>
-                {props.users.map((user) => (
-                  <option value={user.id}>{user.name}</option>
-                ))}
+                <For each={props.users}>
+                  {(user) => <option value={user.id}>{user.name}</option>}
+                </For>
               </select>
             </div>
 
@@ -177,30 +177,32 @@ export function AddCardModal(props: {
                 <span class="label-text">Tags</span>
               </label>
               <div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
-                {props.tags.map((tag) => (
-                  <button
-                    type="button"
-                    class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
-                      selectedTagIds().has(tag.id)
-                        ? "text-white"
-                        : "badge-outline"
-                    }`}
-                    style={
-                      selectedTagIds().has(tag.id)
-                        ? {
-                            "background-color": tag.color,
-                            "border-color": tag.color,
-                          }
-                        : {
-                            color: tag.color,
-                            "border-color": tag.color,
-                          }
-                    }
-                    onClick={() => toggleTag(tag.id)}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
+                <For each={props.tags}>
+                  {(tag) => (
+                    <button
+                      type="button"
+                      class={`badge border-2 font-semibold cursor-pointer transition-all hover:scale-105 ${
+                        selectedTagIds().has(tag.id)
+                          ? "text-white"
+                          : "badge-outline"
+                      }`}
+                      style={
+                        selectedTagIds().has(tag.id)
+                          ? {
+                              "background-color": tag.color,
+                              "border-color": tag.color,
+                            }
+                          : {
+                              color: tag.color,
+                              "border-color": tag.color,
+                            }
+                      }
+                      onClick={() => toggleTag(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  )}
+                </For>
               </div>
             </div>
 

@@ -16,6 +16,7 @@ const frameworks = [
   'Qwik',
   'Astro',
   'TanStack Start',
+  'TanStack Start + Solid',
   'Marko'
 ];
 
