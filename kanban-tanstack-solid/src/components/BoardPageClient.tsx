@@ -23,7 +23,7 @@ export function BoardPageClient(props: {
 
   // Drag-and-drop handler using composable hook
   const { handleDragEnd } = useBoardDragDrop({
-    board: board(),
+    board,
     setBoard,
     revertToServerState,
   });

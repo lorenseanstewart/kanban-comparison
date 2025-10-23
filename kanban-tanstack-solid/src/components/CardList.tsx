@@ -1,5 +1,6 @@
 import type { BoardDetails, UsersList, TagsList, BoardCard } from "../lib/api";
 import { Card } from "./Card";
+import { createDroppable } from "@thisbeyond/solid-dnd";
 
 export function CardList(props: {
   list: BoardDetails["lists"][number];
@@ -8,9 +9,8 @@ export function CardList(props: {
   onCardUpdate?: (cardId: string, updates: Partial<BoardCard>) => void;
   onCardDelete?: (cardId: string) => void;
 }) {
-  const cardIds = props.list.cards.map((card) => card.id);
-
-  // Check if we're over this list OR over any card in this lis
+  // Create a droppable zone for this list
+  const droppable = createDroppable(`list-${props.list.id}`);
 
   return (
     <section class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
@@ -22,7 +22,13 @@ export function CardList(props: {
           </div>
         </header>
 
-        <div class={`min-h-[200px] transition-all duration-200 rounded-lg`}>
+        <div
+          ref={droppable}
+          class="min-h-[200px] transition-all duration-200 rounded-lg"
+          classList={{
+            "ring-2 ring-primary ring-opacity-50": droppable.isActiveDroppable,
+          }}
+        >
           {props.list.cards.length === 0 ? (
             <div class="alert alert-info text-sm">
               <span>No cards yet</span>

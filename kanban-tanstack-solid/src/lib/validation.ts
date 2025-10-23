@@ -31,7 +31,7 @@ export const CardSchema = v.object({
       v.maxLength(2000, "Description must be less than 2000 characters")
     )
   ),
-  assigneeId: v.optional(v.string()),
+  assigneeId: v.nullable(v.optional(v.string())),
   tagIds: v.optional(v.array(v.string())),
 });
 
@@ -52,7 +52,7 @@ export const CardUpdateSchema = v.object({
       v.maxLength(2000, "Description must be less than 2000 characters")
     )
   ),
-  assigneeId: v.optional(v.string()),
+  assigneeId: v.nullable(v.optional(v.string())),
   tagIds: v.optional(v.array(v.string())),
 });
 

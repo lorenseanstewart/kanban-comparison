@@ -4,6 +4,7 @@ import { Plus } from "./icons/Plus";
 import { CardEditModal } from "./modals/CardEditModal";
 import { CommentModal } from "./modals/CommentModal";
 import { createSignal } from "solid-js";
+import { createDraggable, createDroppable } from "@thisbeyond/solid-dnd";
 
 interface CardProps {
   card: BoardCard;
@@ -16,6 +17,10 @@ interface CardProps {
 export function Card(props: CardProps) {
   const [isEditModalOpen, setIsEditModalOpen] = createSignal(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = createSignal(false);
+
+  // Make this card draggable and droppable (can drop other cards on it)
+  const draggable = createDraggable(props.card.id);
+  const droppable = createDroppable(props.card.id);
 
   const handleUpdate = (updates: Partial<BoardCard>) => {
     if (props.onCardUpdate) {
@@ -45,7 +50,16 @@ export function Card(props: CardProps) {
 
   return (
     <>
-      <article class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out">
+      <article
+        ref={(el) => {
+          draggable(el);
+          droppable(el);
+        }}
+        class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out"
+        classList={{
+          "opacity-25": draggable.isActiveDraggable,
+        }}
+      >
         <div class="card-body gap-3 p-4">
           <div class="flex items-start justify-between gap-2">
             <h3 class="card-title text-lg text-base-content cursor-grab active:cursor-grabbing flex-1">
