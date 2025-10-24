@@ -11,19 +11,12 @@ export default defineConfig({
   build: {
     cssCodeSplit: false,
     cssMinify: true,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-      },
-    },
   },
   plugins: [
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tanstackStart({
-      srcDirectory: "src",
-    }),
+    tanstackStart(),
     viteReact(),
     tailwindcss(),
   ],

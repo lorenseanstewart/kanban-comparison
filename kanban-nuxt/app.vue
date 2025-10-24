@@ -6,13 +6,3 @@
   </div>
 </template>
 
-<script setup>
-useHead({
-  link: [
-    {
-      rel: 'stylesheet',
-      href: 'https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css'
-    }
-  ]
-})
-</script>

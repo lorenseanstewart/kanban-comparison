@@ -6,9 +6,17 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxt/fonts'],
 
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', 'charts.css'],
+
+  fonts: {
+    defaults: {
+      fallbacks: {
+        'sans-serif': ['Arial', 'Helvetica', 'sans-serif'],
+      },
+    },
+  },
 
   tailwindcss: {
     configPath: '~/tailwind.config.js',
@@ -22,17 +30,6 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      ],
-      link: [
-        {
-          rel: 'dns-prefetch',
-          href: 'https://cdn.jsdelivr.net'
-        },
-        {
-          rel: 'preconnect',
-          href: 'https://cdn.jsdelivr.net',
-          crossorigin: 'anonymous'
-        },
       ],
     },
   },
@@ -67,6 +64,12 @@ export default defineNuxtConfig({
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     },
+    '/': {
+      swr: 60, // Cache homepage for 60 seconds with stale-while-revalidate
+    },
+    '/board/**': {
+      swr: 60, // Cache board pages for 60 seconds with stale-while-revalidate
+    },
     '/**': {
       headers: {
         'Cache-Control': 'public, max-age=3600',
@@ -82,7 +85,6 @@ export default defineNuxtConfig({
         },
         output: {
           manualChunks: {
-            'vuedraggable': ['vuedraggable'],
             'auto-animate': ['@formkit/auto-animate'],
           },
         },
@@ -100,7 +102,7 @@ export default defineNuxtConfig({
       esbuildOptions: {
         treeShaking: true,
       },
-      include: ['vuedraggable', '@formkit/auto-animate/vue'],
+      include: ['@formkit/auto-animate/vue'],
     },
   },
 
@@ -112,6 +114,6 @@ export default defineNuxtConfig({
   },
 
   features: {
-    inlineStyles: false,
+    inlineStyles: true, // Inline styles to improve LCP by avoiding render-blocking CSS
   },
 })

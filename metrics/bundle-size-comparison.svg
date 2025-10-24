@@ -56,10 +56,10 @@
     <rect x="535.0" y="251.684375" width="25.0" height="68.31562500000001" fill="#10b981" opacity="0.8" rx="3"/>
     <text x="547.5" y="246.684375" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">149</text>
     <text x="550.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 550.0, 335)">TanStack Start + Solid</text>
-    <rect x="605.0" y="212.14151785714284" width="25.0" height="107.85848214285714" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="617.5" y="207.14151785714284" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">236</text>
-    <rect x="635.0" y="213.28526785714286" width="25.0" height="106.71473214285714" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="647.5" y="208.28526785714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">233</text>
+    <rect x="605.0" y="216.68794642857142" width="25.0" height="103.31205357142856" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="617.5" y="211.68794642857142" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">226</text>
+    <rect x="635.0" y="217.82946428571427" width="25.0" height="102.17053571428572" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="647.5" y="212.82946428571427" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">223</text>
     <text x="650.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 650.0, 335)">Nuxt</text>
     <rect x="705.0" y="149.2129464285714" width="25.0" height="170.7870535714286" fill="#3b82f6" opacity="0.8" rx="3"/>
     <text x="717.5" y="144.2129464285714" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">374</text>

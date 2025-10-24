@@ -115,27 +115,21 @@ type CreateBoardInput = {
 }
 
 export const createBoard = createServerFn({ method: 'POST' })
-  .inputValidator((d: CreateBoardInput) => d)
+  .inputValidator((d: CreateBoardInput) => {
+    return v.parse(BoardSchema, {
+      title: d.title,
+      description: d.description || undefined,
+    })
+  })
   .handler(async ({ data }) => {
     try {
-      // Validate with Valibot
-      const result = v.safeParse(BoardSchema, {
-        title: data.title,
-        description: data.description || null,
-      })
-
-      if (!result.success) {
-        const firstIssue = result.issues[0]
-        return { success: false, error: firstIssue.message }
-      }
-
       // Create the board
       const boardId = crypto.randomUUID()
 
       await db.insert(boards).values({
         id: boardId,
-        title: result.output.title,
-        description: result.output.description,
+        title: data.title,
+        description: data.description ?? null,
       })
 
       // Create the four default lists for the board
@@ -153,8 +147,8 @@ export const createBoard = createServerFn({ method: 'POST' })
         success: true,
         data: {
           id: boardId,
-          title: result.output.title,
-          description: result.output.description,
+          title: data.title,
+          description: data.description ?? null,
         },
       }
     } catch (error) {
@@ -176,43 +170,37 @@ type UpdateCardInput = {
 }
 
 export const updateCard = createServerFn({ method: 'POST' })
-  .inputValidator((d: UpdateCardInput) => d)
+  .inputValidator((d: UpdateCardInput) => {
+    return v.parse(CardUpdateSchema, {
+      cardId: d.cardId,
+      title: d.title,
+      description: d.description || undefined,
+      assigneeId: d.assigneeId || undefined,
+      tagIds: d.tagIds,
+    })
+  })
   .handler(async ({ data }) => {
     try {
-      // Validate with Valibot
-      const result = v.safeParse(CardUpdateSchema, {
-        cardId: data.cardId,
-        title: data.title,
-        description: data.description || null,
-        assigneeId: data.assigneeId || null,
-        tagIds: data.tagIds,
-      })
-
-      if (!result.success) {
-        const firstIssue = result.issues[0]
-        throw new Error(firstIssue.message)
-      }
-
       // Use a transaction to update card and tags atomically
       db.transaction((tx) => {
         // Update card basic fields
         tx.update(cards)
           .set({
-            title: result.output.title,
-            description: result.output.description,
-            assigneeId: result.output.assigneeId,
+            title: data.title,
+            description: data.description ?? null,
+            assigneeId: data.assigneeId ?? null,
           })
-          .where(eq(cards.id, result.output.cardId))
+          .where(eq(cards.id, data.cardId))
           .run()
 
         // Update tags - delete existing and insert new ones
-        tx.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId)).run()
+        tx.delete(cardTags).where(eq(cardTags.cardId, data.cardId)).run()
 
-        if (result.output.tagIds && result.output.tagIds.length > 0) {
+        if (data.tagIds && data.tagIds.length > 0) {
           tx.insert(cardTags)
             .values(
-              result.output.tagIds.map((tagId) => ({
-                cardId: result.output.cardId,
+              data.tagIds.map((tagId) => ({
+                cardId: data.cardId,
                 tagId,
               })),
             )
@@ -235,28 +223,22 @@ type AddCommentInput = {
 }
 
 export const addComment = createServerFn({ method: 'POST' })
-  .inputValidator((d: AddCommentInput) => d)
+  .inputValidator((d: AddCommentInput) => {
+    return v.parse(CommentSchema, {
+      cardId: d.cardId,
+      userId: d.userId,
+      text: d.text,
+    })
+  })
   .handler(async ({ data }) => {
     try {
-      // Validate with Valibot
-      const result = v.safeParse(CommentSchema, {
-        cardId: data.cardId,
-        userId: data.userId,
-        text: data.text,
-      })
-
-      if (!result.success) {
-        const firstIssue = result.issues[0]
-        throw new Error(firstIssue.message)
-      }
-
       const commentId = crypto.randomUUID()
 
       await db.insert(comments).values({
         id: commentId,
-        cardId: result.output.cardId,
-        userId: result.output.userId,
-        text: result.output.text,
+        cardId: data.cardId,
+        userId: data.userId,
+        text: data.text,
       })
 
       return { success: true }
@@ -276,26 +258,25 @@ type CreateCardInput = {
 }
 
 export const createCard = createServerFn({ method: 'POST' })
-  .inputValidator((d: CreateCardInput) => d)
+  .inputValidator((d: CreateCardInput) => {
+    if (!d.boardId) {
+      throw new Error('Board ID is required')
+    }
+
+    const validated = v.parse(CardSchema, {
+      title: d.title,
+      description: d.description || undefined,
+      assigneeId: d.assigneeId || undefined,
+      tagIds: d.tagIds,
+    })
+
+    return {
+      boardId: d.boardId,
+      ...validated,
+    }
+  })
   .handler(async ({ data }) => {
     try {
-      if (!data.boardId) {
-        return { success: false, error: 'Board ID is required' }
-      }
-
-      // Validate with Valibot
-      const result = v.safeParse(CardSchema, {
-        title: data.title,
-        description: data.description || null,
-        assigneeId: data.assigneeId || null,
-        tagIds: data.tagIds,
-      })
-
-      if (!result.success) {
-        const firstIssue = result.issues[0]
-        return { success: false, error: firstIssue.message }
-      }
-
       // Find the Todo list for this board
       const todoLists = await db
         .select()
@@ -325,19 +306,19 @@ export const createCard = createServerFn({ method: 'POST' })
           .values({
             id: cardId,
             listId: todoList.id,
-            title: result.output.title,
-            description: result.output.description,
-            assigneeId: result.output.assigneeId,
+            title: data.title,
+            description: data.description ?? null,
+            assigneeId: data.assigneeId ?? null,
             position: nextPosition,
             completed: false,
           })
           .run()
 
         // Add tags if any
-        if (result.output.tagIds && result.output.tagIds.length > 0) {
+        if (data.tagIds && data.tagIds.length > 0) {
           tx.insert(cardTags)
             .values(
-              result.output.tagIds.map((tagId) => ({
+              data.tagIds.map((tagId) => ({
                 cardId,
                 tagId,
               })),

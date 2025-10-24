@@ -136,8 +136,9 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
     </div>
   </article>
 
-  <CardEditModal
+  <LazyCardEditModal
       v-if="isEditModalOpen"
+      hydrate-on-visible
       :card="card"
       :users="allUsers"
       :tags="allTags"
@@ -145,8 +146,9 @@ function handleCommentAdd(comment: { userId: string; text: string; id: string; c
       @update="handleUpdate"
       @delete="handleDelete"
     />
-    <CommentModal
+    <LazyCommentModal
       v-if="isCommentModalOpen"
+      hydrate-on-visible
       :card="card"
       :users="allUsers"
       @close="isCommentModalOpen = false"

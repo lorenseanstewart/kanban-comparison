@@ -89,8 +89,9 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
       </NuxtLink>
     </section>
 
-    <AddBoardModal
+    <LazyAddBoardModal
       v-if="showAddBoardModal"
+      hydrate-on-visible
       @close="showAddBoardModal = false"
       @board-add="handleBoardAdd"
     />

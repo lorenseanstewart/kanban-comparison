@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Tag, Comment } from '../drizzle/schema'
-
-const BarChart = defineAsyncComponent(() => import('./charts/BarChart.vue'))
-const PieChart = defineAsyncComponent(() => import('./charts/PieChart.vue'))
+import BarChart from './charts/BarChart.vue'
+import PieChart from './charts/PieChart.vue'
 
 interface BoardCard {
   id: string
@@ -33,12 +32,6 @@ interface BoardDetails {
 const props = defineProps<{
   data: BoardDetails
 }>()
-
-const mounted = ref(false)
-
-onMounted(() => {
-  mounted.value = true
-})
 
 // DaisyUI pastel colors matching the theme
 const pastelColors = [
@@ -71,29 +64,8 @@ const chartData = computed(() =>
       </p>
     </div>
 
-    <!-- Charts Section -->
-    <div v-if="!mounted" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-      <div class="card bg-base-100 shadow-lg">
-        <div class="card-body">
-          <h3 class="card-title text-base-content mb-4">Cards per List</h3>
-          <div class="flex justify-center items-center h-[250px]">
-            <span class="loading loading-spinner loading-lg text-primary" />
-          </div>
-        </div>
-      </div>
-      <div class="card bg-base-100 shadow-lg">
-        <div class="card-body">
-          <h3 class="card-title text-base-content mb-4">Distribution</h3>
-          <div class="flex justify-center items-center h-[250px]">
-            <span class="loading loading-spinner loading-lg text-primary" />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      v-else
-      class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start"
-    >
+    <!-- Charts Section - eager loaded to prevent CLS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
       <BarChart :data="chartData" :colors="pastelColors" title="Cards per List" />
       <PieChart :data="chartData" :colors="pastelColors" title="Distribution" />
     </div>

@@ -95,8 +95,9 @@ onMounted(() => {
 })
 
 // Watch for board changes to reinitialize drag-and-drop
+// Using a computed hash instead of deep watch for better performance
 watch(
-  () => board.value?.lists,
+  () => board.value?.lists.map(l => `${l.id}:${l.cards.length}`).join(','),
   () => {
     if (!dragDropState.isUpdatingFromDrag.value && board.value) {
       nextTick(() => {
@@ -106,7 +107,7 @@ watch(
       })
     }
   },
-  { deep: true, flush: 'post' }
+  { flush: 'post' }
 )
 
 // Handle optimistic card updates
@@ -272,6 +273,7 @@ async function handleCardAdd(cardData: {
               <div
                 v-for="card in list.cards"
                 :key="card.id"
+                v-memo="[card.id, card.title, card.completed, card.position, card.tags.length, card.comments.length]"
                 :data-card-id="card.id"
                 data-draggable-card
               >
@@ -297,8 +299,9 @@ async function handleCardAdd(cardData: {
       </section>
     </div>
 
-    <AddCardModal
+    <LazyAddCardModal
       v-if="showAddCardModal"
+      hydrate-on-visible
       :board-id="board.board.id"
       :users="board.users"
       :tags="board.tags"

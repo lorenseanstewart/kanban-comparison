@@ -86,8 +86,8 @@
         <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="396.5" y="238.6592075892857" width="52.0" height="121.34079241071429" fill="url(#grad6)" rx="4"/>
-    <text x="422.5" y="230.6592075892857" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">235.9</text>
+    <rect x="396.5" y="243.77393973214288" width="52.0" height="116.22606026785714" fill="url(#grad6)" rx="4"/>
+    <text x="422.5" y="235.77393973214288" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">226.0</text>
     <text x="422.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 422.5, 375)">Nuxt</text>
     <defs>
       <linearGradient id="grad7" x1="0%" y1="0%" x2="0%" y2="100%">
