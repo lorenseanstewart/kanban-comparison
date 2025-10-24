@@ -1,7 +1,7 @@
 {
   "name": "kanban-comparison",
   "version": "1.0.0",
-  "description": "Framework comparison project: Same app built in 7 frameworks",
+  "description": "Framework comparison project: Same app built in 10 frameworks",
   "private": true,
   "scripts": {
     "measure:single": "tsx scripts/measure-single.ts",
@@ -18,6 +18,14 @@
     "solid",
     "qwik",
     "angular",
+    "nextjs",
+    "nuxt",
+    "sveltekit",
+    "solidstart",
+    "htmx",
+    "marko",
+    "tanstack",
+    "analog",
     "framework-comparison",
     "performance"
   ],
