@@ -128,6 +128,11 @@ export function initializeDragAndDrop(
 
         // Handle reordering within the same list
         onSort: async ({ values }) => {
+          // Skip if we're already updating from a drag operation (like onTransfer)
+          if (state.isUpdatingFromDrag) {
+            return;
+          }
+
           const cardIds = values
             .map((el) => (el as HTMLElement).getAttribute("data-card-id"))
             .filter((id): id is string => id !== null);
@@ -163,9 +168,9 @@ export function initializeDragAndDrop(
           setBoard(updatedBoard);
 
           // Allow re-initialization after state update completes
-          queueMicrotask(() => {
+          setTimeout(() => {
             state.isUpdatingFromDrag = false;
-          });
+          }, 100);
 
           // Persist to server
           try {
@@ -209,6 +214,7 @@ export function initializeDragAndDrop(
 
           // Get the current board state
           const currentBoard = getBoard();
+
           // Find the card data and move it between lists in state
           let movedCard: BoardDetails["lists"][number]["cards"][number] | null =
             null;
@@ -247,9 +253,10 @@ export function initializeDragAndDrop(
           setBoard(updatedBoard);
 
           // Allow re-initialization after state update completes
-          queueMicrotask(() => {
+          // Use setTimeout to give the drag-and-drop library time to finish all DOM updates
+          setTimeout(() => {
             state.isUpdatingFromDrag = false;
-          });
+          }, 100);
 
           // Persist to server
           try {

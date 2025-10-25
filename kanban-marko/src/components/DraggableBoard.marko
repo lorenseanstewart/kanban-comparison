@@ -231,7 +231,7 @@ export interface Input {
                     <span>No cards yet</span>
                   </div>
                 </if>
-                <for|card| of=list.cards>
+                <for|card| of=list.cards by=(card) => card.id>
                   <div
                     data-card-id=card.id
                     data-draggable-card
