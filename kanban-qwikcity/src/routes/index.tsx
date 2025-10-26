@@ -12,6 +12,8 @@ import type { BoardSummary } from "~/db/queries";
 import { db } from "~/db/index";
 import { boards, lists } from "~/lib/db/schema";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
+import { BoardSchema } from "~/lib/validation";
+import * as v from "valibot";
 
 export const useBoards = routeLoader$(async () => {
   return await getBoards();
@@ -24,12 +26,26 @@ type CreateBoardActionReturn =
 export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
   async (data) => {
     try {
+      // Validate input data
+      const parsed = v.safeParse(BoardSchema, {
+        title: data.title,
+        description: data.description || null,
+      });
+
+      if (!parsed.success) {
+        return {
+          success: false,
+          error: parsed.issues[0]?.message ?? "Invalid board data",
+        };
+      }
+
+      const validatedData = parsed.output;
       const boardId = crypto.randomUUID();
 
       await db.insert(boards).values({
         id: boardId,
-        title: data.title as string,
-        description: (data.description as string | undefined) ?? null,
+        title: validatedData.title,
+        description: validatedData.description ?? null,
       });
 
       // Create 4 default lists

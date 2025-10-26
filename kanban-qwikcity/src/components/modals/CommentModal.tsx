@@ -155,7 +155,6 @@ export const CommentModal = component$<CommentModalProps>(
                   name="text"
                   class="textarea textarea-bordered h-24 w-full"
                   placeholder="Write your comment..."
-                  required
                 />
               </div>
 

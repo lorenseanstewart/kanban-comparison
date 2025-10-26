@@ -18,7 +18,13 @@ import { CardList } from "~/components/CardList";
 import { AddCardModal } from "~/components/modals/AddCardModal";
 import { db } from "~/db/index";
 import { cards, cardTags, comments, lists } from "~/lib/db/schema";
-import { MoveCardSchema, UpdateCardPositionSchema } from "~/lib/validation";
+import {
+  MoveCardSchema,
+  UpdateCardPositionSchema,
+  CardSchema,
+  CardUpdateSchema,
+  CommentSchema,
+} from "~/lib/validation";
 import * as v from "valibot";
 
 export const DraggedCardContext =
@@ -46,6 +52,35 @@ type CreateCardActionResult =
 export const useCreateCardAction = routeAction$<CreateCardActionResult>(
   async (data, requestEvent) => {
     try {
+      // Parse tagIds first for validation
+      let tagIds: string[] = [];
+      if (data.tagIds) {
+        try {
+          tagIds =
+            typeof data.tagIds === "string"
+              ? JSON.parse(data.tagIds as string)
+              : (data.tagIds as string[]);
+        } catch (e) {
+          console.error("Failed to parse tagIds:", e);
+        }
+      }
+
+      // Validate input data
+      const parsed = v.safeParse(CardSchema, {
+        title: data.title,
+        description: data.description || null,
+        assigneeId: data.assigneeId,
+        tagIds: tagIds.length > 0 ? tagIds : undefined,
+      });
+
+      if (!parsed.success) {
+        return {
+          success: false,
+          error: parsed.issues[0]?.message ?? "Invalid card data",
+        };
+      }
+
+      const validatedData = parsed.output;
       const boardId = requestEvent.params.id;
 
       // Find the Todo list for this board
@@ -78,30 +113,17 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
       await db.insert(cards).values({
         id: cardId,
         listId: todoList.id,
-        title: data.title as string,
-        description: (data.description as string | undefined) ?? null,
-        assigneeId: (data.assigneeId as string | undefined) ?? null,
+        title: validatedData.title,
+        description: validatedData.description ?? null,
+        assigneeId: validatedData.assigneeId,
         position: nextPosition,
         completed: false,
       });
 
       // Add tags if any
-      // Parse tagIds - it comes as a JSON string from the form
-      let tagIds: string[] = [];
-      if (data.tagIds) {
-        try {
-          tagIds =
-            typeof data.tagIds === "string"
-              ? JSON.parse(data.tagIds as string)
-              : (data.tagIds as string[]);
-        } catch (e) {
-          console.error("Failed to parse tagIds:", e);
-        }
-      }
-
-      if (tagIds && tagIds.length > 0) {
+      if (validatedData.tagIds && validatedData.tagIds.length > 0) {
         await db.insert(cardTags).values(
-          tagIds.map((tagId: string) => ({
+          validatedData.tagIds.map((tagId: string) => ({
             cardId,
             tagId,
           })),
@@ -128,30 +150,7 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
 // Update Card Action
 export const useUpdateCardAction = routeAction$<ActionResult>(async (data) => {
   try {
-    // Handle assigneeId - convert empty string to null to avoid foreign key constraint
-    const assigneeId = data.assigneeId as string | undefined;
-    const normalizedAssigneeId =
-      assigneeId && assigneeId.trim() !== "" ? assigneeId : null;
-
-    // Handle description - convert empty string to null
-    const description = data.description as string | undefined;
-    const normalizedDescription =
-      description && description.trim() !== "" ? description : null;
-
-    // Update card basic fields
-    await db
-      .update(cards)
-      .set({
-        title: data.title as string,
-        description: normalizedDescription,
-        assigneeId: normalizedAssigneeId,
-      })
-      .where(eq(cards.id, data.cardId as string));
-
-    // Update tags - delete existing and insert new ones
-    await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId as string));
-
-    // Parse tagIds - it comes as a JSON string from the form
+    // Parse tagIds first for validation
     let tagIds: string[] = [];
     if (data.tagIds) {
       try {
@@ -164,10 +163,41 @@ export const useUpdateCardAction = routeAction$<ActionResult>(async (data) => {
       }
     }
 
-    if (tagIds && tagIds.length > 0) {
+    // Validate input data
+    const parsed = v.safeParse(CardUpdateSchema, {
+      cardId: data.cardId,
+      title: data.title,
+      description: data.description || null,
+      assigneeId: data.assigneeId,
+      tagIds: tagIds.length > 0 ? tagIds : undefined,
+    });
+
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.issues[0]?.message ?? "Invalid card data",
+      };
+    }
+
+    const validatedData = parsed.output;
+
+    // Update card basic fields
+    await db
+      .update(cards)
+      .set({
+        title: validatedData.title,
+        description: validatedData.description ?? null,
+        assigneeId: validatedData.assigneeId,
+      })
+      .where(eq(cards.id, validatedData.cardId));
+
+    // Update tags - delete existing and insert new ones
+    await db.delete(cardTags).where(eq(cardTags.cardId, validatedData.cardId));
+
+    if (validatedData.tagIds && validatedData.tagIds.length > 0) {
       await db.insert(cardTags).values(
-        tagIds.map((tagId: string) => ({
-          cardId: data.cardId as string,
+        validatedData.tagIds.map((tagId: string) => ({
+          cardId: validatedData.cardId,
           tagId,
         })),
       );
@@ -291,7 +321,7 @@ export const useUpdateCardPositionAction = routeAction$<ActionResult>(
 
 // Update Card Tags Action
 export const useUpdateCardTagsAction = routeAction$<ActionResult>(
-  async (data, requestEvent) => {
+  async (_data, requestEvent) => {
     try {
       const formData = await requestEvent.request.formData();
       const cardId = formData.get("cardId") as string;
@@ -335,13 +365,28 @@ export const useUpdateCardTagsAction = routeAction$<ActionResult>(
 export const useCreateCommentAction = routeAction$<ActionResult>(
   async (data) => {
     try {
+      // Validate input data
+      const parsed = v.safeParse(CommentSchema, {
+        cardId: data.cardId,
+        userId: data.userId,
+        text: data.text,
+      });
+
+      if (!parsed.success) {
+        return {
+          success: false,
+          error: parsed.issues[0]?.message ?? "Invalid comment data",
+        };
+      }
+
+      const validatedData = parsed.output;
       const commentId = crypto.randomUUID();
 
       await db.insert(comments).values({
         id: commentId,
-        cardId: data.cardId as string,
-        userId: data.userId as string,
-        text: data.text as string,
+        cardId: validatedData.cardId,
+        userId: validatedData.userId,
+        text: validatedData.text,
       });
 
       return {
@@ -485,6 +530,12 @@ export default component$(() => {
         (list) => list.title === "Todo",
       );
       if (!todoList) return;
+
+      // Check if card already exists (prevent duplicates)
+      const cardExists = boardState.value.lists.some((list) =>
+        list.cards.some((card) => card.id === cardData.id),
+      );
+      if (cardExists) return;
 
       // Create new card with server-generated ID
       const newCard: BoardCard = {

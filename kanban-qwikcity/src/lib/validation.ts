@@ -31,7 +31,10 @@ export const CardSchema = v.object({
       v.maxLength(2000, "Description must be less than 2000 characters")
     )
   ),
-  assigneeId: v.optional(v.string()),
+  assigneeId: v.pipe(
+    v.string("Assignee is required"),
+    v.minLength(1, "Assignee is required")
+  ),
   tagIds: v.optional(v.array(v.string())),
 });
 
@@ -52,7 +55,10 @@ export const CardUpdateSchema = v.object({
       v.maxLength(2000, "Description must be less than 2000 characters")
     )
   ),
-  assigneeId: v.optional(v.string()),
+  assigneeId: v.pipe(
+    v.string("Assignee is required"),
+    v.minLength(1, "Assignee is required")
+  ),
   tagIds: v.optional(v.array(v.string())),
 });
 
@@ -77,7 +83,7 @@ export type CommentOutput = v.InferOutput<typeof CommentSchema>;
 export const MoveCardSchema = v.object({
   cardId: v.string("Card ID is required"),
   listId: v.string("List ID is required"),
-  newPosition: v.number("Position must be a number"),
+  newPosition: v.number("A valid position is required"),
 });
 
 export type MoveCardInput = v.InferInput<typeof MoveCardSchema>;
@@ -86,7 +92,7 @@ export type MoveCardOutput = v.InferOutput<typeof MoveCardSchema>;
 // Update card position validation schema
 export const UpdateCardPositionSchema = v.object({
   cardId: v.string("Card ID is required"),
-  position: v.number("Position must be a number"),
+  position: v.number("A valid position is required"),
 });
 
 export type UpdateCardPositionInput = v.InferInput<typeof UpdateCardPositionSchema>;

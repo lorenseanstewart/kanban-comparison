@@ -136,7 +136,6 @@ export const AddCardModal = component$<AddCardModalProps>(
                   name="title"
                   class="input input-bordered w-full"
                   placeholder="Enter card title"
-                  required
                 />
               </div>
 
@@ -155,8 +154,11 @@ export const AddCardModal = component$<AddCardModalProps>(
                 <label class="label">
                   <span class="label-text">Assignee</span>
                 </label>
-                <select name="assigneeId" class="select select-bordered w-full">
-                  <option value="">Unassigned</option>
+                <select
+                  name="assigneeId"
+                  class="select select-bordered w-full"
+                >
+                  <option value="">Select an assignee</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}

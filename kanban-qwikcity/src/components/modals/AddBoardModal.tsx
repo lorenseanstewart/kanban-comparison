@@ -104,7 +104,6 @@ export const AddBoardModal = component$<AddBoardModalProps>(
                   name="title"
                   class="input input-bordered w-full"
                   placeholder="Enter board title"
-                  required
                 />
               </div>
 
