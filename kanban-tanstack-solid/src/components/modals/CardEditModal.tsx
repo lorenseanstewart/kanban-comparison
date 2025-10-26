@@ -126,7 +126,6 @@ export function CardEditModal(props: {
                 name="title"
                 class="input input-bordered w-full"
                 value={props.card.title}
-                required
               />
             </div>
 
@@ -150,7 +149,7 @@ export function CardEditModal(props: {
                 class="select select-bordered w-full"
                 value={props.card.assigneeId || ""}
               >
-                <option value="">Unassigned</option>
+                <option value="">Select an assignee</option>
                 <For each={props.users}>
                   {(user: { id: string; name: string }) => (
                     <option value={user.id}>{user.name}</option>

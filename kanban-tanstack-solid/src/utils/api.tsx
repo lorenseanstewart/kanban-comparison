@@ -170,7 +170,7 @@ export const updateCard = createServerFn({ method: "POST" })
       cardId: d.cardId,
       title: d.title,
       description: d.description || undefined,
-      assigneeId: d.assigneeId || undefined,
+      assigneeId: d.assigneeId,
       tagIds: d.tagIds,
     });
   })
@@ -183,7 +183,7 @@ export const updateCard = createServerFn({ method: "POST" })
           .set({
             title: data.title,
             description: data.description ?? null,
-            assigneeId: data.assigneeId ?? null,
+            assigneeId: data.assigneeId,
           })
           .where(eq(cards.id, data.cardId))
           .run();
@@ -261,7 +261,7 @@ export const createCard = createServerFn({ method: "POST" })
     const validated = v.parse(CardSchema, {
       title: d.title,
       description: d.description || undefined,
-      assigneeId: d.assigneeId || undefined,
+      assigneeId: d.assigneeId,
       tagIds: d.tagIds,
     });
 
@@ -303,7 +303,7 @@ export const createCard = createServerFn({ method: "POST" })
             listId: todoList.id,
             title: data.title,
             description: data.description ?? null,
-            assigneeId: data.assigneeId ?? null,
+            assigneeId: data.assigneeId,
             position: nextPosition,
             completed: false,
           })
