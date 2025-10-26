@@ -130,7 +130,6 @@ export function CardEditModal({
               name="title"
               className="input input-bordered w-full"
               defaultValue={card.title}
-              required
             />
           </div>
 
@@ -154,7 +153,7 @@ export function CardEditModal({
               className="select select-bordered w-full"
               defaultValue={card.assigneeId || ""}
             >
-              <option value="">Unassigned</option>
+              <option value="">Select an assignee</option>
               {users.map((user: { id: string; name: string }) => (
                 <option key={user.id} value={user.id}>
                   {user.name}

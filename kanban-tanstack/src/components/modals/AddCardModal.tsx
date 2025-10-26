@@ -147,7 +147,6 @@ export function AddCardModal({
               name="title"
               className="input input-bordered w-full"
               placeholder="Enter card title"
-              required
               disabled={isSubmitting}
             />
           </div>
@@ -169,7 +168,7 @@ export function AddCardModal({
               <span className="label-text">Assignee</span>
             </label>
             <select name="assigneeId" className="select select-bordered w-full" disabled={isSubmitting}>
-              <option value="">Unassigned</option>
+              <option value="">Select an assignee</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}

@@ -101,7 +101,6 @@ export function AddBoardModal({
                   name="title"
                   className="input input-bordered w-full"
                   placeholder="Enter board title"
-                  required
                   disabled={isSubmitting}
                 />
               </div>
