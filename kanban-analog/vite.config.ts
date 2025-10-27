@@ -14,12 +14,14 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (
-              id.includes('@angular/core') ||
-              id.includes('@angular/common') ||
-              id.includes('@angular/platform-browser')
-            ) {
+            if (id.includes('@angular/core')) {
               return 'angular-core';
+            }
+            if (id.includes('@angular/common')) {
+              return 'angular-common';
+            }
+            if (id.includes('@angular/platform-browser')) {
+              return 'angular-platform-browser';
             }
             if (
               id.includes('@angular/router') ||
@@ -27,8 +29,8 @@ export default defineConfig(({ mode }) => ({
             ) {
               return 'angular-router';
             }
-            if (id.includes('@angular/forms') || id.includes('@angular/cdk')) {
-              return 'angular-forms';
+            if (id.includes('@angular/cdk')) {
+              return 'angular-cdk';
             }
           }
         },

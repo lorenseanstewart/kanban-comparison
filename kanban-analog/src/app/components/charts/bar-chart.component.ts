@@ -33,8 +33,6 @@ export interface ChartData {
     </div>
   `,
   styles: `
-    @import 'charts.css';
-
     table {
       height: 120px;
       max-width: 100%;
@@ -59,9 +57,7 @@ export class BarChartComponent {
   colors = input.required<string[]>();
   title = input.required<string>();
 
-  maxValue = computed(() =>
-    Math.max(...this.data().map((d) => d.value), 1)
-  );
+  maxValue = computed(() => Math.max(...this.data().map((d) => d.value), 1));
 
   getSize(value: number): string {
     return (value / this.maxValue()).toString();

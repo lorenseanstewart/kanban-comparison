@@ -1,5 +1,6 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin 'daisyui';
+@import "charts.css/dist/charts.css";
 
 /* You can add global styles to this file, and also import other style files */
 html,

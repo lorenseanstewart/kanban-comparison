@@ -6,19 +6,17 @@ import {
   inject,
   effect,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { UsersList, TagsList } from '../../../lib/types';
 
 @Component({
   selector: 'app-add-card-modal',
-  imports: [FormsModule],
   template: `
     @if (isOpen()) {
       <dialog class="modal modal-open !mt-0" (click)="closeOnBackdrop($event)">
         <div class="modal-backdrop bg-black/70"></div>
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form #cardForm="ngForm" (ngSubmit)="handleSubmit(cardForm)">
+          <form (submit)="handleSubmit($event)">
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -39,7 +37,6 @@ import type { UsersList, TagsList } from '../../../lib/types';
               <input
                 type="text"
                 name="title"
-                [(ngModel)]="formData.title"
                 class="input input-bordered w-full"
                 placeholder="Enter card title"
                 required
@@ -53,7 +50,6 @@ import type { UsersList, TagsList } from '../../../lib/types';
               >
               <textarea
                 name="description"
-                [(ngModel)]="formData.description"
                 class="textarea textarea-bordered h-24 w-full"
                 placeholder="Enter card description (optional)"
                 [disabled]="isSubmitting()"
@@ -66,11 +62,10 @@ import type { UsersList, TagsList } from '../../../lib/types';
               >
               <select
                 name="assigneeId"
-                [(ngModel)]="formData.assigneeId"
                 class="select select-bordered w-full"
                 [disabled]="isSubmitting()"
               >
-                <option [ngValue]="null">Unassigned</option>
+                <option>Unassigned</option>
                 @for (user of users(); track user.id) {
                   <option [value]="user.id">{{ user.name }}</option>
                 }
@@ -115,7 +110,7 @@ import type { UsersList, TagsList } from '../../../lib/types';
               <button
                 type="submit"
                 class="btn btn-primary"
-                [disabled]="isSubmitting() || !cardForm.valid"
+                [disabled]="isSubmitting()"
               >
                 {{ isSubmitting() ? 'Adding...' : 'Add Card' }}
               </button>
@@ -146,12 +141,6 @@ export class AddCardModalComponent {
   isSubmitting = signal(false);
   selectedTagIds = signal<Set<string>>(new Set());
 
-  formData = {
-    title: '',
-    description: '',
-    assigneeId: null as string | null,
-  };
-
   constructor() {
     effect(() => {
       if (this.isOpen()) {
@@ -164,7 +153,6 @@ export class AddCardModalComponent {
   close() {
     this.onClose.emit();
     this.error.set(null);
-    this.formData = { title: '', description: '', assigneeId: null };
   }
 
   closeOnBackdrop(event: MouseEvent) {
@@ -183,18 +171,24 @@ export class AddCardModalComponent {
     this.selectedTagIds.set(newSet);
   }
 
-  handleSubmit(form: any) {
-    if (!form.valid) return;
+  handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
 
     this.error.set(null);
     this.isSubmitting.set(true);
 
+    const form = event.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const assigneeId = formData.get('assigneeId') as string;
+
     this.apiService
       .createCard({
         boardId: this.boardId(),
-        title: this.formData.title,
-        description: this.formData.description || null,
-        assigneeId: this.formData.assigneeId || null,
+        title: title,
+        description: description || null,
+        assigneeId: assigneeId || null,
         tagIds: Array.from(this.selectedTagIds()),
       })
       .subscribe({
@@ -202,12 +196,12 @@ export class AddCardModalComponent {
           if (result.success) {
             this.cardAdded.emit({
               id: result.data.id,
-              title: this.formData.title,
-              description: this.formData.description || null,
-              assigneeId: this.formData.assigneeId || null,
+              title: title,
+              description: description || null,
+              assigneeId: assigneeId || null,
               tagIds: Array.from(this.selectedTagIds()),
             });
-            form.resetForm();
+            form.reset();
             this.close();
           } else {
             this.error.set('Failed to create card');
