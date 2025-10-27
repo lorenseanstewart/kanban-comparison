@@ -26,45 +26,45 @@
     <line x1="0" y1="91.42857142857142" x2="1000" y2="91.42857142857142" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
     <text x="-10" y="91.42857142857142" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#6b7280">500 kB</text>
 
-    <rect x="5.0" y="279.4299107142857" width="25.0" height="40.57008928571428" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="17.5" y="274.4299107142857" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">89</text>
+    <rect x="5.0" y="279.4125" width="25.0" height="40.5875" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="17.5" y="274.4125" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">89</text>
     <rect x="35.0" y="314.353125" width="25.0" height="5.646875" fill="#10b981" opacity="0.8" rx="3"/>
     <text x="47.5" y="309.353125" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">12</text>
     <text x="50.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 50.0, 335)">Marko</text>
-    <rect x="105.0" y="267.40267857142857" width="25.0" height="52.597321428571426" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="117.5" y="262.40267857142857" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">115</text>
-    <rect x="135.0" y="280.1620535714286" width="25.0" height="39.83794642857143" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="147.5" y="275.1620535714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">87</text>
+    <rect x="105.0" y="267.50133928571427" width="25.0" height="52.49866071428571" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="117.5" y="262.50133928571427" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">115</text>
+    <rect x="135.0" y="280.4714285714286" width="25.0" height="39.528571428571425" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="147.5" y="275.4714285714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">86</text>
     <text x="150.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 150.0, 335)">Qwik</text>
-    <rect x="205.0" y="261.7830357142857" width="25.0" height="58.21696428571428" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="217.5" y="256.7830357142857" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">127</text>
-    <rect x="235.0" y="280.296875" width="25.0" height="39.703125" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="247.5" y="275.296875" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">87</text>
-    <text x="250.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 250.0, 335)">Astro/HTMX</text>
-    <rect x="305.0" y="261.2089285714286" width="25.0" height="58.79107142857143" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="317.5" y="256.2089285714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">129</text>
-    <rect x="335.0" y="281.65223214285714" width="25.0" height="38.347767857142856" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="347.5" y="276.65223214285714" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">84</text>
-    <text x="350.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 350.0, 335)">SolidStart</text>
-    <rect x="405.0" y="248.6669642857143" width="25.0" height="71.33303571428571" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="417.5" y="243.6669642857143" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">156</text>
-    <rect x="435.0" y="272.7205357142857" width="25.0" height="47.27946428571428" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="447.5" y="267.7205357142857" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">103</text>
-    <text x="450.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 450.0, 335)">SvelteKit</text>
+    <rect x="205.0" y="262.7714285714286" width="25.0" height="57.22857142857143" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="217.5" y="257.7714285714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">125</text>
+    <rect x="235.0" y="272.7169642857143" width="25.0" height="47.28303571428572" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="247.5" y="267.7169642857143" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">103</text>
+    <text x="250.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 250.0, 335)">SvelteKit</text>
+    <rect x="305.0" y="261.7830357142857" width="25.0" height="58.21696428571428" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="317.5" y="256.7830357142857" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">127</text>
+    <rect x="335.0" y="280.296875" width="25.0" height="39.703125" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="347.5" y="275.296875" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">87</text>
+    <text x="350.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 350.0, 335)">Astro/HTMX</text>
+    <rect x="405.0" y="261.2089285714286" width="25.0" height="58.79107142857143" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="417.5" y="256.2089285714286" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">129</text>
+    <rect x="435.0" y="281.65223214285714" width="25.0" height="38.347767857142856" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="447.5" y="276.65223214285714" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">84</text>
+    <text x="450.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 450.0, 335)">SolidStart</text>
     <rect x="505.0" y="236.5075892857143" width="25.0" height="83.49241071428571" fill="#3b82f6" opacity="0.8" rx="3"/>
     <text x="517.5" y="231.5075892857143" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">183</text>
-    <rect x="535.0" y="251.684375" width="25.0" height="68.31562500000001" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="547.5" y="246.684375" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">149</text>
+    <rect x="535.0" y="251.68794642857142" width="25.0" height="68.31205357142858" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="547.5" y="246.68794642857142" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">149</text>
     <text x="550.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 550.0, 335)">TanStack Start + Solid</text>
-    <rect x="605.0" y="216.68794642857142" width="25.0" height="103.31205357142856" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="617.5" y="211.68794642857142" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">226</text>
-    <rect x="635.0" y="217.82946428571427" width="25.0" height="102.17053571428572" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="647.5" y="212.82946428571427" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">223</text>
+    <rect x="605.0" y="217.19866071428572" width="25.0" height="102.80133928571429" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="617.5" y="212.19866071428572" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">225</text>
+    <rect x="635.0" y="217.19866071428572" width="25.0" height="102.80133928571429" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="647.5" y="212.19866071428572" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">225</text>
     <text x="650.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 650.0, 335)">Nuxt</text>
-    <rect x="705.0" y="149.2129464285714" width="25.0" height="170.7870535714286" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="717.5" y="144.2129464285714" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">374</text>
-    <rect x="735.0" y="178.55625" width="25.0" height="141.44375" fill="#10b981" opacity="0.8" rx="3"/>
-    <text x="747.5" y="173.55625" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">309</text>
+    <rect x="705.0" y="149.19241071428573" width="25.0" height="170.80758928571427" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="717.5" y="144.19241071428573" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">374</text>
+    <rect x="735.0" y="178.56160714285716" width="25.0" height="141.43839285714284" fill="#10b981" opacity="0.8" rx="3"/>
+    <text x="747.5" y="173.56160714285716" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">309</text>
     <text x="750.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 750.0, 335)">TanStack Start</text>
     <rect x="805.0" y="61.75758928571429" width="25.0" height="258.2424107142857" fill="#3b82f6" opacity="0.8" rx="3"/>
     <text x="817.5" y="56.75758928571429" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">565</text>

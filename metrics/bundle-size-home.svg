@@ -50,26 +50,26 @@
         <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="136.5" y="297.467578125" width="52.0" height="62.532421875000004" fill="url(#grad2)" rx="4"/>
-    <text x="162.5" y="289.467578125" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">86.9</text>
-    <text x="162.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 162.5, 375)">Astro</text>
+    <rect x="136.5" y="297.7425" width="52.0" height="62.2575" fill="url(#grad2)" rx="4"/>
+    <text x="162.5" y="289.7425" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">86.5</text>
+    <text x="162.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 162.5, 375)">Qwik</text>
     <defs>
       <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="201.5" y="297.255234375" width="52.0" height="62.744765625" fill="url(#grad3)" rx="4"/>
-    <text x="227.5" y="289.255234375" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">87.1</text>
-    <text x="227.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 227.5, 375)">Qwik</text>
+    <rect x="201.5" y="297.467578125" width="52.0" height="62.532421875000004" fill="url(#grad3)" rx="4"/>
+    <text x="227.5" y="289.467578125" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">86.9</text>
+    <text x="227.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 227.5, 375)">Astro</text>
     <defs>
       <linearGradient id="grad4" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="266.5" y="285.53484375" width="52.0" height="74.46515625" fill="url(#grad4)" rx="4"/>
-    <text x="292.5" y="277.53484375" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">103.4</text>
+    <rect x="266.5" y="285.52921875" width="52.0" height="74.47078125" fill="url(#grad4)" rx="4"/>
+    <text x="292.5" y="277.52921875" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">103.4</text>
     <text x="292.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 292.5, 375)">SvelteKit</text>
     <defs>
       <linearGradient id="grad5" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -77,8 +77,8 @@
         <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="331.5" y="252.402890625" width="52.0" height="107.59710937499999" fill="url(#grad5)" rx="4"/>
-    <text x="357.5" y="244.402890625" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">149.4</text>
+    <rect x="331.5" y="252.408515625" width="52.0" height="107.59148437500001" fill="url(#grad5)" rx="4"/>
+    <text x="357.5" y="244.408515625" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">149.4</text>
     <text x="357.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 357.5, 375)">TanStack Start + Solid</text>
     <defs>
       <linearGradient id="grad6" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -86,8 +86,8 @@
         <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="396.5" y="199.08140625000001" width="52.0" height="160.91859374999999" fill="url(#grad6)" rx="4"/>
-    <text x="422.5" y="191.08140625000001" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">223.5</text>
+    <rect x="396.5" y="198.087890625" width="52.0" height="161.912109375" fill="url(#grad6)" rx="4"/>
+    <text x="422.5" y="190.087890625" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">224.9</text>
     <text x="422.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 422.5, 375)">Nuxt</text>
     <defs>
       <linearGradient id="grad7" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -95,8 +95,8 @@
         <stop offset="100%" style="stop-color:#84cc16;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="461.5" y="137.22609375" width="52.0" height="222.77390625" fill="url(#grad7)" rx="4"/>
-    <text x="487.5" y="129.22609375" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">309.4</text>
+    <rect x="461.5" y="137.23453125" width="52.0" height="222.76546875" fill="url(#grad7)" rx="4"/>
+    <text x="487.5" y="129.23453125" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">309.4</text>
     <text x="487.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 487.5, 375)">TanStack Start</text>
     <defs>
       <linearGradient id="grad8" x1="0%" y1="0%" x2="0%" y2="100%">

@@ -1,0 +1,148 @@
+{
+  "timestamp": "2025-10-26T19:13:19.221Z",
+  "note": "Bundle sizes use raw (uncompressed) as primary, compressed in parentheses",
+  "boardPage": [
+    {
+      "framework": "Marko",
+      "jsUncompressed": 90916,
+      "jsTransferred": 29443,
+      "compressionRatio": 68,
+      "requests": 0
+    },
+    {
+      "framework": "Qwik",
+      "jsUncompressed": 117597,
+      "jsTransferred": 59774,
+      "compressionRatio": 49,
+      "requests": 0
+    },
+    {
+      "framework": "SvelteKit",
+      "jsUncompressed": 128192,
+      "jsTransferred": 55428,
+      "compressionRatio": 57,
+      "requests": 0
+    },
+    {
+      "framework": "Astro",
+      "jsUncompressed": 130406,
+      "jsTransferred": 35084,
+      "compressionRatio": 73,
+      "requests": 0
+    },
+    {
+      "framework": "SolidStart",
+      "jsUncompressed": 131692,
+      "jsTransferred": 42493,
+      "compressionRatio": 68,
+      "requests": 0
+    },
+    {
+      "framework": "TanStack Start + Solid",
+      "jsUncompressed": 187023,
+      "jsTransferred": 61866,
+      "compressionRatio": 67,
+      "requests": 0
+    },
+    {
+      "framework": "Nuxt",
+      "jsUncompressed": 230275,
+      "jsTransferred": 76503,
+      "compressionRatio": 67,
+      "requests": 0
+    },
+    {
+      "framework": "TanStack Start",
+      "jsUncompressed": 382609,
+      "jsTransferred": 121052,
+      "compressionRatio": 68,
+      "requests": 0
+    },
+    {
+      "framework": "Next.js",
+      "jsUncompressed": 578463,
+      "jsTransferred": 180524,
+      "compressionRatio": 69,
+      "requests": 0
+    },
+    {
+      "framework": "Analog",
+      "jsUncompressed": 682520,
+      "jsTransferred": 128391,
+      "compressionRatio": 81,
+      "requests": 0
+    }
+  ],
+  "homePage": [
+    {
+      "framework": "Marko",
+      "jsUncompressed": 12649,
+      "jsTransferred": 6977,
+      "compressionRatio": 45,
+      "requests": 0
+    },
+    {
+      "framework": "SolidStart",
+      "jsUncompressed": 85899,
+      "jsTransferred": 30562,
+      "compressionRatio": 64,
+      "requests": 0
+    },
+    {
+      "framework": "Qwik",
+      "jsUncompressed": 88544,
+      "jsTransferred": 43557,
+      "compressionRatio": 51,
+      "requests": 0
+    },
+    {
+      "framework": "Astro",
+      "jsUncompressed": 88935,
+      "jsTransferred": 21995,
+      "compressionRatio": 75,
+      "requests": 0
+    },
+    {
+      "framework": "SvelteKit",
+      "jsUncompressed": 105914,
+      "jsTransferred": 48931,
+      "compressionRatio": 54,
+      "requests": 0
+    },
+    {
+      "framework": "TanStack Start + Solid",
+      "jsUncompressed": 153019,
+      "jsTransferred": 52036,
+      "compressionRatio": 66,
+      "requests": 0
+    },
+    {
+      "framework": "Nuxt",
+      "jsUncompressed": 230275,
+      "jsTransferred": 76503,
+      "compressionRatio": 67,
+      "requests": 0
+    },
+    {
+      "framework": "TanStack Start",
+      "jsUncompressed": 316822,
+      "jsTransferred": 100698,
+      "compressionRatio": 68,
+      "requests": 0
+    },
+    {
+      "framework": "Analog",
+      "jsUncompressed": 440607,
+      "jsTransferred": 115971,
+      "compressionRatio": 74,
+      "requests": 0
+    },
+    {
+      "framework": "Next.js",
+      "jsUncompressed": 497757,
+      "jsTransferred": 154537,
+      "compressionRatio": 69,
+      "requests": 0
+    }
+  ]
+}
