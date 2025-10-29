@@ -43,7 +43,7 @@ All measurements performed on mobile devices (Pixel 5 emulation) with 4G throttl
 
 ## Prerequisites
 
-- **Node.js**: v20 or higher
+- **Node.js**: v20-24
 - **Python 3**: For chart generation
 - **Chrome/Chromium**: Required by Lighthouse
 
