@@ -27,6 +27,7 @@ _loren/
 # misc
 .DS_Store
 *.pem
+.mise.toml
 
 # debug
 npm-debug.log*
