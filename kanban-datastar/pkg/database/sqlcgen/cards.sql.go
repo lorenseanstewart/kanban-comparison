@@ -110,14 +110,14 @@ func (q *Queries) GetCardsByListIds(ctx context.Context, listIds []string) ([]Ge
 }
 
 const getMaxPositionInList = `-- name: GetMaxPositionInList :one
-SELECT COALESCE(MAX(position), -1) as max_position
+SELECT CAST(COALESCE(MAX(position), -1) AS INTEGER) as max_position
 FROM cards
 WHERE list_id = ?
 `
 
-func (q *Queries) GetMaxPositionInList(ctx context.Context, listID string) (interface{}, error) {
+func (q *Queries) GetMaxPositionInList(ctx context.Context, listID string) (int64, error) {
 	row := q.db.QueryRowContext(ctx, getMaxPositionInList, listID)
-	var max_position interface{}
+	var max_position int64
 	err := row.Scan(&max_position)
 	return max_position, err
 }

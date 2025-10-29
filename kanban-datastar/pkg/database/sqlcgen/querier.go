@@ -22,7 +22,7 @@ type Querier interface {
 	GetCommentsByCardIds(ctx context.Context, cardIds []string) ([]Comment, error)
 	GetListByBoardIdAndTitle(ctx context.Context, arg GetListByBoardIdAndTitleParams) (GetListByBoardIdAndTitleRow, error)
 	GetListsByBoardId(ctx context.Context, boardID string) ([]GetListsByBoardIdRow, error)
-	GetMaxPositionInList(ctx context.Context, listID string) (interface{}, error)
+	GetMaxPositionInList(ctx context.Context, listID string) (int64, error)
 	GetTags(ctx context.Context) ([]GetTagsRow, error)
 	GetTagsByCardIds(ctx context.Context, cardIds []string) ([]GetTagsByCardIdsRow, error)
 	GetUsers(ctx context.Context) ([]User, error)

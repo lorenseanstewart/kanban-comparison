@@ -3,7 +3,7 @@ package view
 import "kanban-datastar/pkg/database/sqlcgen"
 
 templ Index(boards []sqlcgen.GetBoardsRow) {
-	<main class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+	<main id="index" class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
 		<!-- Header -->
 		<header class="text-center space-y-3">
 			<p class="text-sm uppercase tracking-wide text-secondary">
@@ -14,24 +14,31 @@ templ Index(boards []sqlcgen.GetBoardsRow) {
 				Choose a board to jump into your Kanban flow.
 			</p>
 		</header>
-		<!-- Boards List -->
-		<section id="boards-list" class="grid gap-8 md:grid-cols-2">
-			if len(boards) == 0 {
-				<div class="card bg-base-200 dark:bg-base-300 shadow-xl">
-					<div class="card-body items-center text-center">
-						<h2 class="card-title text-secondary">No boards yet</h2>
-						<p class="text-base-content/60">
-							Create your first board to get started.
-						</p>
-					</div>
-				</div>
-			} else {
-				for _, board := range boards {
-					@BoardCard(board)
-				}
-			}
-		</section>
+		<div class="flex justify-end">
+			<button class="btn btn-primary" onclick="addBoardModal.showModal()">Add Board</button>
+		</div>
+		@BoardsList(boards)
+		@AddBoardModal()
 	</main>
+}
+
+templ BoardsList(boards []sqlcgen.GetBoardsRow) {
+	<section id="boards-list" class="grid gap-8 md:grid-cols-2">
+		if len(boards) == 0 {
+			<div class="card bg-base-200 dark:bg-base-300 shadow-xl">
+				<div class="card-body items-center text-center">
+					<h2 class="card-title text-secondary">No boards yet</h2>
+					<p class="text-base-content/60">
+						Create your first board to get started.
+					</p>
+				</div>
+			</div>
+		} else {
+			for _, board := range boards {
+				@BoardCard(board)
+			}
+		}
+	</section>
 }
 
 templ BoardCard(board sqlcgen.GetBoardsRow) {
@@ -57,4 +64,54 @@ templ BoardCard(board sqlcgen.GetBoardsRow) {
 			</div>
 		</div>
 	</a>
+}
+
+templ AddBoardModal() {
+	<dialog id="addBoardModal" class="modal">
+		<div class="modal-box bg-base-200 dark:bg-base-300">
+			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="addBoardModal.close()">
+				✕
+			</button>
+			<form
+				method="POST"
+				data-on:submit="@post('/board', {contentType: 'form'}); addBoardModal.close();"
+			>
+				<h3 class="font-bold text-lg mb-4">Add New Board</h3>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="board-title">
+						<span class="label-text">Title</span>
+					</label>
+					<input
+						id="board-title"
+						name="title"
+						type="text"
+						class="input input-bordered w-full"
+						placeholder="Enter board title"
+						required
+						data-model="title"
+					/>
+				</div>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="board-description">
+						<span class="label-text">Description</span>
+					</label>
+					<textarea
+						id="board-description"
+						name="description"
+						class="textarea textarea-bordered h-24 w-full"
+						placeholder="Enter board description (optional)"
+						data-model="description"
+					></textarea>
+				</div>
+				<div class="modal-action">
+					<button type="button" class="btn btn-ghost" onclick="add_board_modal.close()">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary">
+						Add Board
+					</button>
+				</div>
+			</form>
+		</div>
+	</dialog>
 }

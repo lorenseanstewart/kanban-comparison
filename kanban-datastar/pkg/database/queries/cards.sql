@@ -5,7 +5,7 @@ WHERE list_id IN (sqlc.slice('list_ids'))
 ORDER BY position ASC;
 
 -- name: GetMaxPositionInList :one
-SELECT COALESCE(MAX(position), -1) as max_position
+SELECT CAST(COALESCE(MAX(position), -1) AS INTEGER) as max_position
 FROM cards
 WHERE list_id = ?;
 
