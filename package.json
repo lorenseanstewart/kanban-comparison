@@ -9,7 +9,8 @@
     "measure:all": "npm run measure:final && npm run generate:charts",
     "measure:legacy": "tsx scripts/measure-all-lighthouse.ts",
     "generate:charts": "python3 scripts/generate-charts.py",
-    "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done"
+    "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done",
+    "setup:all": "for dir in kanban-*/; do (cd \"$dir\" && if grep -q '\"setup\"' package.json 2>/dev/null; then echo \"\\n🔧 Setting up $dir...\" && npm run setup; else echo \"\\n⏭️  Skipping $dir (no setup script)\"; fi); done"
   },
   "keywords": [
     "react",

@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "task dev",
     "build": "task build",
-    "start": "task build && ./tmp/main",
-    "preview": "./tmp/main",
+    "start": "task build && ./release/main",
+    "preview": "./release/main",
     "clean": "task clean"
   },
   "keywords": [

@@ -18,6 +18,7 @@ This project implements the same Kanban board application in 10 different framew
 8. **SvelteKit** (Svelte 5)
 9. **Qwik City** (Resumability-based)
 10. **Astro + HTMX** (MPA approach)
+11. **Datastar** (MPA and SSE approach)
 
 ## Key Results
 
@@ -60,6 +61,7 @@ Then install dependencies for each framework implementation:
 ```bash
 cd kanban-analog && npm install
 cd ../kanban-htmx && npm install
+cd ../kanban-datastar && npm install
 cd ../kanban-marko && npm install
 cd ../kanban-nextjs && npm install
 cd ../kanban-nuxt && npm install
@@ -68,6 +70,13 @@ cd ../kanban-solidstart && npm install
 cd ../kanban-sveltekit && npm install
 cd ../kanban-tanstack && npm install
 cd ../kanban-tanstack-solid && npm install
+```
+## Setting up all apps
+
+Ensures the databases are seeded before running all tests
+
+```bash
+npm run setup:all
 ```
 
 ## Building All Apps
