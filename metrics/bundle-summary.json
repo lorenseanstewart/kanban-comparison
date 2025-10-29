@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-10-26T19:13:19.221Z",
+  "timestamp": "2025-10-29T22:53:45.374Z",
   "note": "Bundle sizes use raw (uncompressed) as primary, compressed in parentheses",
   "boardPage": [
     {
@@ -67,9 +67,9 @@
     },
     {
       "framework": "Analog",
-      "jsUncompressed": 682520,
-      "jsTransferred": 128391,
-      "compressionRatio": 81,
+      "jsUncompressed": 385377,
+      "jsTransferred": 106361,
+      "compressionRatio": 72,
       "requests": 0
     }
   ],
@@ -132,9 +132,9 @@
     },
     {
       "framework": "Analog",
-      "jsUncompressed": 440607,
-      "jsTransferred": 115971,
-      "compressionRatio": 74,
+      "jsUncompressed": 385377,
+      "jsTransferred": 106361,
+      "compressionRatio": 72,
       "requests": 0
     },
     {

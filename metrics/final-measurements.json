@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2025-10-26T19:13:19.218Z",
+    "timestamp": "2025-10-29T22:53:45.374Z",
     "runsPerPage": 10,
     "measurementType": "cold-load",
     "chromeVersion": "12.8.2",
@@ -299,22 +299,22 @@
       "framework": "Analog",
       "page": "home",
       "jsTransferred": {
-        "mean": 115971,
-        "median": 115971,
+        "mean": 106361,
+        "median": 106361,
         "stddev": 0,
-        "min": 115971,
-        "max": 115971,
+        "min": 106361,
+        "max": 106361,
         "runs": 10
       },
       "jsUncompressed": {
-        "mean": 440607,
-        "median": 440607,
+        "mean": 385377,
+        "median": 385377,
         "stddev": 0,
-        "min": 440607,
-        "max": 440607,
+        "min": 385377,
+        "max": 385377,
         "runs": 10
       },
-      "compressionRatio": 74,
+      "compressionRatio": 72,
       "performanceScore": {
         "mean": 100,
         "median": 100,
@@ -324,19 +324,19 @@
         "runs": 10
       },
       "fcp": {
-        "mean": 37,
-        "median": 37,
-        "stddev": 1.3,
-        "min": 36,
-        "max": 39,
+        "mean": 52,
+        "median": 52,
+        "stddev": 4.6,
+        "min": 46,
+        "max": 76,
         "runs": 10
       },
       "lcp": {
-        "mean": 37,
-        "median": 37,
-        "stddev": 1.3,
-        "min": 36,
-        "max": 39,
+        "mean": 52,
+        "median": 52,
+        "stddev": 4.6,
+        "min": 46,
+        "max": 76,
         "runs": 10
       },
       "tbt": {
@@ -356,37 +356,37 @@
         "runs": 10
       },
       "si": {
-        "mean": 52,
-        "median": 53,
-        "stddev": 2.8,
-        "min": 48,
-        "max": 56,
+        "mean": 69,
+        "median": 69,
+        "stddev": 4.9,
+        "min": 63,
+        "max": 94,
         "runs": 10
       },
       "compressionType": "gzip",
       "chromeVersion": "12.8.2",
-      "measurementTimestamp": "2025-10-26T18:18:30.504Z"
+      "measurementTimestamp": "2025-10-29T22:49:58.114Z"
     },
     {
       "framework": "Analog",
       "page": "board",
       "jsTransferred": {
-        "mean": 128391,
-        "median": 128391,
+        "mean": 106361,
+        "median": 106361,
         "stddev": 0,
-        "min": 128391,
-        "max": 128391,
+        "min": 106361,
+        "max": 106361,
         "runs": 10
       },
       "jsUncompressed": {
-        "mean": 682520,
-        "median": 682520,
+        "mean": 385377,
+        "median": 385377,
         "stddev": 0,
-        "min": 682520,
-        "max": 682520,
+        "min": 385377,
+        "max": 385377,
         "runs": 10
       },
-      "compressionRatio": 81,
+      "compressionRatio": 72,
       "performanceScore": {
         "mean": 100,
         "median": 100,
@@ -396,19 +396,19 @@
         "runs": 10
       },
       "fcp": {
-        "mean": 53,
-        "median": 53,
-        "stddev": 3.4,
-        "min": 49,
-        "max": 61,
+        "mean": 66,
+        "median": 65,
+        "stddev": 4.8,
+        "min": 53,
+        "max": 75,
         "runs": 10
       },
       "lcp": {
-        "mean": 53,
-        "median": 53,
-        "stddev": 3.4,
-        "min": 49,
-        "max": 61,
+        "mean": 66,
+        "median": 65,
+        "stddev": 4.8,
+        "min": 53,
+        "max": 75,
         "runs": 10
       },
       "tbt": {
@@ -428,16 +428,16 @@
         "runs": 10
       },
       "si": {
-        "mean": 63,
-        "median": 64,
-        "stddev": 4.6,
-        "min": 55,
-        "max": 68,
+        "mean": 78,
+        "median": 77,
+        "stddev": 3.7,
+        "min": 65,
+        "max": 82,
         "runs": 10
       },
       "compressionType": "gzip",
       "chromeVersion": "12.8.2",
-      "measurementTimestamp": "2025-10-26T18:22:05.848Z"
+      "measurementTimestamp": "2025-10-29T22:53:45.374Z"
     },
     {
       "framework": "SolidStart",
