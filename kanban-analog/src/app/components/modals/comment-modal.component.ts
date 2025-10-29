@@ -1,17 +1,15 @@
 import { Component, output, input, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { BoardCard, UsersList } from '../../../lib/types';
 
 @Component({
   selector: 'app-comment-modal',
-  imports: [FormsModule],
   template: `
     @if (isOpen()) {
       <dialog class="modal modal-open !mt-0" (click)="closeOnBackdrop($event)">
         <div class="modal-backdrop bg-black/70"></div>
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form #commentForm="ngForm" (ngSubmit)="handleSubmit(commentForm)">
+          <form (submit)="handleSubmit($event)">
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -25,7 +23,6 @@ import type { BoardCard, UsersList } from '../../../lib/types';
               <label class="label"><span class="label-text">User</span></label>
               <select
                 name="userId"
-                [(ngModel)]="formData.userId"
                 class="select select-bordered w-full"
                 required
               >
@@ -42,7 +39,6 @@ import type { BoardCard, UsersList } from '../../../lib/types';
               >
               <textarea
                 name="text"
-                [(ngModel)]="formData.text"
                 class="textarea textarea-bordered h-24 w-full"
                 placeholder="Enter your comment"
                 required
@@ -53,13 +49,7 @@ import type { BoardCard, UsersList } from '../../../lib/types';
               <button type="button" class="btn btn-ghost" (click)="close()">
                 Cancel
               </button>
-              <button
-                type="submit"
-                class="btn btn-primary"
-                [disabled]="!commentForm.valid"
-              >
-                Add Comment
-              </button>
+              <button type="submit" class="btn btn-primary">Add Comment</button>
             </div>
           </form>
         </div>
@@ -92,23 +82,27 @@ export class CommentModalComponent {
     }
   }
 
-  handleSubmit(form: any) {
-    if (!form.valid) return;
+  handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const userId = formData.get('userId') as string;
+    const text = formData.get('text') as string;
 
     // Optimistic update
     this.commentAdded.emit({
-      userId: this.formData.userId,
-      text: this.formData.text,
+      userId: userId,
+      text: text,
     });
 
     this.close();
-    form.resetForm();
+    form.reset();
 
     // Persist to server
     this.apiService
       .addComment(this.card().id, {
-        userId: this.formData.userId,
-        text: this.formData.text,
+        userId: userId,
+        text: text,
       })
       .subscribe();
   }

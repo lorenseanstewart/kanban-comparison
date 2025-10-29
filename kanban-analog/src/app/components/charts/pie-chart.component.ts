@@ -47,9 +47,6 @@ export interface ChartData {
       </div>
     </div>
   `,
-  styles: `
-    @import 'charts.css';
-  `,
 })
 export class PieChartComponent {
   data = input.required<ChartData[]>();
@@ -62,9 +59,7 @@ export class PieChartComponent {
     '--labels-size': '0',
   };
 
-  total = computed(() =>
-    this.data().reduce((sum, d) => sum + d.value, 0)
-  );
+  total = computed(() => this.data().reduce((sum, d) => sum + d.value, 0));
 
   getStart(index: number): string {
     const total = this.total();

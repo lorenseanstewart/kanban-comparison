@@ -104,8 +104,8 @@
         <stop offset="100%" style="stop-color:#f97316;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="526.5" y="50.198203124999964" width="52.0" height="309.80179687500004" fill="url(#grad8)" rx="4"/>
-    <text x="552.5" y="42.198203124999964" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">430.3</text>
+    <rect x="526.5" y="89.031796875" width="52.0" height="270.968203125" fill="url(#grad8)" rx="4"/>
+    <text x="552.5" y="81.031796875" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">376.3</text>
     <text x="552.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 552.5, 375)">Analog</text>
     <defs>
       <linearGradient id="grad9" x1="0%" y1="0%" x2="0%" y2="100%">

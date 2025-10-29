@@ -1,11 +1,10 @@
 import { Component, signal, output, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { BoardSummary } from '../../../lib/types';
 
 @Component({
   selector: 'app-add-board-modal',
-  imports: [FormsModule],
+  imports: [],
   template: `
     <button type="button" class="btn btn-primary" (click)="isOpen.set(true)">
       Add Board
@@ -15,7 +14,7 @@ import type { BoardSummary } from '../../../lib/types';
       <dialog class="modal modal-open !mt-0" (click)="closeOnBackdrop($event)">
         <div class="modal-backdrop bg-black/70"></div>
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form #boardForm="ngForm" (ngSubmit)="handleSubmit(boardForm)">
+          <form (submit)="handleSubmit($event)">
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -38,7 +37,6 @@ import type { BoardSummary } from '../../../lib/types';
               <input
                 type="text"
                 name="title"
-                [(ngModel)]="formData.title"
                 class="input input-bordered w-full"
                 placeholder="Enter board title"
                 required
@@ -52,7 +50,6 @@ import type { BoardSummary } from '../../../lib/types';
               </label>
               <textarea
                 name="description"
-                [(ngModel)]="formData.description"
                 class="textarea textarea-bordered h-24 w-full"
                 placeholder="Enter board description (optional)"
                 [disabled]="isSubmitting()"
@@ -71,7 +68,7 @@ import type { BoardSummary } from '../../../lib/types';
               <button
                 type="submit"
                 class="btn btn-primary"
-                [disabled]="isSubmitting() || !boardForm.valid"
+                [disabled]="isSubmitting()"
               >
                 {{ isSubmitting() ? 'Adding...' : 'Add Board' }}
               </button>
@@ -90,15 +87,9 @@ export class AddBoardModalComponent {
   isSubmitting = signal(false);
   boardAdded = output<BoardSummary>();
 
-  formData = {
-    title: '',
-    description: '',
-  };
-
   close() {
     this.isOpen.set(false);
     this.error.set(null);
-    this.formData = { title: '', description: '' };
   }
 
   closeOnBackdrop(event: MouseEvent) {
@@ -107,22 +98,26 @@ export class AddBoardModalComponent {
     }
   }
 
-  handleSubmit(form: any) {
-    if (!form.valid) return;
-
+  handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
     this.error.set(null);
     this.isSubmitting.set(true);
 
+    const form = event.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+
     this.apiService
       .createBoard({
-        title: this.formData.title,
-        description: this.formData.description || null,
+        title: title,
+        description: description || null,
       })
       .subscribe({
         next: (result) => {
           if (result.success) {
             this.boardAdded.emit(result.data);
-            form.resetForm();
+            form.reset();
             this.close();
           } else {
             this.error.set('Failed to create board');

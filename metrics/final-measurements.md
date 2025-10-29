@@ -1,6 +1,6 @@
 # Framework Performance Comparison
 
-*Measured: 2025-10-26T19:13:19.220Z*
+*Measured: 2025-10-29T22:53:45.374Z*
 
 ## Methodology
 
@@ -26,8 +26,8 @@ Sorted by raw bundle size (smallest first):
 | TanStack Start + Solid | 182.6 ±0.0 | 60.4 ±0.0 | 67% | 100 ±0.0 | 39 ±2 | 39 ±2 |
 | Nuxt | 224.9 ±0.0 | 74.7 ±0.0 | 67% | 100 ±0.0 | 38 ±4 | 38 ±4 |
 | TanStack Start | 373.6 ±0.0 | 118.2 ±0.0 | 68% | 100 ±0.0 | 41 ±2 | 41 ±2 |
+| Analog | 376.3 ±0.0 | 103.9 ±0.0 | 72% | 100 ±0.0 | 65 ±5 | 65 ±5 |
 | Next.js | 564.9 ±0.0 | 176.3 ±0.0 | 69% | 100 ±0.0 | 444 ±1 | 444 ±1 |
-| Analog | 666.5 ±0.0 | 125.4 ±0.0 | 81% | 100 ±0.0 | 53 ±3 | 53 ±3 |
 
 **Explanation:**
 - **Raw**: Uncompressed bundle size (actual code volume, more consistent for comparison)
@@ -50,7 +50,7 @@ Sorted by raw bundle size (smallest first):
 | TanStack Start + Solid | 149.4 ±0.0 | 50.8 ±0.0 | 66% | 100 ±0.0 | 38 ±2 | 38 ±2 |
 | Nuxt | 224.9 ±0.0 | 74.7 ±0.0 | 67% | 100 ±0.0 | 33 ±1 | 33 ±1 |
 | TanStack Start | 309.4 ±0.0 | 98.3 ±0.0 | 68% | 100 ±0.0 | 38 ±1 | 38 ±1 |
-| Analog | 430.3 ±0.0 | 113.3 ±0.0 | 74% | 100 ±0.0 | 37 ±1 | 37 ±1 |
+| Analog | 376.3 ±0.0 | 103.9 ±0.0 | 72% | 100 ±0.0 | 52 ±5 | 52 ±5 |
 | Next.js | 486.1 ±0.0 | 150.9 ±0.0 | 69% | 100 ±0.0 | 140 ±11 | 140 ±11 |
 
 **Explanation:**

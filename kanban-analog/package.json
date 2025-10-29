@@ -38,6 +38,7 @@
     "daisyui": "^5.1.29",
     "drizzle-orm": "^0.44.6",
     "postcss": "^8.5.3",
+    "prettier": "^3.6.2",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.4",
     "tslib": "^2.3.0",

@@ -21,12 +21,17 @@ This project implements the same Kanban board application in 10 different framew
 
 ## Key Results
 
-**Bundle Size Champions:**
+**Bundle Size Champions (Board Page):**
 
 - **Marko**: 88.8 kB raw (28.8 kB compressed) - 6.36x smaller than Next.js
 - **Qwik**: 114.8 kB raw (58.4 kB compressed) - 4.92x smaller than Next.js
 - **SvelteKit**: 125.2 kB raw (54.1 kB compressed) - 4.51x smaller than Next.js
 - **SolidStart**: 128.6 kB raw (41.5 kB compressed) - 4.39x smaller than Next.js
+
+**Middle of the Pack:**
+
+- **TanStack Start (React)**: 373.6 kB raw (118.2 kB compressed) - 1.51x smaller than Next.js
+- **Analog**: 376.3 kB raw (103.9 kB compressed) - 1.50x smaller than Next.js
 
 **Performance Champions (First Contentful Paint):**
 
@@ -37,7 +42,7 @@ This project implements the same Kanban board application in 10 different framew
 
 **Baseline:**
 
-- **Next.js 16**: 564.9 kB raw (176.3 kB compressed), 467ms FCP
+- **Next.js 16**: 564.9 kB raw (176.3 kB compressed), 444ms FCP
 
 All measurements performed on mobile devices (Pixel 5 emulation) with 4G throttling using Chrome Lighthouse. See [METHODOLOGY.md](./METHODOLOGY.md) for complete details.
 
