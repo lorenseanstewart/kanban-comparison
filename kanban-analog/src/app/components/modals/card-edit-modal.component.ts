@@ -6,19 +6,17 @@ import {
   inject,
   effect,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../lib/api.service';
 import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
 
 @Component({
   selector: 'app-card-edit-modal',
-  imports: [FormsModule],
   template: `
     @if (isOpen()) {
       <dialog class="modal modal-open !mt-0" (click)="closeOnBackdrop($event)">
         <div class="modal-backdrop bg-black/70"></div>
         <div class="modal-box bg-base-200 dark:bg-base-300">
-          <form #editForm="ngForm" (ngSubmit)="handleSubmit(editForm)">
+          <form (submit)="handleSubmit($event)">
             <button
               type="button"
               class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -33,9 +31,9 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
               <input
                 type="text"
                 name="title"
-                [(ngModel)]="formData.title"
                 class="input input-bordered w-full"
                 required
+                [value]="card().title"
                 [disabled]="isDeleting()"
               />
             </div>
@@ -46,9 +44,9 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
               >
               <textarea
                 name="description"
-                [(ngModel)]="formData.description"
                 class="textarea textarea-bordered h-24 w-full"
                 required
+                [value]="card().description"
                 [disabled]="isDeleting()"
               ></textarea>
             </div>
@@ -59,12 +57,11 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
               >
               <select
                 name="assigneeId"
-                [(ngModel)]="formData.assigneeId"
                 class="select select-bordered w-full"
                 required
                 [disabled]="isDeleting()"
               >
-                <option [ngValue]="null" disabled>Select an assignee</option>
+                <option disabled>Select an assignee</option>
                 @for (user of users(); track user.id) {
                   <option [value]="user.id">{{ user.name }}</option>
                 }
@@ -115,11 +112,7 @@ import type { BoardCard, UsersList, TagsList } from '../../../lib/types';
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  class="btn btn-primary"
-                  [disabled]="!editForm.valid || isDeleting()"
-                >
+                <button type="submit" class="btn btn-primary">
                   Save Changes
                 </button>
               </div>
@@ -143,18 +136,10 @@ export class CardEditModalComponent {
 
   selectedTagIds = signal<Set<string>>(new Set());
   isDeleting = signal(false);
-  formData = {
-    title: '',
-    description: '',
-    assigneeId: null as string | null,
-  };
 
   constructor() {
     effect(() => {
       const card = this.card();
-      this.formData.title = card.title;
-      this.formData.description = card.description || '';
-      this.formData.assigneeId = card.assigneeId;
       this.selectedTagIds.set(new Set(card.tags.map((t) => t.id)));
     });
   }
@@ -203,18 +188,24 @@ export class CardEditModalComponent {
     this.selectedTagIds.set(newSet);
   }
 
-  handleSubmit(form: any) {
-    if (!form.valid) return;
+  handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
 
     const updatedTags = this.tags().filter((tag) =>
       this.selectedTagIds().has(tag.id),
     );
 
+    const form = event.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const assigneeId = formData.get('assigneeId') as string;
+
     // Optimistic update
     this.cardUpdated.emit({
-      title: this.formData.title,
-      description: this.formData.description || null,
-      assigneeId: this.formData.assigneeId || null,
+      title: title,
+      description: description || null,
+      assigneeId: assigneeId || null,
       tags: updatedTags,
     });
 
@@ -224,9 +215,9 @@ export class CardEditModalComponent {
     this.apiService
       .updateCard({
         cardId: this.card().id,
-        title: this.formData.title,
-        description: this.formData.description || null,
-        assigneeId: this.formData.assigneeId || null,
+        title: title,
+        description: description || null,
+        assigneeId: assigneeId || null,
         tagIds: Array.from(this.selectedTagIds()),
       })
       .subscribe();
