@@ -1,0 +1,11 @@
+.DS_Store
+*.env*
+tmp/
+bin/
+release/
+__debug
+.sqlfluff
+**/*_templ.go
+**/style.css
+sqlite.db
+node_modules

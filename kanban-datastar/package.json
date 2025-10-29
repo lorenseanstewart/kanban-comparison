@@ -1,0 +1,23 @@
+{
+  "name": "kanban-datastar",
+  "version": "1.0.0",
+  "description": "Kanban board implementation using Datastar + Go + templ",
+  "scripts": {
+    "dev": "task dev",
+    "build": "task build",
+    "start": "task build && ./tmp/main",
+    "preview": "./tmp/main",
+    "clean": "task clean"
+  },
+  "keywords": [
+    "datastar",
+    "go",
+    "templ",
+    "htmx"
+  ],
+  "author": "JsonBateman",
+  "license": "MIT",
+  "dependencies": {
+    "daisyui": "^5.3.0"
+  }
+}

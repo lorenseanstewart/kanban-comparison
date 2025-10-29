@@ -1,0 +1,157 @@
+package board
+
+import "kanban-datastar/pkg/database/sqlcgen"
+import "fmt"
+
+templ Board(boardDetails BoardDetails, users []sqlcgen.User, tags []sqlcgen.GetTagsRow) {
+	<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
+		<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+			<div class="breadcrumbs text-sm">
+				<ul>
+					<li>
+						<a href="/" class="link link-hover">Boards</a>
+					</li>
+					<li>
+						<span class="text-base-content/60">{ boardDetails.Title }</span>
+					</li>
+				</ul>
+			</div>
+			<div class="space-y-8">
+				@BoardOverview(boardDetails)
+				@BoardCardsSection(boardDetails)
+			</div>
+		</main>
+	</div>
+}
+
+templ BoardOverview(board BoardDetails) {
+	<section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
+		<div class="space-y-3">
+			<div class="badge badge-secondary badge-outline">Board overview</div>
+			<h1 class="text-4xl font-black text-primary">{ board.Title }</h1>
+			if board.Description != "" {
+				<p class="text-base text-base-content/60 max-w-2xl">
+					{ board.Description }
+				</p>
+			}
+		</div>
+		<!-- Charts Section (simplified for now) -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
+			<div class="card bg-base-100 dark:bg-base-200 shadow-lg p-6">
+				<h3 class="text-lg font-semibold mb-4">Cards per List</h3>
+				<div class="space-y-2">
+					for _, list := range board.Lists {
+						<div class="flex items-center gap-2">
+							<span class="font-medium">{ list.Title }:</span>
+							<span class="badge badge-primary">{ fmt.Sprintf("%d", len(list.Cards)) }</span>
+						</div>
+					}
+				</div>
+			</div>
+			<div class="card bg-base-100 dark:bg-base-200 shadow-lg p-6">
+				<h3 class="text-lg font-semibold mb-4">Distribution</h3>
+				<p class="text-sm text-base-content/60">Total cards: { fmt.Sprintf("%d", getTotalCards(board.Lists)) }</p>
+			</div>
+		</div>
+	</section>
+}
+
+templ BoardCardsSection(board BoardDetails) {
+	<section id="board-cards-section" class="flex gap-7 overflow-x-auto pb-8">
+		if len(board.Lists) == 0 {
+			<div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+				<div class="card-body items-center text-center">
+					<h2 class="card-title text-secondary">No lists yet</h2>
+					<p class="text-base-content/60">
+						Add a list to begin organizing work on this board.
+					</p>
+				</div>
+			</div>
+		} else {
+			for _, list := range board.Lists {
+				@CardList(list, board.ID)
+			}
+		}
+	</section>
+}
+
+templ CardList(list ListWithCards, boardID string) {
+	<article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
+		<div class="card-body gap-4">
+			<header class="flex items-center justify-between">
+				<h2 class="card-title text-base-content">{ list.Title }</h2>
+				<div class="badge badge-primary badge-outline badge-lg shadow">
+					{ fmt.Sprintf("%d cards", len(list.Cards)) }
+				</div>
+			</header>
+			<div class="card-list min-h-[200px] transition-all duration-200 rounded-lg space-y-3">
+				if len(list.Cards) == 0 {
+					<div class="empty-placeholder alert alert-info text-sm">
+						<span>No cards yet</span>
+					</div>
+				} else {
+					for _, card := range list.Cards {
+						@Card(card, boardID)
+					}
+				}
+			</div>
+		</div>
+	</article>
+}
+
+templ Card(card CardWithDetails, boardID string) {
+	<article class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out">
+		<div class="card-body gap-3 p-4">
+			<div class="flex items-start justify-between gap-2">
+				<h3 class="card-title text-lg text-base-content">{ card.Title }</h3>
+				if card.Completed {
+					<span class="badge badge-success badge-outline">Done</span>
+				}
+			</div>
+			if card.AssigneeID != "" {
+				<div class="badge badge-outline badge-secondary badge-sm">
+					Assigned to { card.AssigneeName }
+				</div>
+			}
+			if card.Description != "" {
+				<p class="text-sm text-base-content/70 bg-base-200 dark:bg-base-100 rounded-xl px-3 py-2">
+					{ card.Description }
+				</p>
+			}
+			if len(card.Tags) > 0 {
+				<div class="flex flex-wrap gap-2.5 rounded-xl px-3 py-2 bg-base-200 dark:bg-base-100">
+					for _, tag := range card.Tags {
+						<span class="badge border-0 shadow font-semibold text-white" style={ fmt.Sprintf("background-color: %s;", tag.Color) }>
+							{ tag.Name }
+						</span>
+					}
+				</div>
+			}
+			if len(card.Comments) > 0 {
+				<div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
+					<p class="text-xs font-semibold text-base-content/50">Comments</p>
+					<ul class="space-y-1 text-sm text-base-content/70">
+						for _, comment := range card.Comments {
+							<li>
+								<span class="font-semibold text-base-content">
+									{ comment.UserName }:
+								</span>
+								{ " " }
+								{ comment.Text }
+							</li>
+						}
+					</ul>
+				</div>
+			}
+		</div>
+	</article>
+}
+
+// Helper function to calculate total cards
+func getTotalCards(lists []ListWithCards) int {
+	total := 0
+	for _, list := range lists {
+		total += len(list.Cards)
+	}
+	return total
+}

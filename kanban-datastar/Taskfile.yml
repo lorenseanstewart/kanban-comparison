@@ -1,0 +1,64 @@
+version: '3'
+
+tasks:
+  # Individual watchers
+  css:watch:
+    desc: Watch CSS changes and rebuild
+    cmd: tailwindcss -i ./public/input.css -o ./public/style.css --watch
+
+  templ:watch:
+    desc: Watch templ files and regenerate
+    cmd: templ generate --watch
+
+  go:watch:
+    desc: Watch Go files and restart server
+    cmd: air
+
+  # Combined development task
+  dev:
+    desc: Run all watchers in parallel
+    cmds:
+      - |
+        sqlc generate
+        tailwindcss -i ./public/input.css -o ./public/style.css --watch &
+        templ generate --watch &
+        if [ "$OS" = "Windows_NT" ]; then
+          air -build.cmd "templ generate; if (\$?) { go build -o tmp/main.exe ./cmd }" -build.bin "tmp/main.exe" &
+        else
+          air &
+        fi
+        wait
+
+  # Build tasks
+  css:build:
+    desc: Build CSS for production
+    cmd: tailwindcss -i ./public/input.css -o ./public/style.css --minify
+
+  templ:build:
+    desc: Generate templ files
+    cmd: templ generate
+
+  build:
+    desc: Build everything for production (optimized)
+    deps: [css:build, templ:build]
+    cmds:
+      - mkdir -p ./release
+      - go build -ldflags="-s -w" -trimpath -o ./release/main ./cmd/main.go
+
+  release:
+    desc: Build release package for deployment
+    deps: [css:build, templ:build]
+    cmds:
+      - mkdir -p ./release
+      - go build -o ./release/watchma ./cmd/main.go
+      - echo "Release built in ./release/"
+
+  # Utility tasks
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf ./tmp/*
+      - rm -rf ./release/*
+      - rm -f ./public/style.css
+      - find . -name "*_templ.go" -delete
+

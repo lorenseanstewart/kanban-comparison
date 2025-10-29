@@ -1,0 +1,26 @@
+package common 
+
+type PageContext struct {
+	Title string
+}
+
+templ Layout(pc PageContext, content templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link href="/public/style.css" rel="stylesheet"/>
+			<title>{ pc.Title }</title>
+		</head>
+		<body>
+			<div style="display: contents">
+				<div class="min-h-screen bg-base-200">
+					@content
+				</div>
+			</div>
+			<!-- Datastar -->
+			<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.6/bundles/datastar.js"></script>
+		</body>
+	</html>
+}
