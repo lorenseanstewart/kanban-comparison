@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 export function BarChart(props: {
   data: Array<{ label: string; value: number }>;
   colors: string[];
@@ -12,7 +10,9 @@ export function BarChart(props: {
   return (
     <div className="card bg-base-100 shadow-lg">
       <div className="card-body p-4">
-        <h3 className="card-title text-sm text-base-content mb-4">{props.title}</h3>
+        <h3 className="card-title text-sm text-base-content mb-4">
+          {props.title}
+        </h3>
 
         {/* Pure CSS Grid layout - everything in normal flow */}
         <div
@@ -50,31 +50,20 @@ function BarColumn({
   heightPercent: number;
   color: string;
 }) {
-  const barRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (barRef.current) {
-      // Set initial state without transition
-      barRef.current.style.transition = "none";
-      barRef.current.style.height = "0%";
-      barRef.current.style.backgroundColor = color;
-
-      // Trigger animation after a brief delay
-      requestAnimationFrame(() => {
-        if (barRef.current) {
-          barRef.current.style.transition =
-            "height 500ms ease-out, background-color 500ms ease-out";
-          barRef.current.style.height = `${heightPercent}%`;
-        }
-      });
-    }
-  }, [heightPercent, color]);
-
   return (
     <div className="flex flex-col items-center gap-2">
-      {/* Bar container - grows from bottom */}
-      <div className="w-full flex flex-col justify-end" style={{ height: "150px" }}>
-        <div ref={barRef} className="w-full rounded-t" style={{ height: "0%" }}>
+      <div
+        className="w-full flex flex-col justify-end"
+        style={{ height: "150px" }}
+      >
+        <div
+          className="w-full rounded-t"
+          style={{
+            height: `${heightPercent}%`,
+            backgroundColor: color,
+            transition: "height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
           <div className="text-xs text-white font-semibold text-center pt-1">
             {value}
           </div>

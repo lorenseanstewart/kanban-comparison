@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import type { BoardCard, BoardDetails } from "@/lib/api";
+import { findCardById } from "@/lib/board-utils";
 import {
+  closestCenter,
   DndContext,
   DragOverlay,
-  closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import type { BoardDetails, BoardCard } from "@/lib/api";
-import { findCardById, useIsClient } from "@/lib/board-utils";
+import { useState } from "react";
 import { DraggingCardPreview } from "./DraggingCardPreview";
 
 export function DragDropBoard({
@@ -25,7 +25,6 @@ export function DragDropBoard({
   board: BoardDetails;
 }) {
   const [activeCard, setActiveCard] = useState<BoardCard | null>(null);
-  const isClient = useIsClient();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -47,10 +46,6 @@ export function DragDropBoard({
     setActiveCard(null);
     onDragEnd(event);
   };
-
-  if (!isClient) {
-    return <>{children}</>;
-  }
 
   return (
     <DndContext
@@ -78,4 +73,3 @@ export function DragDropBoard({
     </DndContext>
   );
 }
-

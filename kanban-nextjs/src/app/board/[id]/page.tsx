@@ -1,7 +1,5 @@
-import { getBoard, getUsers, getTags } from "@/lib/api";
+import { getBoard, getTags, getUsers } from "@/lib/api";
 import { BoardPageClient } from "./BoardPageClient";
-import { Suspense } from "react";
-import LoadingFallback from "./loading";
 
 export default async function BoardPage({
   params,
@@ -15,12 +13,10 @@ export default async function BoardPage({
   const tagsPromise = getTags();
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <BoardPageClient
-        boardPromise={boardPromise}
-        usersPromise={usersPromise}
-        tagsPromise={tagsPromise}
-      />
-    </Suspense>
+    <BoardPageClient
+      boardPromise={boardPromise}
+      usersPromise={usersPromise}
+      tagsPromise={tagsPromise}
+    />
   );
 }
