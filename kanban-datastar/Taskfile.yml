@@ -8,11 +8,11 @@ tasks:
 
   templ:watch:
     desc: Watch templ files and regenerate
-    cmd: templ generate --watch
+    cmd: go tool templ generate --watch
 
   go:watch:
     desc: Watch Go files and restart server
-    cmd: air
+    cmd: go tool air
 
   # Combined development task
   dev:
@@ -21,11 +21,11 @@ tasks:
       - |
         sqlc generate
         tailwindcss -i ./public/input.css -o ./public/style.css --watch &
-        templ generate --watch &
+        go tool templ generate --watch &
         if [ "$OS" = "Windows_NT" ]; then
-          air -build.cmd "templ generate; if (\$?) { go build -o tmp/main.exe ./cmd }" -build.bin "tmp/main.exe" &
+          go tool air -build.cmd "go tool templ generate; if (\$?) { go build -o tmp/main.exe ./cmd }" -build.bin "tmp/main.exe" &
         else
-          air &
+          go tool air &
         fi
         wait
 
@@ -36,7 +36,7 @@ tasks:
 
   templ:build:
     desc: Generate templ files
-    cmd: templ generate
+    cmd: go tool templ generate
 
   build:
     desc: Build everything for production (optimized)
@@ -61,4 +61,3 @@ tasks:
       - rm -rf ./release/*
       - rm -f ./public/style.css
       - find . -name "*_templ.go" -delete
-

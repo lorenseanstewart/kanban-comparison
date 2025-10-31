@@ -114,7 +114,7 @@ templ EditCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTags
 						type="text"
 						class="input input-bordered w-full"
 						placeholder="Enter card title"
-						data-model="$editTitle"
+						data-bind="editTitle"
 						required
 					/>
 				</div>
@@ -127,7 +127,7 @@ templ EditCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTags
 						name="description"
 						class="textarea textarea-bordered h-24 w-full"
 						placeholder="Enter card description (optional)"
-						data-model="$editDescription"
+						data-bind="editDescription"
 					></textarea>
 				</div>
 				<div class="form-control w-full mb-4">
@@ -138,7 +138,7 @@ templ EditCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTags
 						id="edit-card-assignee"
 						name="assigneeId"
 						class="select select-bordered w-full"
-						data-model="$editAssigneeId"
+						data-bind="editAssigneeId"
 					>
 						<option value="">Unassigned</option>
 						for _, user := range users {
