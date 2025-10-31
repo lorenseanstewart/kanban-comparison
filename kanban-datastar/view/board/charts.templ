@@ -59,7 +59,6 @@ templ PieChart(data []ChartData, colors []string, title string) {
 					}
 				</tbody>
 			</table>
-			<!-- Legend -->
 			<div class="flex flex-col gap-1 w-full">
 				for i, item := range data {
 					@PieChartLegendItem(item, colors[i%len(colors)], getTotalValue(data))
