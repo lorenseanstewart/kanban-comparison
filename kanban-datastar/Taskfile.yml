@@ -1,5 +1,7 @@
 version: '3'
 
+interval: 100ms
+
 vars:
   TAILWIND_VERSION: v4.1.16
   tailwind_bin:

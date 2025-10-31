@@ -6,7 +6,7 @@ SELECT
     c.text as comment_text,
     c.created_at
 FROM comments c
-INNER JOIN users u ON comments.user_id = users.id
+INNER JOIN users u ON c.user_id = u.id
 WHERE c.card_id = ?
 ORDER BY created_at ASC;
 

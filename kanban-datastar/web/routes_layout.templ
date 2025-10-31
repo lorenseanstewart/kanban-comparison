@@ -8,11 +8,11 @@ templ BasePage(title string) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link href="/public/style.css" rel="stylesheet"/>
+			<link href={ StaticPath("style.css") } rel="stylesheet"/>
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css"/>
-			<link href="/public/favicon.png" rel="icon" type="image/png"/>
+			<link href={ StaticPath("favicon.png") } rel="icon" type="image/png"/>
 			<title>{ title }</title>
-			<script type="module" src="/public/datastar.js"></script>
+			<script type="module" src={ StaticPath("datastar.js") }></script>
 		</head>
 		<body>
 			{ children... }

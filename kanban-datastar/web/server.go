@@ -86,34 +86,37 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 	return nil
 }
 
-func RenderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
-	c.Render(r.Context(), w)
+func RenderPage(w http.ResponseWriter, r *http.Request, c templ.Component) error {
+	return c.Render(r.Context(), w)
+}
+
+func renderAllBoards(w http.ResponseWriter, r *http.Request, db *toolbelt.Database) error {
+	var boards []Board
+	if err := db.ReadTX(r.Context(), func(tx *sqlite.Conn) error {
+		brds, err := zz.OnceBoards(tx)
+		if err != nil {
+			return fmt.Errorf("failed to load boards: %w", err)
+		}
+		boards = make([]Board, len(brds))
+		for i, b := range brds {
+			board := Board{
+				ID:          b.Id,
+				Title:       b.Title,
+				Description: b.Description,
+			}
+			boards[i] = board
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("load boards: %w", err)
+	}
+
+	return RenderPage(w, r, IndexPage(boards...))
 }
 
 func indexHandler(db *toolbelt.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var boards []Board
-		if err := db.ReadTX(r.Context(), func(tx *sqlite.Conn) error {
-			brds, err := zz.OnceBoards(tx)
-			if err != nil {
-				return fmt.Errorf("failed to load boards: %w", err)
-			}
-			boards = make([]Board, len(brds))
-			for i, b := range brds {
-				board := Board{
-					ID:          b.Id,
-					Title:       b.Title,
-					Description: b.Description,
-				}
-				boards[i] = board
-			}
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to load boards", http.StatusInternalServerError)
-			return
-		}
-
-		RenderPage(w, r, IndexPage(boards...))
+		renderAllBoards(w, r, db)
 	}
 }
 
@@ -159,6 +162,8 @@ func createBoardHandler(db *toolbelt.Database) http.HandlerFunc {
 			http.Error(w, "Failed to create board", http.StatusInternalServerError)
 			return
 		}
+
+		renderAllBoards(w, r, db)
 	}
 }
 

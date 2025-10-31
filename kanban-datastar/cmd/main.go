@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"kanban"
 	"kanban/sql"
 	"kanban/web"
 	"log"
-	"os"
 )
 
 func main() {
@@ -18,11 +18,9 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("get working directory: %w", err)
-	}
-	db, err := sql.NewDatabase(ctx, wd)
+	cfg := kanban.LoadSettings()
+
+	db, err := sql.NewDatabase(ctx, cfg.DBPath)
 	if err != nil {
 		return fmt.Errorf("initialize database: %w", err)
 	}

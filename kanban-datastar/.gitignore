@@ -13,3 +13,4 @@ node_modules
 .serena
 *.log
 data
+*bin*
