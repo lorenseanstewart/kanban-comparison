@@ -2,7 +2,6 @@ package board
 
 import "kanban-datastar/pkg/database/sqlcgen"
 
-// BoardDetails represents the full board with nested lists and cards
 type BoardDetails struct {
 	ID          string
 	Title       string
@@ -10,7 +9,7 @@ type BoardDetails struct {
 	Lists       []ListWithCards
 }
 
-// ListWithCards represents a list with its cards
+// Todo -- In-Progress -- QA -- Done
 type ListWithCards struct {
 	ID       string
 	Title    string
@@ -18,7 +17,6 @@ type ListWithCards struct {
 	Cards    []CardWithDetails
 }
 
-// CardWithDetails represents a card with all its associated data
 type CardWithDetails struct {
 	ID           string
 	Title        string
@@ -31,14 +29,12 @@ type CardWithDetails struct {
 	Comments     []CommentItem
 }
 
-// TagItem represents a tag
 type TagItem struct {
 	ID    string
 	Name  string
 	Color string
 }
 
-// CommentItem represents a comment with user info
 type CommentItem struct {
 	ID       string
 	Text     string
@@ -46,7 +42,7 @@ type CommentItem struct {
 	UserName string
 }
 
-// BuildBoardDetails constructs the nested board data structure
+// BuildBoardDetails constructs the primary data structure for the page
 func BuildBoardDetails(
 	boardData sqlcgen.GetBoardRow,
 	lists []sqlcgen.GetListsByBoardIdRow,
@@ -56,44 +52,38 @@ func BuildBoardDetails(
 	users []sqlcgen.User,
 	tags []sqlcgen.GetTagsRow,
 ) BoardDetails {
-	// Create user lookup map
+
 	userMap := make(map[string]string)
 	for _, user := range users {
 		userMap[user.ID] = user.Name
 	}
 
-	// Create tag lookup map
 	tagMap := make(map[string]sqlcgen.GetTagsRow)
 	for _, tag := range tags {
 		tagMap[tag.ID] = tag
 	}
 
-	// Group card tags by card ID
 	cardTagsMap := make(map[string][]sqlcgen.GetTagsByCardIdsRow)
 	for _, ct := range cardTags {
 		cardTagsMap[ct.CardID] = append(cardTagsMap[ct.CardID], ct)
 	}
 
-	// Group comments by card ID
 	commentsMap := make(map[string][]sqlcgen.Comment)
 	for _, comment := range comments {
 		commentsMap[comment.CardID] = append(commentsMap[comment.CardID], comment)
 	}
 
-	// Group cards by list ID
 	cardsMap := make(map[string][]sqlcgen.GetCardsByListIdsRow)
 	for _, card := range cards {
 		cardsMap[card.ListID] = append(cardsMap[card.ListID], card)
 	}
 
-	// Build lists with cards
 	listsWithCards := make([]ListWithCards, len(lists))
 	for i, list := range lists {
 		listCards := cardsMap[list.ID]
 		cardsWithDetails := make([]CardWithDetails, len(listCards))
 
 		for j, card := range listCards {
-			// Build tags for this card
 			cardTagsList := []TagItem{}
 			for _, ct := range cardTagsMap[card.ID] {
 				if tag, ok := tagMap[ct.TagID]; ok {
@@ -105,7 +95,6 @@ func BuildBoardDetails(
 				}
 			}
 
-			// Build comments for this card
 			cardCommentsList := []CommentItem{}
 			for _, comment := range commentsMap[card.ID] {
 				cardCommentsList = append(cardCommentsList, CommentItem{
@@ -116,7 +105,6 @@ func BuildBoardDetails(
 				})
 			}
 
-			// Get assignee name
 			assigneeName := ""
 			if card.AssigneeID.Valid {
 				assigneeName = userMap[card.AssigneeID.String]
@@ -129,7 +117,7 @@ func BuildBoardDetails(
 				AssigneeID:   card.AssigneeID.String,
 				AssigneeName: assigneeName,
 				Position:     card.Position,
-				Completed:    true,
+				Completed:    card.Completed.Int64 == 1,
 				Tags:         cardTagsList,
 				Comments:     cardCommentsList,
 			}

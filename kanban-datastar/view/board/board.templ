@@ -1,35 +1,39 @@
 package board
 
-import (
-	"fmt"
-	"kanban-datastar/pkg/database/sqlcgen"
-)
+import "kanban-datastar/pkg/database/sqlcgen"
 
 templ Board(boardDetails BoardDetails, users []sqlcgen.User, tags []sqlcgen.GetTagsRow) {
-	<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
-		<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
-			<div class="breadcrumbs text-sm">
-				<ul>
-					<li>
-						<a href="/" class="link link-hover">Boards</a>
-					</li>
-					<li>
-						<span class="text-base-content/60">{ boardDetails.Title }</span>
-					</li>
-				</ul>
+	<div style="display: contents">
+		<div class="min-h-screen bg-base-200">
+			<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
+				<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+					<div class="breadcrumbs text-sm">
+						<ul>
+							<li>
+								<a href="/" class="link link-hover">Boards</a>
+							</li>
+							<li>
+								<span class="text-base-content/60">{ boardDetails.Title }</span>
+							</li>
+						</ul>
+					</div>
+					<div class="space-y-8">
+						@BoardOverview(boardDetails)
+						<div class="card-actions">
+							<button class="btn btn-primary" onclick="addCardModal.showModal()">
+								Add Card
+							</button>
+						</div>
+						@BoardCardsSection(boardDetails, users)
+					</div>
+					@AddCardModal(boardDetails.ID, users, tags)
+					@EditCardModal(boardDetails.ID, users, tags)
+					@AddCommentModal(boardDetails.ID, users)
+				</main>
 			</div>
-			<div class="space-y-8">
-				@BoardOverview(boardDetails)
-				<div class="card-actions">
-					<button class="btn btn-primary" onclick="addCardModal.showModal()">
-						Add Card
-					</button>
-				</div>
-				@BoardCardsSection(boardDetails)
-			</div>
-			@AddCardModal(boardDetails.ID, users, tags)
-		</main>
+		</div>
 	</div>
+	@DropScript()
 }
 
 templ BoardOverview(board BoardDetails) {
@@ -43,29 +47,16 @@ templ BoardOverview(board BoardDetails) {
 				</p>
 			}
 		</div>
-		<!-- Charts Section (simplified for now) -->
+		<!-- Charts Section -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
-			<div class="card bg-base-100 dark:bg-base-200 shadow-lg p-6">
-				<h3 class="text-lg font-semibold mb-4">Cards per List</h3>
-				<div class="space-y-2">
-					for _, list := range board.Lists {
-						<div class="flex items-center gap-2">
-							<span class="font-medium">{ list.Title }:</span>
-							<span class="badge badge-primary">{ fmt.Sprintf("%d", len(list.Cards)) }</span>
-						</div>
-					}
-				</div>
-			</div>
-			<div class="card bg-base-100 dark:bg-base-200 shadow-lg p-6">
-				<h3 class="text-lg font-semibold mb-4">Distribution</h3>
-				<p class="text-sm text-base-content/60">Total cards: { fmt.Sprintf("%d", getTotalCards(board.Lists)) }</p>
-			</div>
+			@BarChart(getChartData(board.Lists), getPastelColors(), "Cards per List")
+			@PieChart(getChartData(board.Lists), getPastelColors(), "Distribution")
 		</div>
 	</section>
 }
 
-templ BoardCardsSection(board BoardDetails) {
-	<section id="board-cards-section" class="flex gap-7 overflow-x-auto pb-8">
+templ BoardCardsSection(board BoardDetails, users []sqlcgen.User) {
+	<section id="boardCardsSection" class="flex gap-7 overflow-x-auto pb-8">
 		if len(board.Lists) == 0 {
 			<div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
 				<div class="card-body items-center text-center">
@@ -77,8 +68,23 @@ templ BoardCardsSection(board BoardDetails) {
 			</div>
 		} else {
 			for _, list := range board.Lists {
-				@CardList(list, board.ID)
+				@CardList(list, board.ID, users)
 			}
 		}
 	</section>
+}
+
+func getChartData(lists []ListWithCards) []ChartData {
+	data := make([]ChartData, len(lists))
+	for i, list := range lists {
+		data[i] = ChartData{
+			Label: list.Title,
+			Value: len(list.Cards),
+		}
+	}
+	return data
+}
+
+func getPastelColors() []string {
+	return []string{"#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"}
 }

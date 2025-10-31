@@ -3,23 +3,27 @@ package view
 import "kanban-datastar/pkg/database/sqlcgen"
 
 templ Index(boards []sqlcgen.GetBoardsRow) {
-	<main id="index" class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
-		<!-- Header -->
-		<header class="text-center space-y-3">
-			<p class="text-sm uppercase tracking-wide text-secondary">
-				Your workspace
-			</p>
-			<h1 class="text-4xl font-black text-primary">Boards</h1>
-			<p class="text-base text-base-content/60">
-				Choose a board to jump into your Kanban flow.
-			</p>
-		</header>
-		<div class="flex justify-end">
-			<button class="btn btn-primary" onclick="addBoardModal.showModal()">Add Board</button>
+	<div style="display: contents">
+		<div class="min-h-screen bg-base-200">
+			<main id="index" class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+				<!-- Header -->
+				<header class="text-center space-y-3">
+					<p class="text-sm uppercase tracking-wide text-secondary">
+						Your workspace
+					</p>
+					<h1 class="text-4xl font-black text-primary">Boards</h1>
+					<p class="text-base text-base-content/60">
+						Choose a board to jump into your Kanban flow.
+					</p>
+				</header>
+				<div class="flex justify-end">
+					<button class="btn btn-primary" onclick="addBoardModal.showModal()">Add Board</button>
+				</div>
+				@BoardsList(boards)
+				@AddBoardModal()
+			</main>
 		</div>
-		@BoardsList(boards)
-		@AddBoardModal()
-	</main>
+	</div>
 }
 
 templ BoardsList(boards []sqlcgen.GetBoardsRow) {
@@ -104,7 +108,7 @@ templ AddBoardModal() {
 					></textarea>
 				</div>
 				<div class="modal-action">
-					<button type="button" class="btn btn-ghost" onclick="add_board_modal.close()">
+					<button type="button" class="btn btn-ghost" onclick="addBoardModal.close()">
 						Cancel
 					</button>
 					<button type="submit" class="btn btn-primary">

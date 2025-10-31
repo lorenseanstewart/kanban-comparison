@@ -5,7 +5,7 @@ import (
 	"kanban-datastar/pkg/database/sqlcgen"
 )
 
-templ CardList(list ListWithCards, boardID string) {
+templ CardList(list ListWithCards, boardID string, users []sqlcgen.User) {
 	<article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
 		<div class="card-body gap-4">
 			<header class="flex items-center justify-between">
@@ -14,14 +14,23 @@ templ CardList(list ListWithCards, boardID string) {
 					{ fmt.Sprintf("%d cards", len(list.Cards)) }
 				</div>
 			</header>
-			<div class="card-list min-h-[200px] transition-all duration-200 rounded-lg space-y-3">
+			<div>
+				{ list.ID }
+			</div>
+			<div
+				class="card-list min-h-[200px] transition-all duration-200 rounded-lg space-y-3"
+				data-list-id={ list.ID }
+				data-on:dragover="evt.preventDefault(); evt.currentTarget.classList.add('ring-4', 'ring-primary', 'cursor-grabbing', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]')"
+				data-on:dragleave="evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]')"
+				data-on:drop={ fmt.Sprintf(`drop(evt, '%s', '%s')`, boardID, list.ID) }
+			>
 				if len(list.Cards) == 0 {
 					<div class="empty-placeholder alert alert-info text-sm">
 						<span>No cards yet</span>
 					</div>
 				} else {
 					for _, card := range list.Cards {
-						@Card(card, boardID)
+						@Card(card, boardID, list.ID)
 					}
 				}
 			</div>
@@ -29,14 +38,78 @@ templ CardList(list ListWithCards, boardID string) {
 	</article>
 }
 
-templ Card(card CardWithDetails, boardID string) {
-	<article class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out">
+templ DropScript() {
+	<script>
+       function drop(evt, boardId, listId) {
+          evt.preventDefault();
+          evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
+          const cardId = evt.dataTransfer.getData('cardId');
+          const sourceListId = evt.dataTransfer.getData('listId');
+          const targetListId = listId;
+
+          // Calculate drop position
+          const dropY = evt.clientY;
+          const cardsInList = evt.currentTarget.querySelectorAll('[data-card-id]');
+          let insertPosition = cardsInList.length;
+
+          for (let i = 0; i < cardsInList.length; i++) {
+            const rect = cardsInList[i].getBoundingClientRect();
+            const cardMiddle = rect.top + rect.height / 2;
+            if (dropY < cardMiddle) {
+              insertPosition = i;
+              break;
+            }
+          }
+
+          // Update card list if changed
+          if (sourceListId !== targetListId) {
+            fetch(`/board/${boardId}/card/` + cardId + '/list', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: 'listId=' + targetListId
+            });
+          }
+
+          // Collect all card IDs in new order
+          const allCardIds = Array.from(cardsInList)
+            .filter(card => card.dataset.cardId !== cardId)
+            .map(card => card.dataset.cardId);
+          allCardIds.splice(insertPosition, 0, cardId);
+
+          // Update positions
+          const params = new URLSearchParams();
+          allCardIds.forEach(id => params.append('cardIds', id));
+          fetch(`/board/${boardId}/list/${listId}/positions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+          }).then(window.location.reload())
+        }
+    </script>
+}
+
+templ Card(card CardWithDetails, boardID string, listID string) {
+	<article
+		class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out cursor-grab active:cursor-grabbing"
+		id={ card.ID }
+		draggable="true"
+		data-on:dragstart={ fmt.Sprintf("evt.dataTransfer.effectAllowed = 'move'; evt.dataTransfer.setData('cardId', '%s'); evt.dataTransfer.setData('listId', '%s'); evt.target.classList.add('opacity-50')", card.ID, listID) }
+		data-on:dragend="evt.target.classList.remove('opacity-50')"
+	>
 		<div class="card-body gap-3 p-4">
 			<div class="flex items-start justify-between gap-2">
 				<h3 class="card-title text-lg text-base-content">{ card.Title }</h3>
 				if card.Completed {
 					<span class="badge badge-success badge-outline">Done</span>
 				}
+				<button
+					type="button"
+					class="btn btn-ghost btn-xs btn-circle"
+					data-on:click={ fmt.Sprintf("$cardId = '%s'; editCardModal.showModal()", card.ID) }
+					aria-label="Edit card"
+				>
+					@EditPencil()
+				</button>
 			</div>
 			if card.AssigneeID != "" {
 				<div class="badge badge-outline badge-secondary badge-sm">
@@ -57,9 +130,21 @@ templ Card(card CardWithDetails, boardID string) {
 					}
 				</div>
 			}
-			if len(card.Comments) > 0 {
-				<div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner relative">
+			<div class="rounded-2xl bg-base-200 dark:bg-base-100 p-3 space-y-2 shadow-inner">
+				<div class="flex items-center justify-between">
 					<p class="text-xs font-semibold text-base-content/50">Comments</p>
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs btn-circle"
+						data-on:click={ fmt.Sprintf("$cardId = '%s'; addCommentModal.showModal()", card.ID) }
+						aria-label="Add comment"
+					>
+						+
+					</button>
+				</div>
+				if len(card.Comments) == 0 {
+					<p class="text-sm text-base-content/70">No comments yet</p>
+				} else {
 					<ul class="space-y-1 text-sm text-base-content/70">
 						for _, comment := range card.Comments {
 							<li>
@@ -71,8 +156,8 @@ templ Card(card CardWithDetails, boardID string) {
 							</li>
 						}
 					</ul>
-				</div>
-			}
+				}
+			</div>
 		</div>
 	</article>
 }
@@ -167,6 +252,153 @@ templ AddCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTagsR
 	</style>
 }
 
+templ EditCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTagsRow) {
+	<dialog id="editCardModal" class="modal">
+		<div class="modal-box bg-base-200 dark:bg-base-300">
+			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="editCardModal.close()">
+				✕
+			</button>
+			<h3 class="font-bold text-lg mb-4">Edit Card</h3>
+			<form
+				method="POST"
+				data-on:submit={ fmt.Sprintf("@post('/board/%s/card/' + $cardId, {contentType: 'form'}); editCardModal.close()", boardID) }
+			>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="edit-card-title">
+						<span class="label-text">Title</span>
+					</label>
+					<input
+						id="edit-card-title"
+						name="title"
+						type="text"
+						class="input input-bordered w-full"
+						placeholder="Enter card title"
+						data-model="$editTitle"
+						required
+					/>
+				</div>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="edit-card-description">
+						<span class="label-text">Description</span>
+					</label>
+					<textarea
+						id="edit-card-description"
+						name="description"
+						class="textarea textarea-bordered h-24 w-full"
+						placeholder="Enter card description (optional)"
+						data-model="$editDescription"
+					></textarea>
+				</div>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="edit-card-assignee">
+						<span class="label-text">Assignee</span>
+					</label>
+					<select
+						id="edit-card-assignee"
+						name="assigneeId"
+						class="select select-bordered w-full"
+						data-model="$editAssigneeId"
+					>
+						<option value="">Unassigned</option>
+						for _, user := range users {
+							<option value={ user.ID }>{ user.Name }</option>
+						}
+					</select>
+				</div>
+				<div class="form-control w-full mb-4">
+					<div class="label">
+						<span class="label-text">Tags</span>
+					</div>
+					<div class="flex flex-wrap gap-2 p-4 border border-base-300 rounded-lg">
+						for _, tag := range tags {
+							<label
+								class="tag-checkbox-label badge border-2 font-semibold cursor-pointer transition-all hover:scale-105"
+								style={ fmt.Sprintf("--tag-color: %s; color: %s; border-color: %s;", tag.Color, tag.Color, tag.Color) }
+							>
+								<input
+									type="checkbox"
+									name="tagIds"
+									value={ tag.ID }
+									class="hidden"
+								/>
+								<span>{ tag.Name }</span>
+							</label>
+						}
+					</div>
+				</div>
+				<div class="modal-action justify-between">
+					<button
+						type="button"
+						class="btn btn-error"
+						data-on:click={ fmt.Sprintf("if(confirm('Are you sure you want to delete this card?')) { @delete('/board/%s/card/' + $cardId); editCardModal.close() }", boardID) }
+					>
+						Delete Card
+					</button>
+					<div class="flex gap-2">
+						<button type="button" class="btn btn-ghost" onclick="editCardModal.close()">
+							Cancel
+						</button>
+						<button type="submit" class="btn btn-primary">
+							Save Changes
+						</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</dialog>
+}
+
+templ AddCommentModal(boardID string, users []sqlcgen.User) {
+	<dialog id="addCommentModal" class="modal" data-store="{ cardId: '' }">
+		<div class="modal-box bg-base-200 dark:bg-base-300 max-w-2xl">
+			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="addCommentModal.close()">
+				✕
+			</button>
+			<h3 class="font-bold text-lg mb-4">Add Comment</h3>
+			<form
+				method="POST"
+				data-on:submit={ fmt.Sprintf("@post('/board/%s/card/' + $cardId + '/comment', {contentType: 'form'}); addCommentModal.close()", boardID) }
+			>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="comment-user">
+						<span class="label-text">Comment as</span>
+					</label>
+					<select
+						id="comment-user"
+						name="userId"
+						class="select select-bordered w-full"
+						required
+					>
+						for _, user := range users {
+							<option value={ user.ID }>{ user.Name }</option>
+						}
+					</select>
+				</div>
+				<div class="form-control w-full mb-4">
+					<label class="label" for="comment-text">
+						<span class="label-text">Your comment</span>
+					</label>
+					<textarea
+						id="comment-text"
+						name="text"
+						class="textarea textarea-bordered h-24 w-full"
+						placeholder="Write your comment..."
+						required
+					></textarea>
+				</div>
+				<div class="modal-action">
+					<button type="button" class="btn btn-ghost" onclick="addCommentModal.close()">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary">
+						Add Comment
+					</button>
+				</div>
+			</form>
+		</div>
+	</dialog>
+}
+
 // Helper function to calculate total cards
 func getTotalCards(lists []ListWithCards) int {
 	total := 0
@@ -174,4 +406,20 @@ func getTotalCards(lists []ListWithCards) int {
 		total += len(list.Cards)
 	}
 	return total
+}
+
+templ EditPencil() {
+	<svg
+		class="cursor-pointer"
+		width="18"
+		height="18"
+		viewBox="0 0 18 18"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path
+			fill="#cccccc"
+			d="M13.2916 0.0012207L17.9987 4.70833L15 7.707L10.2929 2.99993L13.2916 0.0012207ZM13.2916 1.41543L11.7071 2.99993L15 6.29282L16.5845 4.70833L13.2916 1.41543ZM8.879 4.41382L13.5861 9.1209L4.70711 17.9999H0V13.2928L8.879 4.41382ZM1 13.707V16.9999H4.29289L12.1719 9.1209L8.879 5.82804L1 13.707Z"
+		></path>
+	</svg>
 }
