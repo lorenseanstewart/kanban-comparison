@@ -13,3 +13,9 @@ LIMIT 1;
 -- name: CreateList :exec
 INSERT INTO lists (id, board_id, title, position, created_at)
 VALUES (?, ?, ?, ?, ?);
+
+-- name: GetListByListId :one
+SELECT *
+FROM lists
+WHERE id = ?
+LIMIT 1;

@@ -64,6 +64,26 @@ func (q *Queries) GetListByBoardIdAndTitle(ctx context.Context, arg GetListByBoa
 	return i, err
 }
 
+const getListByListId = `-- name: GetListByListId :one
+SELECT id, board_id, title, position, created_at
+FROM lists
+WHERE id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetListByListId(ctx context.Context, id string) (List, error) {
+	row := q.db.QueryRowContext(ctx, getListByListId, id)
+	var i List
+	err := row.Scan(
+		&i.ID,
+		&i.BoardID,
+		&i.Title,
+		&i.Position,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getListsByBoardId = `-- name: GetListsByBoardId :many
 SELECT id, title, position
 FROM lists

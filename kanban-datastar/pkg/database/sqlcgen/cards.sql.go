@@ -51,6 +51,29 @@ func (q *Queries) DeleteCard(ctx context.Context, id string) error {
 	return err
 }
 
+const getCardByCardId = `-- name: GetCardByCardId :one
+SELECT id, list_id, title, description, assignee_id, position, completed, created_at
+FROM cards
+WHERE id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetCardByCardId(ctx context.Context, id string) (Card, error) {
+	row := q.db.QueryRowContext(ctx, getCardByCardId, id)
+	var i Card
+	err := row.Scan(
+		&i.ID,
+		&i.ListID,
+		&i.Title,
+		&i.Description,
+		&i.AssigneeID,
+		&i.Position,
+		&i.Completed,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getCardsByListIds = `-- name: GetCardsByListIds :many
 SELECT id, title, description, position, completed, assignee_id, list_id
 FROM cards
@@ -144,6 +167,22 @@ func (q *Queries) UpdateCard(ctx context.Context, arg UpdateCardParams) error {
 		arg.AssigneeID,
 		arg.ID,
 	)
+	return err
+}
+
+const updateCardCompleted = `-- name: UpdateCardCompleted :exec
+UPDATE cards
+SET completed = ?
+WHERE id = ?
+`
+
+type UpdateCardCompletedParams struct {
+	Completed sql.NullInt64 `json:"completed"`
+	ID        string        `json:"id"`
+}
+
+func (q *Queries) UpdateCardCompleted(ctx context.Context, arg UpdateCardCompletedParams) error {
+	_, err := q.db.ExecContext(ctx, updateCardCompleted, arg.Completed, arg.ID)
 	return err
 }
 

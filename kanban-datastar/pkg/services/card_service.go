@@ -143,6 +143,21 @@ func (s *CardService) CreateComment(ctx context.Context, cardID, userID, text st
 
 // UpdateCardList moves a card to a different list
 func (s *CardService) UpdateCardList(ctx context.Context, cardID, newListID string) error {
+	list, err := s.db.Queries.GetListByListId(ctx, newListID)
+	if err != nil {
+		return err
+	}
+	if list.Title == "Done" {
+		s.db.Queries.UpdateCardCompleted(ctx, sqlcgen.UpdateCardCompletedParams{
+			Completed: sql.NullInt64{Valid: true, Int64: 1},
+			ID:        cardID,
+		})
+	} else {
+		s.db.Queries.UpdateCardCompleted(ctx, sqlcgen.UpdateCardCompletedParams{
+			Completed: sql.NullInt64{Valid: true, Int64: 0},
+			ID:        cardID,
+		})
+	}
 	return s.db.Queries.UpdateCardList(ctx, sqlcgen.UpdateCardListParams{
 		ListID: newListID,
 		ID:     cardID,

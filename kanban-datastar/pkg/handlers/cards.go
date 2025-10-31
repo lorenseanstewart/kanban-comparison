@@ -112,7 +112,6 @@ func (h *WebHandler) UpdateCardList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newListID := strings.TrimSpace(r.FormValue("listId"))
-
 	err := h.cardService.UpdateCardList(r.Context(), cardID, newListID)
 	if err != nil {
 		h.l.Error("Failed to update card list", "error", err)

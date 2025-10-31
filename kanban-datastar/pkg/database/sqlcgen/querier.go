@@ -18,15 +18,18 @@ type Querier interface {
 	DeleteCardTags(ctx context.Context, cardID string) error
 	GetBoard(ctx context.Context, id string) (GetBoardRow, error)
 	GetBoards(ctx context.Context) ([]GetBoardsRow, error)
+	GetCardByCardId(ctx context.Context, id string) (Card, error)
 	GetCardsByListIds(ctx context.Context, listIds []string) ([]GetCardsByListIdsRow, error)
 	GetCommentsByCardIds(ctx context.Context, cardIds []string) ([]Comment, error)
 	GetListByBoardIdAndTitle(ctx context.Context, arg GetListByBoardIdAndTitleParams) (GetListByBoardIdAndTitleRow, error)
+	GetListByListId(ctx context.Context, id string) (List, error)
 	GetListsByBoardId(ctx context.Context, boardID string) ([]GetListsByBoardIdRow, error)
 	GetMaxPositionInList(ctx context.Context, listID string) (int64, error)
 	GetTags(ctx context.Context) ([]GetTagsRow, error)
 	GetTagsByCardIds(ctx context.Context, cardIds []string) ([]GetTagsByCardIdsRow, error)
 	GetUsers(ctx context.Context) ([]User, error)
 	UpdateCard(ctx context.Context, arg UpdateCardParams) error
+	UpdateCardCompleted(ctx context.Context, arg UpdateCardCompletedParams) error
 	UpdateCardList(ctx context.Context, arg UpdateCardListParams) error
 	UpdateCardPosition(ctx context.Context, arg UpdateCardPositionParams) error
 }

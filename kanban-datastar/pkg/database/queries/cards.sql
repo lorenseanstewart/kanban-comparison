@@ -9,9 +9,20 @@ SELECT CAST(COALESCE(MAX(position), -1) AS INTEGER) as max_position
 FROM cards
 WHERE list_id = ?;
 
+-- name: GetCardByCardId :one
+SELECT *
+FROM cards
+WHERE id = ?
+LIMIT 1;
+
 -- name: CreateCard :exec
 INSERT INTO cards (id, list_id, title, description, assignee_id, position, completed, created_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: UpdateCardCompleted :exec
+UPDATE cards
+SET completed = ?
+WHERE id = ?;
 
 -- name: UpdateCard :exec
 UPDATE cards
