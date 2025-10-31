@@ -7,7 +7,3 @@ WHERE ct.card_id = ?;
 -- name: CreateCardTag :exec
 INSERT INTO card_tags (card_id, tag_id)
 VALUES (?, ?);
-
--- name: DeleteCardTags :exec
-DELETE FROM card_tags
-WHERE card_id = ?;

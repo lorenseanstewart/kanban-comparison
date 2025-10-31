@@ -92,15 +92,15 @@ func RenderPage(w http.ResponseWriter, r *http.Request, c templ.Component) {
 
 func indexHandler(db *toolbelt.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var boards []BoardDetails
+		var boards []Board
 		if err := db.ReadTX(r.Context(), func(tx *sqlite.Conn) error {
 			brds, err := zz.OnceBoards(tx)
 			if err != nil {
 				return fmt.Errorf("failed to load boards: %w", err)
 			}
-			boards = make([]BoardDetails, len(brds))
+			boards = make([]Board, len(brds))
 			for i, b := range brds {
-				board := BoardDetails{
+				board := Board{
 					ID:          b.Id,
 					Title:       b.Title,
 					Description: b.Description,
@@ -162,10 +162,10 @@ func createBoardHandler(db *toolbelt.Database) http.HandlerFunc {
 	}
 }
 
-func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (BoardDetails, []User, []TagItem, error) {
-	board := BoardDetails{}
+func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (Board, []User, []Tag, error) {
+	board := Board{}
 	users := []User{}
-	tags := []TagItem{}
+	tags := []Tag{}
 
 	if err := db.ReadTX(ctx, func(tx *sqlite.Conn) error {
 		uu, err := zz.OnceUsers(tx)
@@ -184,7 +184,7 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 			return fmt.Errorf("failed to load tags: %w", err)
 		}
 		for _, t := range tt {
-			tags = append(tags, TagItem{
+			tags = append(tags, Tag{
 				ID:    t.Id,
 				Name:  t.Name,
 				Color: t.Color,
@@ -209,18 +209,14 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 		commentsByCardId := zz.CommentsByCardId(tx)
 
 		for _, l := range ll {
-			list := ListWithCards{
-				ID:       l.Id,
-				Title:    l.Title,
-				Position: l.Position,
-			}
+			list := ListWithCards{ID: l.Id}
 
 			c, err := cardsByListId.Run(list.ID)
 			if err != nil {
 				return fmt.Errorf("failed to load cards for list %q: %w", l.Id, err)
 			}
 
-			card := CardWithDetails{
+			card := Card{
 				ID:          c.CardId,
 				Title:       c.Title,
 				Description: c.Description,
@@ -237,7 +233,7 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 				return fmt.Errorf("failed to load tags for card %q: %w", card.ID, err)
 			}
 			for _, ct := range tags {
-				card.Tags = append(card.Tags, TagItem{
+				card.Tags = append(card.Tags, Tag{
 					ID:    ct.TagId,
 					Name:  ct.TagName,
 					Color: ct.TagColor,
@@ -249,7 +245,7 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 				return fmt.Errorf("failed to load comments for card %q: %w", card.ID, err)
 			}
 			for _, cm := range comments {
-				commentItem := CommentItem{
+				commentItem := Comment{
 					ID:       cm.CommentId,
 					Text:     cm.CommentText,
 					UserID:   cm.UserId,
@@ -263,7 +259,7 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 
 		return nil
 	}); err != nil {
-		return BoardDetails{}, nil, nil, fmt.Errorf("failed to load board details: %w", err)
+		return Board{}, nil, nil, fmt.Errorf("failed to load board details: %w", err)
 	}
 
 	return board, users, tags, nil

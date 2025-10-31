@@ -1,6 +1,6 @@
 package web
 
-templ IndexPage(boards ...BoardDetails) {
+templ IndexPage(boards ...Board) {
 	@BasePage("Kanban Boards") {
 		<div id="landingPage" style="display: contents">
 			<div class="min-h-screen bg-base-200">
@@ -17,104 +17,92 @@ templ IndexPage(boards ...BoardDetails) {
 					<div class="flex justify-end">
 						<button class="btn btn-primary" onclick="addBoardModal.showModal()">Add Board</button>
 					</div>
-					@BoardsList(boards...)
-					@AddBoardModal()
+					<section id="boards-list" class="grid gap-8 md:grid-cols-2">
+						if len(boards) == 0 {
+							<div class="card bg-base-200 dark:bg-base-300 shadow-xl">
+								<div class="card-body items-center text-center">
+									<h2 class="card-title text-secondary">No boards yet</h2>
+									<p class="text-base-content/60">
+										Create your first board to get started.
+									</p>
+								</div>
+							</div>
+						} else {
+							for _, board := range boards {
+								<a
+									href={ templ.SafeURL("/board/" + board.ID) }
+									class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
+								>
+									<div class="card-body">
+										<h2 class="card-title text-primary">{ board.Title }</h2>
+										if board.Description != "" {
+											<p class="text-sm text-base-content/60">
+												{ board.Description }
+											</p>
+										} else {
+											<p class="badge badge-secondary badge-outline w-fit shadow">
+												No description
+											</p>
+										}
+										<div class="card-actions justify-end">
+											<span class="btn btn-secondary btn-sm shadow-lg">
+												Open board
+											</span>
+										</div>
+									</div>
+								</a>
+							}
+						}
+					</section>
+					<dialog id="addBoardModal" class="modal">
+						<div class="modal-box bg-base-200 dark:bg-base-300">
+							<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="addBoardModal.close()">
+								✕
+							</button>
+							<form
+								method="POST"
+								data-on:submit="@post('/board', {contentType: 'form'}); addBoardModal.close();"
+							>
+								<h3 class="font-bold text-lg mb-4">Add New Board</h3>
+								<div class="form-control w-full mb-4">
+									<label class="label" for="board-title">
+										<span class="label-text">Title</span>
+									</label>
+									<input
+										id="board-title"
+										name="title"
+										type="text"
+										class="input input-bordered w-full"
+										placeholder="Enter board title"
+										required
+										data-bind="title"
+									/>
+								</div>
+								<div class="form-control w-full mb-4">
+									<label class="label" for="board-description">
+										<span class="label-text">Description</span>
+									</label>
+									<textarea
+										id="board-description"
+										name="description"
+										class="textarea textarea-bordered h-24 w-full"
+										placeholder="Enter board description (optional)"
+										data-bind="description"
+									></textarea>
+								</div>
+								<div class="modal-action">
+									<button type="button" class="btn btn-ghost" onclick="addBoardModal.close()">
+										Cancel
+									</button>
+									<button type="submit" class="btn btn-primary">
+										Add Board
+									</button>
+								</div>
+							</form>
+						</div>
+					</dialog>
 				</main>
 			</div>
 		</div>
 	}
-}
-
-templ BoardsList(boards ...BoardDetails) {
-	<section id="boards-list" class="grid gap-8 md:grid-cols-2">
-		if len(boards) == 0 {
-			<div class="card bg-base-200 dark:bg-base-300 shadow-xl">
-				<div class="card-body items-center text-center">
-					<h2 class="card-title text-secondary">No boards yet</h2>
-					<p class="text-base-content/60">
-						Create your first board to get started.
-					</p>
-				</div>
-			</div>
-		} else {
-			for _, board := range boards {
-				@BoardCard(board)
-			}
-		}
-	</section>
-}
-
-templ BoardCard(board BoardDetails) {
-	<a
-		href={ templ.SafeURL("/board/" + board.ID) }
-		class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
-	>
-		<div class="card-body">
-			<h2 class="card-title text-primary">{ board.Title }</h2>
-			if board.Description != "" {
-				<p class="text-sm text-base-content/60">
-					{ board.Description }
-				</p>
-			} else {
-				<p class="badge badge-secondary badge-outline w-fit shadow">
-					No description
-				</p>
-			}
-			<div class="card-actions justify-end">
-				<span class="btn btn-secondary btn-sm shadow-lg">
-					Open board
-				</span>
-			</div>
-		</div>
-	</a>
-}
-
-templ AddBoardModal() {
-	<dialog id="addBoardModal" class="modal">
-		<div class="modal-box bg-base-200 dark:bg-base-300">
-			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="addBoardModal.close()">
-				✕
-			</button>
-			<form
-				method="POST"
-				data-on:submit="@post('/board', {contentType: 'form'}); addBoardModal.close();"
-			>
-				<h3 class="font-bold text-lg mb-4">Add New Board</h3>
-				<div class="form-control w-full mb-4">
-					<label class="label" for="board-title">
-						<span class="label-text">Title</span>
-					</label>
-					<input
-						id="board-title"
-						name="title"
-						type="text"
-						class="input input-bordered w-full"
-						placeholder="Enter board title"
-						required
-						data-bind="title"
-					/>
-				</div>
-				<div class="form-control w-full mb-4">
-					<label class="label" for="board-description">
-						<span class="label-text">Description</span>
-					</label>
-					<textarea
-						id="board-description"
-						name="description"
-						class="textarea textarea-bordered h-24 w-full"
-						placeholder="Enter board description (optional)"
-						data-bind="description"
-					></textarea>
-				</div>
-				<div class="modal-action">
-					<button type="button" class="btn btn-ghost" onclick="addBoardModal.close()">
-						Cancel
-					</button>
-					<button type="submit" class="btn btn-primary">
-						Add Board
-					</button>
-				</div>
-			</form>
-		</div>
-	</dialog>
 }

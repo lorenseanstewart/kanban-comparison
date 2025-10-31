@@ -1,0 +1,119 @@
+package web
+
+import "fmt"
+
+type ChartData struct {
+	Label string
+	Value int
+}
+
+templ BarChart(data []ChartData, colors []string, title string) {
+	<div class="card bg-base-100 shadow-lg">
+		<div class="card-body p-4">
+			<h3 class="card-title text-sm text-base-content mb-4">{ title }</h3>
+			<div
+				class="grid gap-4"
+				style={ fmt.Sprintf("grid-template-columns: repeat(%d, 1fr);", len(data)) }
+			>
+				{{
+					max := 1
+					for _, item := range data {
+						if item.Value > max {
+							max = item.Value
+						}
+					}
+				}}
+				for i, item := range data {
+					{{
+						color := colors[i%len(colors)]
+						style := fmt.Sprintf("height: %d%%; background-color: %s;", (item.Value*100)/max, color)
+					}}
+					<div class="flex flex-col items-center gap-2">
+						<div class="w-full flex flex-col justify-end" style="height: 150px;">
+							if max > 0 {
+								<div
+									class="w-full rounded-t transition-all duration-500 ease-out"
+									style={ style }
+								>
+									<div class="text-xs text-white font-semibold text-center pt-1">
+										{ fmt.Sprintf("%d", item.Value) }
+									</div>
+								</div>
+							}
+						</div>
+						<div class="text-xs text-base-content text-center font-medium pt-3">
+							{ item.Label }
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ PieChart(data []ChartData, colors []string, title string) {
+	{{
+		total := 0.0
+		starts := make([]float64, len(data))
+		ends := make([]float64, len(data))
+		for i, item := range data {
+			starts[i] = total
+			total += float64(item.Value)
+			ends[i] = total
+		}
+	}}
+	<div class="card bg-base-100 shadow-lg">
+		<div class="card-body p-4 flex flex-col items-center">
+			<h3 class="card-title text-sm text-base-content mb-2 w-full">
+				{ title }
+			</h3>
+			<table
+				class="charts-css pie mx-auto mb-3"
+				style="height: 120px; width: 120px; --labels-size: 0;"
+			>
+				<tbody>
+					for i := range data {
+						{{
+							var start, end float64
+							if total != 0 {
+								start = starts[i] / total
+								end = ends[i] / total
+							}
+
+							style := fmt.Sprintf(
+								"--start: %f; --end: %f; --color: %s;",
+								start, end, colors[i%len(colors)],
+							)
+						}}
+						<tr>
+							<td
+								style={ style }
+							></td>
+						</tr>
+					}
+				</tbody>
+			</table>
+			<div class="flex flex-col gap-1 w-full">
+				for i, item := range data {
+					{{ color := colors[i%len(colors)] }}
+					<div class="flex items-center gap-2 justify-between">
+						<div class="flex items-center gap-2">
+							<div
+								class="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+								style={ fmt.Sprintf("background-color: %s;", color) }
+							></div>
+							<span class="text-xs text-base-content">{ item.Label }</span>
+						</div>
+						<span class="text-xs font-semibold text-base-content">
+							if total > 0 {
+								{ fmt.Sprintf("%.0f%%", float64(item.Value) / total * 100) }
+							} else {
+								0%
+							}
+						</span>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+}

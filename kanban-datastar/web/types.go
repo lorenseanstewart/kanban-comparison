@@ -5,7 +5,7 @@ type User struct {
 	Name string
 }
 
-type BoardDetails struct {
+type Board struct {
 	ID          string
 	Title       string
 	Description string
@@ -16,10 +16,10 @@ type ListWithCards struct {
 	ID       string
 	Title    string
 	Position int64
-	Cards    []CardWithDetails
+	Cards    []Card
 }
 
-type CardWithDetails struct {
+type Card struct {
 	ID           string
 	Title        string
 	Description  string
@@ -27,17 +27,17 @@ type CardWithDetails struct {
 	AssigneeName string
 	Position     int64
 	Completed    bool
-	Tags         []TagItem
-	Comments     []CommentItem
+	Tags         []Tag
+	Comments     []Comment
 }
 
-type TagItem struct {
+type Tag struct {
 	ID    string
 	Name  string
 	Color string
 }
 
-type CommentItem struct {
+type Comment struct {
 	ID       string
 	Text     string
 	UserID   string
