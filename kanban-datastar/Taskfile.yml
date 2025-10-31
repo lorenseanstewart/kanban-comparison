@@ -1,63 +1,104 @@
 version: '3'
 
+vars:
+  TAILWIND_VERSION: v4.1.16
+  tailwind_bin:
+    sh: |
+      if [ "$OS" = "Windows_NT" ]; then
+        echo "./bin/tailwindcss.exe"
+      else
+        echo "./bin/tailwindcss"
+      fi
+
 tasks:
-  # Individual watchers
-  css:watch:
-    desc: Watch CSS changes and rebuild
-    cmd: tailwindcss -i ./public/input.css -o ./public/style.css --watch
-
-  templ:watch:
-    desc: Watch templ files and regenerate
-    cmd: go tool templ generate --watch
-
-  go:watch:
-    desc: Watch Go files and restart server
-    cmd: go tool air
-
-  # Combined development task
-  dev:
-    desc: Run all watchers in parallel
+  tailwindcss:install:
+    generates:
+      - bin/tailwindcss
+      - bin/tailwindcss.exe
+    status:
+      - sh -c '[ -f bin/tailwindcss ] || [ -f bin/tailwindcss.exe ]'
     cmds:
       - |
-        sqlc generate
-        tailwindcss -i ./public/input.css -o ./public/style.css --watch &
-        go tool templ generate --watch &
+        set -e
+        VERSION="{{.TAILWIND_VERSION}}"
+        mkdir -p bin
         if [ "$OS" = "Windows_NT" ]; then
-          go tool air -build.cmd "go tool templ generate; if (\$?) { go build -o tmp/main.exe ./cmd }" -build.bin "tmp/main.exe" &
+          FILE="tailwindcss-windows-x64.exe"
+          DEST="bin/tailwindcss.exe"
         else
-          go tool air &
+          UNAME="$(uname -s)"
+          ARCH="$(uname -m)"
+          case "$UNAME" in
+            Darwin)
+              if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
+                FILE="tailwindcss-macos-arm64"
+              else
+                FILE="tailwindcss-macos-x64"
+              fi
+              DEST="bin/tailwindcss"
+              ;;
+            Linux)
+              case "$ARCH" in
+                x86_64|amd64) FILE="tailwindcss-linux-x64" ;;
+                arm64|aarch64) FILE="tailwindcss-linux-arm64" ;;
+                *)
+                  echo "Unsupported architecture: $ARCH"
+                  exit 1
+                  ;;
+              esac
+              DEST="bin/tailwindcss"
+              ;;
+            *)
+              echo "Unsupported platform: $UNAME"
+              exit 1
+              ;;
+          esac
         fi
-        wait
+        URL="https://github.com/tailwindlabs/tailwindcss/releases/download/${VERSION}/${FILE}"
+        echo "Downloading Tailwind CSS CLI ${VERSION} (${FILE})"
+        if command -v curl >/dev/null 2>&1; then
+          curl -sSL "$URL" -o "${DEST}.tmp"
+        elif command -v wget >/dev/null 2>&1; then
+          wget -qO "${DEST}.tmp" "$URL"
+        else
+          echo "Neither curl nor wget is available to download Tailwind CSS."
+          exit 1
+        fi
+        mv "${DEST}.tmp" "${DEST}"
+        if [ "$OS" != "Windows_NT" ]; then
+          chmod +x "${DEST}"
+        fi
 
-  # Build tasks
-  css:build:
-    desc: Build CSS for production
-    cmd: tailwindcss -i ./public/input.css -o ./public/style.css --minify
+  css:
+    deps: 
+      - tailwindcss:install
+    sources:
+      - ./public/input.css
+    generates:
+      - ./public/style.css
+    cmd: "{{.tailwind_bin}} -i ./public/input.css -o ./public/style.css"
 
-  templ:build:
-    desc: Generate templ files
+  templ:
+    sources:
+      - ./**/*.templ
+    generates:
+      - ./**/*_templ.go
     cmd: go tool templ generate
 
-  build:
-    desc: Build everything for production (optimized)
-    deps: [css:build, templ:build]
-    cmds:
-      - mkdir -p ./release
-      - go build -ldflags="-s -w" -trimpath -o ./release/main ./cmd/main.go
 
-  release:
-    desc: Build release package for deployment
-    deps: [css:build, templ:build]
+  site:
+    method: none
+    sources: 
+      - ./**/*.go
+      - exclude: ./**/*_templ.go
+    deps: 
+      - templ
+      - css
     cmds:
-      - mkdir -p ./release
-      - go build -o ./release/watchma ./cmd/main.go
-      - echo "Release built in ./release/"
+      - go mod tidy
+      - go build -o bin/kanban-datastar cmd/main.go 
+      - ./bin/kanban-datastar
 
-  # Utility tasks
-  clean:
-    desc: Clean build artifacts
-    cmds:
-      - rm -rf ./tmp/*
-      - rm -rf ./release/*
-      - rm -f ./public/style.css
-      - find . -name "*_templ.go" -delete
+  default:
+    deps:
+      - site

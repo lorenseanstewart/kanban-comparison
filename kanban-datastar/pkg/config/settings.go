@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
-)
-
-const (
-	LOG_LEVEL = "LOG_LEVEL"
-	PORT      = "PORT"
-	ENV       = "ENVIRONMENT"
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Settings struct {
@@ -22,15 +16,27 @@ type Settings struct {
 	Env      string
 }
 
+type envSettings struct {
+	Port     int    `envconfig:"PORT" default:"3011"`
+	Env      string `envconfig:"ENVIRONMENT" default:"development"`
+	LogLevel string `envconfig:"LOG_LEVEL" default:"INFO"`
+}
+
 func LoadSettings() *Settings {
 	if err := godotenv.Load(); err != nil {
 		slog.Warn(".env file not found, using default environment variables instead")
 	}
 
+	var envCfg envSettings
+	if err := envconfig.Process("", &envCfg); err != nil {
+		slog.Error("Failed to load environment configuration", "error", err)
+		os.Exit(1)
+	}
+
 	config := &Settings{
-		LogLevel: parseLogLevel(os.Getenv(LOG_LEVEL)),
-		Port:     getEnvAsInt(PORT, 3011),
-		Env:      getEnvAsString(ENV, "development"),
+		LogLevel: parseLogLevel(envCfg.LogLevel),
+		Port:     envCfg.Port,
+		Env:      envCfg.Env,
 	}
 
 	if err := config.validate(); err != nil {
@@ -57,22 +63,6 @@ func (c *Settings) logConfig() {
 	slog.Info("LOG_LEVEL", "level", c.LogLevel)
 	slog.Info("ENVIRONMENT", "env", c.Env)
 	fmt.Println("------------------------------------------------------------------")
-}
-
-func getEnvAsString(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-func getEnvAsInt(key string, defaultValue int) int {
-	if value := os.Getenv(key); value != "" {
-		if intVal, err := strconv.Atoi(value); err == nil {
-			return intVal
-		}
-	}
-	return defaultValue
 }
 
 func parseLogLevel(level string) slog.Level {

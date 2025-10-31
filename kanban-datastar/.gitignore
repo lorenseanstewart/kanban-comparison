@@ -9,3 +9,5 @@ __debug
 **/style.css
 sqlite.db
 node_modules
+.task/
+.serena
