@@ -190,7 +190,7 @@ templ EditCardModal(boardID string, users []sqlcgen.User, tags []sqlcgen.GetTags
 }
 
 templ AddCommentModal(boardID string, users []sqlcgen.User) {
-	<dialog id="addCommentModal" class="modal" data-store="{ cardId: '' }">
+	<dialog id="addCommentModal" class="modal">
 		<div class="modal-box bg-base-200 dark:bg-base-300 max-w-2xl">
 			<button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="addCommentModal.close()">
 				✕

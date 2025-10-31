@@ -32,90 +32,99 @@
         <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="6.5" y="314.3390625" width="52.0" height="45.660937499999996" fill="url(#grad0)" rx="4"/>
-    <text x="32.5" y="306.3390625" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">88.8</text>
-    <text x="32.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 32.5, 375)">Marko</text>
+    <rect x="5.90909090909091" y="345.2544642857143" width="47.27272727272728" height="14.745535714285714" fill="url(#grad0)" rx="4"/>
+    <text x="29.54545454545455" y="337.2544642857143" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">28.7</text>
+    <text x="29.54545454545455" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 29.54545454545455, 375)">Datastar</text>
     <defs>
       <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="71.5" y="300.9390066964286" width="52.0" height="59.06099330357143" fill="url(#grad1)" rx="4"/>
-    <text x="97.5" y="292.9390066964286" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">114.8</text>
-    <text x="97.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 97.5, 375)">Qwik</text>
+    <rect x="65.0" y="314.3390625" width="47.27272727272728" height="45.660937499999996" fill="url(#grad1)" rx="4"/>
+    <text x="88.63636363636364" y="306.3390625" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">88.8</text>
+    <text x="88.63636363636364" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 88.63636363636364, 375)">Marko</text>
     <defs>
       <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#ec4899;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="136.5" y="295.61785714285713" width="52.0" height="64.38214285714285" fill="url(#grad2)" rx="4"/>
-    <text x="162.5" y="287.61785714285713" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">125.2</text>
-    <text x="162.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 162.5, 375)">SvelteKit</text>
+    <rect x="124.0909090909091" y="300.9390066964286" width="47.27272727272728" height="59.06099330357143" fill="url(#grad2)" rx="4"/>
+    <text x="147.72727272727275" y="292.9390066964286" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">114.8</text>
+    <text x="147.72727272727275" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 147.72727272727275, 375)">Qwik</text>
     <defs>
       <linearGradient id="grad3" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="201.5" y="294.5059151785714" width="52.0" height="65.49408482142857" fill="url(#grad3)" rx="4"/>
-    <text x="227.5" y="286.5059151785714" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">127.3</text>
-    <text x="227.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 227.5, 375)">Astro</text>
+    <rect x="183.1818181818182" y="297.7121651785714" width="47.27272727272728" height="62.28783482142857" fill="url(#grad3)" rx="4"/>
+    <text x="206.8181818181818" y="289.7121651785714" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">121.1</text>
+    <text x="206.8181818181818" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 206.8181818181818, 375)">SvelteKit</text>
     <defs>
       <linearGradient id="grad4" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="266.5" y="293.86004464285713" width="52.0" height="66.13995535714285" fill="url(#grad4)" rx="4"/>
-    <text x="292.5" y="285.86004464285713" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">128.6</text>
-    <text x="292.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 292.5, 375)">SolidStart</text>
+    <rect x="242.27272727272728" y="294.50842633928573" width="47.27272727272728" height="65.4915736607143" fill="url(#grad4)" rx="4"/>
+    <text x="265.90909090909093" y="286.50842633928573" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">127.3</text>
+    <text x="265.90909090909093" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 265.90909090909093, 375)">Astro</text>
     <defs>
       <linearGradient id="grad5" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="331.5" y="266.0710379464286" width="52.0" height="93.92896205357142" fill="url(#grad5)" rx="4"/>
-    <text x="357.5" y="258.0710379464286" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">182.6</text>
-    <text x="357.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 357.5, 375)">TanStack Start + Solid</text>
+    <rect x="301.36363636363643" y="293.82488839285713" width="47.27272727272728" height="66.17511160714287" fill="url(#grad5)" rx="4"/>
+    <text x="325.00000000000006" y="285.82488839285713" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">128.7</text>
+    <text x="325.00000000000006" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 325.00000000000006, 375)">SolidStart</text>
     <defs>
       <linearGradient id="grad6" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="396.5" y="244.34849330357144" width="52.0" height="115.65150669642857" fill="url(#grad6)" rx="4"/>
-    <text x="422.5" y="236.34849330357144" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">224.9</text>
-    <text x="422.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 422.5, 375)">Nuxt</text>
+    <rect x="360.4545454545455" y="266.9881138392857" width="47.27272727272728" height="93.01188616071428" fill="url(#grad6)" rx="4"/>
+    <text x="384.0909090909091" y="258.9881138392857" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">180.9</text>
+    <text x="384.0909090909091" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 384.0909090909091, 375)">TanStack Start + Solid</text>
     <defs>
       <linearGradient id="grad7" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#84cc16;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#84cc16;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="461.5" y="167.84146205357143" width="52.0" height="192.15853794642857" fill="url(#grad7)" rx="4"/>
-    <text x="487.5" y="159.84146205357143" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">373.6</text>
-    <text x="487.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 487.5, 375)">TanStack Start</text>
+    <rect x="419.54545454545456" y="244.34849330357144" width="47.27272727272728" height="115.65150669642857" fill="url(#grad7)" rx="4"/>
+    <text x="443.1818181818182" y="236.34849330357144" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">224.9</text>
+    <text x="443.1818181818182" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 443.1818181818182, 375)">Nuxt</text>
     <defs>
       <linearGradient id="grad8" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#f97316;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#f97316;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="526.5" y="69.47728794642859" width="52.0" height="290.5227120535714" fill="url(#grad8)" rx="4"/>
-    <text x="552.5" y="61.47728794642859" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">564.9</text>
-    <text x="552.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 552.5, 375)">Next.js</text>
+    <rect x="478.6363636363637" y="168.3050223214286" width="47.27272727272728" height="191.6949776785714" fill="url(#grad8)" rx="4"/>
+    <text x="502.2727272727273" y="160.3050223214286" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">372.7</text>
+    <text x="502.2727272727273" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 502.2727272727273, 375)">TanStack Start</text>
     <defs>
       <linearGradient id="grad9" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:0.9" />
         <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="591.5" y="17.216517857142833" width="52.0" height="342.78348214285717" fill="url(#grad9)" rx="4"/>
-    <text x="617.5" y="9.216517857142833" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">666.5</text>
-    <text x="617.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 617.5, 375)">Analog</text>
+    <rect x="537.7272727272727" y="69.47728794642859" width="47.27272727272728" height="290.5227120535714" fill="url(#grad9)" rx="4"/>
+    <text x="561.3636363636364" y="61.47728794642859" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">564.9</text>
+    <text x="561.3636363636364" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 561.3636363636364, 375)">Next.js</text>
+    <defs>
+      <linearGradient id="grad10" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.9" />
+        <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.7" />
+      </linearGradient>
+    </defs>
+    <rect x="596.8181818181819" y="17.216517857142833" width="47.27272727272728" height="342.78348214285717" fill="url(#grad10)" rx="4"/>
+    <text x="620.4545454545455" y="9.216517857142833" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">666.5</text>
+    <text x="620.4545454545455" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 620.4545454545455, 375)">Analog</text>
 
     <!-- X-axis -->
     <line x1="0" y1="360" x2="650" y2="360" stroke="#1f2937" stroke-width="2"/>
@@ -127,6 +136,6 @@
 
   <!-- Footer note -->
   <text x="400.0" y="490" text-anchor="middle" font-size="10" fill="#9ca3af">
-    Generated from Lighthouse measurements • 10 frameworks compared
+    Generated from Lighthouse measurements • 11 frameworks compared
   </text>
 </svg>
