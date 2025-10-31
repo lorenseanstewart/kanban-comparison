@@ -12,16 +12,9 @@ Then run `go tool task -w`.  This will automatically install the task tool for y
 
 ### Setting .env variables (loaded by `pkg/config/settings.go`)
 
-`LOG_LEVEL` (DEBUG | INFO | WARN | ERROR)
+`DATASTAR_IS_DEV` - set to `true` to enable dev mode (default: `false`)
+`DATASTAR_PORT` - set to the port you want the server to run on (default: `7331`)
 
-### The Layers / Setup
-I have this project split into distinct layers to keep things organized. 
-
-- handlers/: Handle HTTP Requests / Responses related to `client`.
-- services/: Handle all of the business logic. Grab data from external services.
-- database/repository: Handles the CRUD operations directly on the database. 
-
-- view/: Where all the `.templ` files live that do the actual rendering of the HTTP strings.
 
 ### More info
 

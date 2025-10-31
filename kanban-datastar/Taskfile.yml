@@ -73,10 +73,10 @@ tasks:
     deps: 
       - tailwindcss:install
     sources:
-      - ./public/input.css
+      - ./web/input.css
     generates:
-      - ./public/style.css
-    cmd: "{{.tailwind_bin}} -i ./public/input.css -o ./public/style.css"
+      - ./web/static/style.css
+    cmd: "{{.tailwind_bin}} -i ./web/input.css -o ./web/static/style.css"
 
   templ:
     sources:
@@ -85,6 +85,15 @@ tasks:
       - ./**/*_templ.go
     cmd: go tool templ generate
 
+  sqlc:
+    desc: Generate sqlc query helpers
+    dir: sql
+    sources:
+      - ./**/*.sql
+    generates:
+      - zz/*.go
+    cmds:
+      - go tool sqlc generate
 
   site:
     method: none
@@ -94,6 +103,7 @@ tasks:
     deps: 
       - templ
       - css
+      - sqlc
     cmds:
       - go mod tidy
       - go build -o bin/kanban-datastar cmd/main.go 

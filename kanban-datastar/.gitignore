@@ -11,3 +11,5 @@ sqlite.db
 node_modules
 .task/
 .serena
+*.log
+data

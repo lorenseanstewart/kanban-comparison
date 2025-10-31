@@ -1,0 +1,93 @@
+package web
+
+templ BoardPage(boardDetails BoardDetails, users []User, tags []TagItem) {
+	@BasePage(boardDetails.Title + " | Kanban Board") {
+		@Board(boardDetails, users, tags)
+	}
+}
+
+templ Board(boardDetails BoardDetails, users []User, tags []TagItem) {
+	<div style="display: contents">
+		<div class="min-h-screen bg-base-200">
+			<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
+				<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+					<div class="breadcrumbs text-sm">
+						<ul>
+							<li>
+								<a href="/" class="link link-hover">Boards</a>
+							</li>
+							<li>
+								<span class="text-base-content/60">{ boardDetails.Title }</span>
+							</li>
+						</ul>
+					</div>
+					<div class="space-y-8">
+						@BoardOverview(boardDetails)
+						<div class="card-actions">
+							<button class="btn btn-primary" onclick="addCardModal.showModal()">
+								Add Card
+							</button>
+						</div>
+						@BoardCardsSection(boardDetails, users)
+					</div>
+					@AddCardModal(boardDetails.ID, users, tags)
+					@EditCardModal(boardDetails.ID, users, tags)
+					@AddCommentModal(boardDetails.ID, users)
+				</main>
+			</div>
+		</div>
+	</div>
+	@DropScript()
+}
+
+templ BoardOverview(board BoardDetails) {
+	<section class="bg-base-200 dark:bg-base-300 shadow-xl rounded-3xl p-8 space-y-6">
+		<div class="space-y-3">
+			<div class="badge badge-secondary badge-outline">Board overview</div>
+			<h1 class="text-4xl font-black text-primary">{ board.Title }</h1>
+			if board.Description != "" {
+				<p class="text-base text-base-content/60 max-w-2xl">
+					{ board.Description }
+				</p>
+			}
+		</div>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6 max-w-[1190px] mx-auto items-start">
+			@BarChart(getChartData(board.Lists), getPastelColors(), "Cards per List")
+			@PieChart(getChartData(board.Lists), getPastelColors(), "Distribution")
+		</div>
+	</section>
+}
+
+templ BoardCardsSection(board BoardDetails, users []User) {
+	<section id="boardCardsSection" class="flex gap-7 overflow-x-auto pb-8">
+		if len(board.Lists) == 0 {
+			<div class="card bg-base-200 dark:bg-base-300 shadow-xl w-full max-w-md mx-auto">
+				<div class="card-body items-center text-center">
+					<h2 class="card-title text-secondary">No lists yet</h2>
+					<p class="text-base-content/60">
+						Add a list to begin organizing work on this board.
+					</p>
+				</div>
+			</div>
+		} else {
+			for _, list := range board.Lists {
+				@CardList(list, board.ID, users)
+			}
+		}
+	</section>
+}
+
+func getChartData(lists []ListWithCards) []ChartData {
+	data := make([]ChartData, len(lists))
+	for i, list := range lists {
+		data[i] = ChartData{
+			Label: list.Title,
+			Value: len(list.Cards),
+		}
+	}
+	return data
+}
+
+func getPastelColors() []string {
+	return []string{"#fbbf24", "#f472b6", "#a78bfa", "#60a5fa"}
+}

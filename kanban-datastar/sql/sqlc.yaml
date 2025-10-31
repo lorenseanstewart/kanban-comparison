@@ -1,0 +1,17 @@
+version: "2"
+
+plugins:
+  - name: zz
+    process:
+      cmd: sqlc-gen-zombiezen
+
+sql:
+  - engine: sqlite
+    schema: ./migrations
+    queries: ./queries
+    codegen:
+      - out: zz
+        plugin: zz
+        options:
+          disable_crud: true
+          disable_time_conversion: true
