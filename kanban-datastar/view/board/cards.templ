@@ -19,7 +19,10 @@ templ CardList(list ListWithCards, boardID string, users []sqlcgen.User) {
 				data-list-id={ list.ID }
 				data-on:dragover="evt.preventDefault(); evt.currentTarget.classList.add('ring-4', 'ring-primary', 'cursor-grabbing', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]')"
 				data-on:dragleave="evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]')"
-				data-on:drop={ fmt.Sprintf(`drop(evt, '%s', '%s')`, boardID, list.ID) }
+				data-on:drop={ fmt.Sprintf(`
+                          drop(evt, '%s', '%s'); 
+                          @get('/board/%s')`,
+                       boardID, list.ID, boardID) }
 			>
 				if len(list.Cards) == 0 {
 					<div class="empty-placeholder alert alert-info text-sm">
@@ -37,7 +40,7 @@ templ CardList(list ListWithCards, boardID string, users []sqlcgen.User) {
 
 templ DropScript() {
 	<script>
-       function drop(evt, boardId, listId) {
+       async function drop(evt, boardId, listId) {
           evt.preventDefault();
           evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
           const cardId = evt.dataTransfer.getData('cardId');
@@ -76,11 +79,11 @@ templ DropScript() {
           // Update positions
           const params = new URLSearchParams();
           allCardIds.forEach(id => params.append('cardIds', id));
-          fetch(`/board/${boardId}/list/${listId}/positions`, {
+          await fetch(`/board/${boardId}/list/${listId}/positions`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
-          }).then(window.location.reload())
+          })
         }
     </script>
 }
