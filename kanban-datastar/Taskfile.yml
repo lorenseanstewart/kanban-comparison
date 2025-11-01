@@ -69,6 +69,11 @@ tasks:
     cmds:
       - task: docker:run
 
+  cloc:
+    desc: Count lines of code with templ as Go
+    cmds:
+      - cloc --vcs=git --force-lang="Go",templ .
+
   default:
     deps:
       - build
