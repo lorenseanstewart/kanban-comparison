@@ -2,83 +2,25 @@ version: '3'
 
 interval: 100ms
 
-vars:
-  TAILWIND_VERSION: v4.1.16
-  tailwind_bin:
-    sh: |
-      if [ "$OS" = "Windows_NT" ]; then
-        echo "./bin/tailwindcss.exe"
-      else
-        echo "./bin/tailwindcss"
-      fi
-
 tasks:
-  tailwindcss:install:
+  npm:install:
+    sources:
+      - package.json
+      - package-lock.json
     generates:
-      - bin/tailwindcss
-      - bin/tailwindcss.exe
-    status:
-      - sh -c '[ -f bin/tailwindcss ] || [ -f bin/tailwindcss.exe ]'
-    cmds:
-      - |
-        set -e
-        VERSION="{{.TAILWIND_VERSION}}"
-        mkdir -p bin
-        if [ "$OS" = "Windows_NT" ]; then
-          FILE="tailwindcss-windows-x64.exe"
-          DEST="bin/tailwindcss.exe"
-        else
-          UNAME="$(uname -s)"
-          ARCH="$(uname -m)"
-          case "$UNAME" in
-            Darwin)
-              if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then
-                FILE="tailwindcss-macos-arm64"
-              else
-                FILE="tailwindcss-macos-x64"
-              fi
-              DEST="bin/tailwindcss"
-              ;;
-            Linux)
-              case "$ARCH" in
-                x86_64|amd64) FILE="tailwindcss-linux-x64" ;;
-                arm64|aarch64) FILE="tailwindcss-linux-arm64" ;;
-                *)
-                  echo "Unsupported architecture: $ARCH"
-                  exit 1
-                  ;;
-              esac
-              DEST="bin/tailwindcss"
-              ;;
-            *)
-              echo "Unsupported platform: $UNAME"
-              exit 1
-              ;;
-          esac
-        fi
-        URL="https://github.com/tailwindlabs/tailwindcss/releases/download/${VERSION}/${FILE}"
-        echo "Downloading Tailwind CSS CLI ${VERSION} (${FILE})"
-        if command -v curl >/dev/null 2>&1; then
-          curl -sSL "$URL" -o "${DEST}.tmp"
-        elif command -v wget >/dev/null 2>&1; then
-          wget -qO "${DEST}.tmp" "$URL"
-        else
-          echo "Neither curl nor wget is available to download Tailwind CSS."
-          exit 1
-        fi
-        mv "${DEST}.tmp" "${DEST}"
-        if [ "$OS" != "Windows_NT" ]; then
-          chmod +x "${DEST}"
-        fi
+      - node_modules/.package-lock.json
+    cmd: npm install
 
   css:
-    deps: 
-      - tailwindcss:install
+    deps:
+      - npm:install
     sources:
       - ./web/input.css
+      - ./node_modules/daisyui/**/*
+      - ./node_modules/@tailwindcss/**/*
     generates:
       - ./web/static/style.css
-    cmd: "{{.tailwind_bin}} -i ./web/input.css -o ./web/static/style.css"
+    cmd: npx @tailwindcss/cli -i ./web/input.css -o ./web/static/style.css
 
   templ:
     sources:
@@ -97,7 +39,7 @@ tasks:
     cmds:
       - go tool sqlc generate
 
-  site:
+  build:
     method: none
     sources: 
       - ./**/*.go
@@ -109,10 +51,11 @@ tasks:
     cmds:
       - go mod tidy
       - go build -o bin/kanban-datastar cmd/main.go 
-      - ./bin/kanban-datastar
 
   docker:build:
     desc: Build Docker image with UPX compression
+    deps:
+      - build
     cmds:
       - docker build -t kanban-datastar:latest .
 
@@ -130,4 +73,6 @@ tasks:
 
   default:
     deps:
-      - site
+      - build
+    cmds:
+      - ./bin/kanban-datastar
