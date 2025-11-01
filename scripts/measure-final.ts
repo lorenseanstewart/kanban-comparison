@@ -52,7 +52,7 @@ const FRAMEWORKS = [
   { name: 'TanStack Start', dir: 'kanban-tanstack', buildCheck: ['.output', 'dist'] },
   { name: 'TanStack Start + Solid', dir: 'kanban-tanstack-solid', buildCheck: ['.output', 'dist'] },
   { name: 'Marko', dir: 'kanban-marko', buildCheck: ['dist', 'build'] },
-  { name: 'Datastar', dir: 'kanban-datastar', buildCheck: ['release'] },
+  { name: 'Datastar', dir: 'kanban-datastar', buildCheck: ['bin'] },
 ];
 
 function checkBuildExists(framework: typeof FRAMEWORKS[0]): boolean {

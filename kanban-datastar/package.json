@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "task dev",
     "build": "task build",
-    "start": "task build && ./release/main",
-    "preview": "./release/main",
+    "start": "task build && ./bin/kanban-datastar",
+    "preview": "./bin/kanban-datastar",
     "clean": "task clean"
   },
   "keywords": [
