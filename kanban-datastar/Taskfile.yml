@@ -54,8 +54,6 @@ tasks:
 
   docker:build:
     desc: Build Docker image with UPX compression
-    deps:
-      - build
     cmds:
       - docker build -t kanban-datastar:latest .
 
