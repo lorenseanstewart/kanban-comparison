@@ -1,0 +1,13 @@
+.git
+.gitignore
+*.md
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+node_modules
+.task
+dist
+tmp
+*.log

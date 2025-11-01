@@ -111,6 +111,23 @@ tasks:
       - go build -o bin/kanban-datastar cmd/main.go 
       - ./bin/kanban-datastar
 
+  docker:build:
+    desc: Build Docker image with UPX compression
+    cmds:
+      - docker build -t kanban-datastar:latest .
+
+  docker:run:
+    desc: Run Docker container
+    cmds:
+      - docker run --rm -p 7331:7331 kanban-datastar:latest
+
+  docker:
+    desc: Build and run Docker container
+    deps:
+      - docker:build
+    cmds:
+      - task: docker:run
+
   default:
     deps:
       - site
