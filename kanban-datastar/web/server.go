@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -286,6 +287,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						}
 
 						newListID := strings.TrimSpace(r.FormValue("listId"))
+						position := r.FormValue("position")
 
 						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 							list, err := zz.OnceListByListId(tx, newListID)
@@ -298,8 +300,24 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 								completed = true
 							}
 
-							return zz.OnceUpdateCardCompleted(tx, zz.UpdateCardCompletedParams{
+							pos, err := strconv.ParseInt(position, 10, 64)
+							if err != nil {
+								return fmt.Errorf("invalid position: %w", err)
+							}
+
+							// First, shift all cards at or after the insert position
+							if err := zz.OnceShiftCardPositionsInList(tx, zz.ShiftCardPositionsInListParams{
+								ListId:   newListID,
+								Position: pos,
+							}); err != nil {
+								return fmt.Errorf("failed to shift card positions: %w", err)
+							}
+
+							// Then update the moved card
+							return zz.OnceUpdateListAndCardPosition(tx, zz.UpdateListAndCardPositionParams{
 								Id:        cardID,
+								ListId:    newListID,
+								Position:  pos,
 								Completed: completed,
 							})
 						}); err != nil {
@@ -310,36 +328,8 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						boardID := chi.URLParam(r, "boardID")
 						renderBoardDetails(w, r, db, boardID)
 					})
+
 				})
-			})
-
-			boardIDRouter.Put("/list/{listID}/positions", func(w http.ResponseWriter, r *http.Request) {
-
-				if err := r.ParseForm(); err != nil {
-					http.Error(w, "Failed to parse form", http.StatusBadRequest)
-					return
-				}
-
-				cardIDs := r.Form["cardIds"]
-
-				if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
-					updateCardPosition := zz.UpdateCardPosition(tx)
-					for i, cardID := range cardIDs {
-						if err := updateCardPosition.Run(zz.UpdateCardPositionParams{
-							Id:       cardID,
-							Position: int64(i),
-						}); err != nil {
-							return fmt.Errorf("failed to update card position for card %q: %w", cardID, err)
-						}
-					}
-					return nil
-				}); err != nil {
-					http.Error(w, "Failed to update card positions", http.StatusInternalServerError)
-					return
-				}
-
-				boardID := chi.URLParam(r, "boardID")
-				renderBoardDetails(w, r, db, boardID)
 			})
 		})
 	})

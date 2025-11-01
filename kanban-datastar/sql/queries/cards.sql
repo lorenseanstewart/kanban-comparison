@@ -42,3 +42,14 @@ WHERE id = ?;
 -- name: DeleteCard :exec
 DELETE FROM cards
 WHERE id = ?;
+
+-- name: UpdateListAndCardPosition :exec
+UPDATE cards
+SET position = ?, list_id = ?, completed = ?
+WHERE id = ?;
+
+-- name: ShiftCardPositionsInList :exec
+UPDATE cards
+SET position = position + 1
+WHERE list_id = ? AND position >= ?;
+

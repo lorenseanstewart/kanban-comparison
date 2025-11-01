@@ -30,6 +30,7 @@ templ CardList(list ListWithCards, boardID string, users []User) {
 						<article
 							class="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out cursor-grab active:cursor-grabbing"
 							id={ card.ID }
+							role="listitem"
 							draggable="true"
 							data-on:dragstart={ fmt.Sprintf("evt.dataTransfer.effectAllowed = 'move'; evt.dataTransfer.setData('cardId', '%s'); evt.dataTransfer.setData('listId', '%s'); evt.target.classList.add('opacity-50')", card.ID, list.ID) }
 							data-on:dragend="evt.target.classList.remove('opacity-50')"
@@ -128,7 +129,7 @@ templ DropScript() {
 
           // Calculate drop position
           const dropY = evt.clientY;
-          const cardsInList = evt.currentTarget.querySelectorAll('[data-card-id]');
+          const cardsInList = evt.currentTarget.querySelectorAll('[role="listitem"]');
           let insertPosition = cardsInList.length;
 
           for (let i = 0; i < cardsInList.length; i++) {
@@ -140,29 +141,14 @@ templ DropScript() {
             }
           }
 
-          // Update card list if changed
+          //Update card list and position at the same time
           if (sourceListId !== targetListId) {
-            fetch(`/board/${boardId}/card/` + cardId + '/list', {
+            await fetch(`/board/${boardId}/card/` + cardId + '/list', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: 'listId=' + targetListId
+              body: 'listId=' + targetListId + '&position=' + insertPosition,
             });
           }
-
-          // Collect all card IDs in new order
-          const allCardIds = Array.from(cardsInList)
-            .filter(card => card.dataset.cardId !== cardId)
-            .map(card => card.dataset.cardId);
-          allCardIds.splice(insertPosition, 0, cardId);
-
-          // Update positions
-          const params = new URLSearchParams();
-          allCardIds.forEach(id => params.append('cardIds', id));
-          await fetch(`/board/${boardId}/list/${listId}/positions`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
-          })
         }
     </script>
 }
