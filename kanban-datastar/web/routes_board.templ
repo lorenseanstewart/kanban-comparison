@@ -9,7 +9,7 @@ templ BoardPage(boardDetails Board, users []User, tags []Tag) {
 }
 
 templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
-	<div style="display: contents">
+	<div id="boardDetails" style="display: contents">
 		<div class="min-h-screen bg-base-200">
 			<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
 				<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
@@ -127,7 +127,7 @@ templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 							<h3 class="font-bold text-lg mb-4">Edit Card</h3>
 							<form
 								method="POST"
-								data-on:submit={ fmt.Sprintf("@post('/board/%s/card/' + $cardId, {contentType: 'form'}); editCardModal.close()", boardDetails.ID) }
+								data-on:submit={ fmt.Sprintf("@put('/board/%s/card/' + $cardId, {contentType: 'form'}); editCardModal.close()", boardDetails.ID) }
 							>
 								<div class="form-control w-full mb-4">
 									<label class="label" for="edit-card-title">
@@ -139,7 +139,6 @@ templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 										type="text"
 										class="input input-bordered w-full"
 										placeholder="Enter card title"
-										data-bind="editTitle"
 										required
 									/>
 								</div>
@@ -152,7 +151,6 @@ templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 										name="description"
 										class="textarea textarea-bordered h-24 w-full"
 										placeholder="Enter card description (optional)"
-										data-bind="editDescription"
 									></textarea>
 								</div>
 								<div class="form-control w-full mb-4">
@@ -163,7 +161,6 @@ templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 										id="edit-card-assignee"
 										name="assigneeId"
 										class="select select-bordered w-full"
-										data-bind="editAssigneeId"
 									>
 										<option value="">Unassigned</option>
 										for _, user := range users {

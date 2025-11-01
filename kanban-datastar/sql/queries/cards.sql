@@ -9,7 +9,7 @@ SELECT
     u.name AS assignee_name,
     c.list_id AS list_id
 FROM cards c
-JOIN users u ON c.assignee_id = u.id
+LEFT JOIN users u ON c.assignee_id = u.id -- Include null values, assignee can be null
 WHERE c.list_id = ?
 ORDER BY c.position ASC;
 

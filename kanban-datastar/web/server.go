@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"kanban/sql/zz"
 	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
@@ -61,7 +62,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 			title := strings.TrimSpace(r.FormValue("title"))
 			description := strings.TrimSpace(r.FormValue("description"))
 			boardID := uuid.NewString()
-			now := time.Now().UnixMilli()
+			now := time.Now().Unix()
 
 			if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
 				if err := zz.OnceCreateBoard(tx, zz.CreateBoardParams{
@@ -73,7 +74,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 					return fmt.Errorf("failed to create board: %w", err)
 				}
 
-				listTitles := []string{"To Do", "In Progress", "QA", "Done"}
+				listTitles := []string{"Todo", "In-Progress", "QA", "Done"}
 				listStmt := zz.CreateList(tx)
 				for i, listTitle := range listTitles {
 					listID := uuid.NewString()
@@ -118,14 +119,14 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						return
 					}
 
-					assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
+					assigneeID := strings.TrimSpace(r.FormValue("assigneeId"))
 					var assigneeIDPtr *string
 					if assigneeID != "" {
 						assigneeIDPtr = &assigneeID
 					}
 
 					cardID := uuid.NewString()
-					now := time.Now().UnixMilli()
+					now := time.Now().Unix()
 
 					if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 						lists, err := zz.OnceListsByBoardId(tx, boardID)
@@ -161,10 +162,10 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 							return fmt.Errorf("failed to create card: %w", err)
 						}
 
-						createCareTag := zz.CreateCardTag(tx)
+						createCardTag := zz.CreateCardTag(tx)
 
 						for _, tagID := range r.Form["tagIds"] {
-							if err := createCareTag.Run(zz.CreateCardTagParams{
+							if err := createCardTag.Run(zz.CreateCardTagParams{
 								CardId: cardID,
 								TagId:  tagID,
 							}); err != nil {
@@ -174,6 +175,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 
 						return nil
 					}); err != nil {
+						slog.Error("failed to create card:", "Error", err)
 						http.Error(w, "Failed to create card", http.StatusInternalServerError)
 						return
 					}
@@ -182,7 +184,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 				})
 
 				cardRouter.Route("/{cardID}", func(cardIDRouter chi.Router) {
-					cardIDRouter.Post("/", func(w http.ResponseWriter, r *http.Request) {
+					cardIDRouter.Put("/", func(w http.ResponseWriter, r *http.Request) {
 						ctx := r.Context()
 						cardID := chi.URLParam(r, "cardID")
 
@@ -192,7 +194,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						}
 
 						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-							assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
+							assigneeID := strings.TrimSpace(r.FormValue("assigneeId"))
 							var assigneeIDPtr *string
 							if assigneeID != "" {
 								assigneeIDPtr = &assigneeID
@@ -255,7 +257,7 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						text := strings.TrimSpace(r.FormValue("text"))
 
 						commentID := uuid.NewString()
-						now := time.Now().UnixMilli()
+						now := time.Now().Unix()
 
 						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
 							return zz.OnceCreateComment(tx, zz.CreateCommentParams{
@@ -455,7 +457,7 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 				}
 				if cc.AssigneeId != nil {
 					card.AssigneeID = *cc.AssigneeId
-					card.AssigneeName = cc.AssigneeName
+					card.AssigneeName = *cc.AssigneeName
 				}
 
 				tags, err := cardTags.Run(card.ID)
@@ -497,11 +499,13 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 }
 
 func renderBoardDetails(w http.ResponseWriter, r *http.Request, db *toolbelt.Database, boardID string) error {
-	bd, users, _, err := boardDetails(r.Context(), db, boardID)
+	bd, users, tags, err := boardDetails(r.Context(), db, boardID)
 	if err != nil {
 		return fmt.Errorf("load board details: %w", err)
 	}
-	c := BoardCardsSection(bd, users)
-	datastar.NewSSE(w, r).PatchElementTempl(c)
+	c := BoardDetails(bd, users, tags)
+	if err := datastar.NewSSE(w, r).PatchElementTempl(c); err != nil {
+		slog.Error("Error patching BoardCardsSection")
+	}
 	return nil
 }
