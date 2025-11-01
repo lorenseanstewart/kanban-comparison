@@ -47,21 +47,298 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 		<-r.Context().Done()
 	})
 
-	router.Get("/", indexHandler(db))
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		renderAllBoards(w, r, db)
+	})
+
 	router.Route("/board", func(boardRouter chi.Router) {
-		boardRouter.Post("/", createBoardHandler(db))
+		boardRouter.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			if err := r.ParseForm(); err != nil {
+				http.Error(w, "Failed to parse form", http.StatusBadRequest)
+				return
+			}
+
+			title := strings.TrimSpace(r.FormValue("title"))
+			description := strings.TrimSpace(r.FormValue("description"))
+			boardID := uuid.NewString()
+			now := time.Now().UnixMilli()
+
+			if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
+				if err := zz.OnceCreateBoard(tx, zz.CreateBoardParams{
+					Id:          boardID,
+					Title:       title,
+					Description: description,
+					CreatedAt:   now,
+				}); err != nil {
+					return fmt.Errorf("failed to create board: %w", err)
+				}
+
+				listTitles := []string{"To Do", "In Progress", "QA", "Done"}
+				listStmt := zz.CreateList(tx)
+				for i, listTitle := range listTitles {
+					listID := uuid.NewString()
+					if err := listStmt.Run(zz.CreateListParams{
+						Id:        listID,
+						BoardId:   boardID,
+						Title:     listTitle,
+						Position:  int64(i + 1),
+						CreatedAt: now,
+					}); err != nil {
+						return fmt.Errorf("failed to create default list %q: %w", listTitle, err)
+					}
+				}
+
+				return nil
+			}); err != nil {
+				http.Error(w, "Failed to create board", http.StatusInternalServerError)
+				return
+			}
+
+			renderAllBoards(w, r, db)
+		})
+
 		boardRouter.Route("/{boardID}", func(boardIDRouter chi.Router) {
-			boardIDRouter.Get("/", viewBoardHandler(db))
+			boardIDRouter.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				boardID := chi.URLParam(r, "boardID")
+				board, users, tags, err := boardDetails(r.Context(), db, boardID)
+				if err != nil {
+					http.Error(w, "Failed to load board", http.StatusInternalServerError)
+					return
+				}
+				RenderPage(w, r, BoardPage(board, users, tags))
+			})
+
 			boardIDRouter.Route("/card", func(cardRouter chi.Router) {
-				cardRouter.Post("/", createCardHandler(db))
+				cardRouter.Post("/", func(w http.ResponseWriter, r *http.Request) {
+					ctx := r.Context()
+					boardID := chi.URLParam(r, "boardID")
+
+					if err := r.ParseForm(); err != nil {
+						http.Error(w, "Failed to parse form", http.StatusBadRequest)
+						return
+					}
+
+					assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
+					var assigneeIDPtr *string
+					if assigneeID != "" {
+						assigneeIDPtr = &assigneeID
+					}
+
+					cardID := uuid.NewString()
+					now := time.Now().UnixMilli()
+
+					if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+						lists, err := zz.OnceListsByBoardId(tx, boardID)
+						if err != nil {
+							return fmt.Errorf("failed to load lists: %w", err)
+						}
+						listID := ""
+						for _, l := range lists {
+							if l.Title == "Todo" {
+								listID = l.Id
+								break
+							}
+						}
+						if listID == "" {
+							return fmt.Errorf("todo list is required")
+						}
+
+						maxPos, err := zz.OnceMaxPositionInList(tx, listID)
+						if err != nil {
+							return fmt.Errorf("failed to load max position: %w", err)
+						}
+
+						if err := zz.OnceCreateCard(tx, zz.CreateCardParams{
+							Id:          cardID,
+							ListId:      listID,
+							Title:       strings.TrimSpace(r.FormValue("title")),
+							Description: strings.TrimSpace(r.FormValue("description")),
+							AssigneeId:  assigneeIDPtr,
+							Position:    maxPos + 1,
+							Completed:   false,
+							CreatedAt:   now,
+						}); err != nil {
+							return fmt.Errorf("failed to create card: %w", err)
+						}
+
+						createCareTag := zz.CreateCardTag(tx)
+
+						for _, tagID := range r.Form["tagIds"] {
+							if err := createCareTag.Run(zz.CreateCardTagParams{
+								CardId: cardID,
+								TagId:  tagID,
+							}); err != nil {
+								return fmt.Errorf("failed to create card tag for tag %q: %w", tagID, err)
+							}
+						}
+
+						return nil
+					}); err != nil {
+						http.Error(w, "Failed to create card", http.StatusInternalServerError)
+						return
+					}
+
+					renderBoardDetails(w, r, db, boardID)
+				})
+
 				cardRouter.Route("/{cardID}", func(cardIDRouter chi.Router) {
-					cardIDRouter.Post("/", updateCardHandler(db))
-					cardIDRouter.Delete("/", deleteCardHandler(db))
-					cardIDRouter.Post("/comment", createCommentHandler(db))
-					cardIDRouter.Put("/list", updateCardListHandler(db))
+					cardIDRouter.Post("/", func(w http.ResponseWriter, r *http.Request) {
+						ctx := r.Context()
+						cardID := chi.URLParam(r, "cardID")
+
+						if err := r.ParseForm(); err != nil {
+							http.Error(w, "Failed to parse form", http.StatusBadRequest)
+							return
+						}
+
+						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+							assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
+							var assigneeIDPtr *string
+							if assigneeID != "" {
+								assigneeIDPtr = &assigneeID
+							}
+
+							if err := zz.OnceUpdateCard(tx, zz.UpdateCardParams{
+								Id:          cardID,
+								Title:       strings.TrimSpace(r.FormValue("title")),
+								Description: strings.TrimSpace(r.FormValue("description")),
+								AssigneeId:  assigneeIDPtr,
+							}); err != nil {
+								return fmt.Errorf("failed to update card: %w", err)
+							}
+
+							createCardTags := zz.CreateCardTag(tx)
+							for _, tagID := range r.Form["tagIds"] {
+								if err := createCardTags.Run(zz.CreateCardTagParams{
+									CardId: cardID,
+									TagId:  tagID,
+								}); err != nil {
+									return fmt.Errorf("failed to create card tag: %w", err)
+								}
+							}
+
+							return nil
+						}); err != nil {
+							http.Error(w, "Failed to update card", http.StatusInternalServerError)
+							return
+						}
+
+						renderBoardDetails(w, r, db, chi.URLParam(r, "boardID"))
+					})
+
+					cardIDRouter.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+						ctx := r.Context()
+						cardID := chi.URLParam(r, "cardID")
+
+						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+							if err := zz.OnceDeleteCard(tx, cardID); err != nil {
+								return fmt.Errorf("failed to delete card: %w", err)
+							}
+							return nil
+						}); err != nil {
+							http.Error(w, "Failed to delete card", http.StatusInternalServerError)
+							return
+						}
+
+						renderBoardDetails(w, r, db, chi.URLParam(r, "boardID"))
+					})
+
+					cardIDRouter.Post("/comment", func(w http.ResponseWriter, r *http.Request) {
+						ctx := r.Context()
+						cardID := chi.URLParam(r, "cardID")
+
+						if err := r.ParseForm(); err != nil {
+							http.Error(w, "Failed to parse form", http.StatusBadRequest)
+							return
+						}
+						userID := strings.TrimSpace(r.FormValue("userId"))
+						text := strings.TrimSpace(r.FormValue("text"))
+
+						commentID := uuid.NewString()
+						now := time.Now().UnixMilli()
+
+						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+							return zz.OnceCreateComment(tx, zz.CreateCommentParams{
+								Id:        commentID,
+								CardId:    cardID,
+								UserId:    userID,
+								Text:      text,
+								CreatedAt: now,
+							})
+						}); err != nil {
+							http.Error(w, "Failed to create comment", http.StatusInternalServerError)
+							return
+						}
+
+						boardID := chi.URLParam(r, "boardID")
+						renderBoardDetails(w, r, db, boardID)
+					})
+
+					cardIDRouter.Put("/list", func(w http.ResponseWriter, r *http.Request) {
+						ctx := r.Context()
+						cardID := chi.URLParam(r, "cardID")
+
+						if err := r.ParseForm(); err != nil {
+							http.Error(w, "Failed to parse form", http.StatusBadRequest)
+							return
+						}
+
+						newListID := strings.TrimSpace(r.FormValue("listId"))
+
+						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
+							list, err := zz.OnceListByListId(tx, newListID)
+							if err != nil {
+								return fmt.Errorf("failed to load list: %w", err)
+							}
+
+							var completed bool
+							if list.Title == "Done" {
+								completed = true
+							}
+
+							return zz.OnceUpdateCardCompleted(tx, zz.UpdateCardCompletedParams{
+								Id:        cardID,
+								Completed: completed,
+							})
+						}); err != nil {
+							http.Error(w, "Failed to update card list", http.StatusInternalServerError)
+							return
+						}
+
+						boardID := chi.URLParam(r, "boardID")
+						renderBoardDetails(w, r, db, boardID)
+					})
 				})
 			})
-			boardIDRouter.Put("/list/{listID}/positions", updateCardPositionsHandler(db))
+
+			boardIDRouter.Put("/list/{listID}/positions", func(w http.ResponseWriter, r *http.Request) {
+
+				if err := r.ParseForm(); err != nil {
+					http.Error(w, "Failed to parse form", http.StatusBadRequest)
+					return
+				}
+
+				cardIDs := r.Form["cardIds"]
+
+				if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
+					updateCardPosition := zz.UpdateCardPosition(tx)
+					for i, cardID := range cardIDs {
+						if err := updateCardPosition.Run(zz.UpdateCardPositionParams{
+							Id:       cardID,
+							Position: int64(i),
+						}); err != nil {
+							return fmt.Errorf("failed to update card position for card %q: %w", cardID, err)
+						}
+					}
+					return nil
+				}); err != nil {
+					http.Error(w, "Failed to update card positions", http.StatusInternalServerError)
+					return
+				}
+
+				boardID := chi.URLParam(r, "boardID")
+				renderBoardDetails(w, r, db, boardID)
+			})
 		})
 	})
 
@@ -112,59 +389,6 @@ func renderAllBoards(w http.ResponseWriter, r *http.Request, db *toolbelt.Databa
 	}
 
 	return RenderPage(w, r, IndexPage(boards...))
-}
-
-func indexHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		renderAllBoards(w, r, db)
-	}
-}
-
-func createBoardHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		title := strings.TrimSpace(r.FormValue("title"))
-		description := strings.TrimSpace(r.FormValue("description"))
-		boardID := uuid.NewString()
-		now := time.Now().UnixMilli()
-
-		if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
-			if err := zz.OnceCreateBoard(tx, zz.CreateBoardParams{
-				Id:          boardID,
-				Title:       title,
-				Description: description,
-				CreatedAt:   now,
-			}); err != nil {
-				return fmt.Errorf("failed to create board: %w", err)
-			}
-
-			listTitles := []string{"To Do", "In Progress", "QA", "Done"}
-			listStmt := zz.CreateList(tx)
-			for i, listTitle := range listTitles {
-				listID := uuid.NewString()
-				if err := listStmt.Run(zz.CreateListParams{
-					Id:        listID,
-					BoardId:   boardID,
-					Title:     listTitle,
-					Position:  int64(i + 1),
-					CreatedAt: now,
-				}); err != nil {
-					return fmt.Errorf("failed to create default list %q: %w", listTitle, err)
-				}
-			}
-
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to create board", http.StatusInternalServerError)
-			return
-		}
-
-		renderAllBoards(w, r, db)
-	}
 }
 
 func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (Board, []User, []Tag, error) {
@@ -278,256 +502,4 @@ func renderBoardDetails(w http.ResponseWriter, r *http.Request, db *toolbelt.Dat
 	c := BoardCardsSection(bd, users)
 	datastar.NewSSE(w, r).PatchElementTempl(c)
 	return nil
-}
-
-func viewBoardHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		boardID := chi.URLParam(r, "boardID")
-		board, users, tags, err := boardDetails(r.Context(), db, boardID)
-		if err != nil {
-			http.Error(w, "Failed to load board", http.StatusInternalServerError)
-			return
-		}
-		RenderPage(w, r, BoardPage(board, users, tags))
-	}
-}
-
-func createCardHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		boardID := chi.URLParam(r, "boardID")
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
-		var assigneeIDPtr *string
-		if assigneeID != "" {
-			assigneeIDPtr = &assigneeID
-		}
-
-		cardID := uuid.NewString()
-		now := time.Now().UnixMilli()
-
-		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			lists, err := zz.OnceListsByBoardId(tx, boardID)
-			if err != nil {
-				return fmt.Errorf("failed to load lists: %w", err)
-			}
-			listID := ""
-			for _, l := range lists {
-				if l.Title == "Todo" {
-					listID = l.Id
-					break
-				}
-			}
-			if listID == "" {
-				return fmt.Errorf("todo list is required")
-			}
-
-			maxPos, err := zz.OnceMaxPositionInList(tx, listID)
-			if err != nil {
-				return fmt.Errorf("failed to load max position: %w", err)
-			}
-
-			if err := zz.OnceCreateCard(tx, zz.CreateCardParams{
-				Id:          cardID,
-				ListId:      listID,
-				Title:       strings.TrimSpace(r.FormValue("title")),
-				Description: strings.TrimSpace(r.FormValue("description")),
-				AssigneeId:  assigneeIDPtr,
-				Position:    maxPos + 1,
-				Completed:   false,
-				CreatedAt:   now,
-			}); err != nil {
-				return fmt.Errorf("failed to create card: %w", err)
-			}
-
-			createCareTag := zz.CreateCardTag(tx)
-
-			for _, tagID := range r.Form["tagIds"] {
-				if err := createCareTag.Run(zz.CreateCardTagParams{
-					CardId: cardID,
-					TagId:  tagID,
-				}); err != nil {
-					return fmt.Errorf("failed to create card tag for tag %q: %w", tagID, err)
-				}
-			}
-
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to create card", http.StatusInternalServerError)
-			return
-		}
-
-		renderBoardDetails(w, r, db, boardID)
-	}
-}
-
-func updateCardHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		cardID := chi.URLParam(r, "cardID")
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			assigneeID := strings.TrimSpace(r.FormValue("assignee_id"))
-			var assigneeIDPtr *string
-			if assigneeID != "" {
-				assigneeIDPtr = &assigneeID
-			}
-
-			if err := zz.OnceUpdateCard(tx, zz.UpdateCardParams{
-				Id:          cardID,
-				Title:       strings.TrimSpace(r.FormValue("title")),
-				Description: strings.TrimSpace(r.FormValue("description")),
-				AssigneeId:  assigneeIDPtr,
-			}); err != nil {
-				return fmt.Errorf("failed to update card: %w", err)
-			}
-
-			createCardTags := zz.CreateCardTag(tx)
-			for _, tagID := range r.Form["tagIds"] {
-				if err := createCardTags.Run(zz.CreateCardTagParams{
-					CardId: cardID,
-					TagId:  tagID,
-				}); err != nil {
-					return fmt.Errorf("failed to create card tag: %w", err)
-				}
-			}
-
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to update card", http.StatusInternalServerError)
-			return
-		}
-
-		renderBoardDetails(w, r, db, chi.URLParam(r, "boardID"))
-	}
-}
-
-func deleteCardHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		cardID := chi.URLParam(r, "cardID")
-
-		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			if err := zz.OnceDeleteCard(tx, cardID); err != nil {
-				return fmt.Errorf("failed to delete card: %w", err)
-			}
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to delete card", http.StatusInternalServerError)
-			return
-		}
-
-		renderBoardDetails(w, r, db, chi.URLParam(r, "boardID"))
-	}
-}
-
-func createCommentHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		cardID := chi.URLParam(r, "cardID")
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-		userID := strings.TrimSpace(r.FormValue("userId"))
-		text := strings.TrimSpace(r.FormValue("text"))
-
-		commentID := uuid.NewString()
-		now := time.Now().UnixMilli()
-
-		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			return zz.OnceCreateComment(tx, zz.CreateCommentParams{
-				Id:        commentID,
-				CardId:    cardID,
-				UserId:    userID,
-				Text:      text,
-				CreatedAt: now,
-			})
-		}); err != nil {
-			http.Error(w, "Failed to create comment", http.StatusInternalServerError)
-			return
-		}
-
-		boardID := chi.URLParam(r, "boardID")
-		renderBoardDetails(w, r, db, boardID)
-	}
-}
-
-func updateCardListHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		cardID := chi.URLParam(r, "cardID")
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		newListID := strings.TrimSpace(r.FormValue("listId"))
-
-		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			list, err := zz.OnceListByListId(tx, newListID)
-			if err != nil {
-				return fmt.Errorf("failed to load list: %w", err)
-			}
-
-			var completed bool
-			if list.Title == "Done" {
-				completed = true
-			}
-
-			return zz.OnceUpdateCardCompleted(tx, zz.UpdateCardCompletedParams{
-				Id:        cardID,
-				Completed: completed,
-			})
-		}); err != nil {
-			http.Error(w, "Failed to update card list", http.StatusInternalServerError)
-			return
-		}
-
-		boardID := chi.URLParam(r, "boardID")
-		renderBoardDetails(w, r, db, boardID)
-	}
-}
-
-func updateCardPositionsHandler(db *toolbelt.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		cardIDs := r.Form["cardIds"]
-
-		if err := db.WriteTX(r.Context(), func(tx *sqlite.Conn) error {
-			updateCardPosition := zz.UpdateCardPosition(tx)
-			for i, cardID := range cardIDs {
-				if err := updateCardPosition.Run(zz.UpdateCardPositionParams{
-					Id:       cardID,
-					Position: int64(i),
-				}); err != nil {
-					return fmt.Errorf("failed to update card position for card %q: %w", cardID, err)
-				}
-			}
-			return nil
-		}); err != nil {
-			http.Error(w, "Failed to update card positions", http.StatusInternalServerError)
-			return
-		}
-
-		boardID := chi.URLParam(r, "boardID")
-		renderBoardDetails(w, r, db, boardID)
-	}
 }
