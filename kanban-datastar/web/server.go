@@ -438,52 +438,54 @@ func boardDetails(ctx context.Context, db *toolbelt.Database, boardID string) (B
 		commentsByCardId := zz.CommentsByCardId(tx)
 
 		for _, l := range ll {
-			list := ListWithCards{ID: l.Id}
+			list := ListWithCards{ID: l.Id, Position: l.Position}
 
-			c, err := cardsByListId.Run(list.ID)
+			cards, err := cardsByListId.Run(list.ID)
 			if err != nil {
 				return fmt.Errorf("failed to load cards for list %q: %w", l.Id, err)
 			}
 
-			card := Card{
-				ID:          c.CardId,
-				Title:       c.Title,
-				Description: c.Description,
-				Position:    c.Position,
-				Completed:   c.Completed,
-			}
-			if c.AssigneeId != nil {
-				card.AssigneeID = *c.AssigneeId
-				card.AssigneeName = c.AssigneeName
-			}
-
-			tags, err := cardTags.Run(card.ID)
-			if err != nil {
-				return fmt.Errorf("failed to load tags for card %q: %w", card.ID, err)
-			}
-			for _, ct := range tags {
-				card.Tags = append(card.Tags, Tag{
-					ID:    ct.TagId,
-					Name:  ct.TagName,
-					Color: ct.TagColor,
-				})
-			}
-
-			comments, err := commentsByCardId.Run(card.ID)
-			if err != nil {
-				return fmt.Errorf("failed to load comments for card %q: %w", card.ID, err)
-			}
-			for _, cm := range comments {
-				commentItem := Comment{
-					ID:       cm.CommentId,
-					Text:     cm.CommentText,
-					UserID:   cm.UserId,
-					UserName: cm.UserName,
+			for _, cc := range cards {
+				card := Card{
+					ID:          cc.CardId,
+					Title:       cc.Title,
+					Description: cc.Description,
+					Position:    cc.Position,
+					Completed:   cc.Completed,
 				}
-				card.Comments = append(card.Comments, commentItem)
-			}
+				if cc.AssigneeId != nil {
+					card.AssigneeID = *cc.AssigneeId
+					card.AssigneeName = cc.AssigneeName
+				}
 
-			list.Cards = append(list.Cards, card)
+				tags, err := cardTags.Run(card.ID)
+				if err != nil {
+					return fmt.Errorf("failed to load tags for card %q: %w", card.ID, err)
+				}
+				for _, ct := range tags {
+					card.Tags = append(card.Tags, Tag{
+						ID:    ct.TagId,
+						Name:  ct.TagName,
+						Color: ct.TagColor,
+					})
+				}
+
+				comments, err := commentsByCardId.Run(card.ID)
+				if err != nil {
+					return fmt.Errorf("failed to load comments for card %q: %w", card.ID, err)
+				}
+				for _, cm := range comments {
+					commentItem := Comment{
+						ID:       cm.CommentId,
+						Text:     cm.CommentText,
+						UserID:   cm.UserId,
+						UserName: cm.UserName,
+					}
+					card.Comments = append(card.Comments, commentItem)
+				}
+				list.Cards = append(list.Cards, card)
+			}
+			board.Lists = append(board.Lists, list)
 		}
 
 		return nil

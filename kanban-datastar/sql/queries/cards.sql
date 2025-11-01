@@ -1,4 +1,4 @@
--- name: CardsByListId :one
+-- name: CardsByListId :many
 SELECT 
     c.id AS card_id,
     c.title AS title,
