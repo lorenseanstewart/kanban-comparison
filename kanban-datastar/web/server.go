@@ -3,12 +3,12 @@ package web
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"kanban/sql/zz"
 	"log"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -281,16 +281,19 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 						ctx := r.Context()
 						cardID := chi.URLParam(r, "cardID")
 
-						if err := r.ParseForm(); err != nil {
-							http.Error(w, "Failed to parse form", http.StatusBadRequest)
+						// Parse JSON body
+						var requestData struct {
+							TargetListID   string `json:"targetListId"`
+							InsertPosition int64  `json:"insertPosition"`
+						}
+
+						if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+							http.Error(w, "Failed to parse JSON body", http.StatusBadRequest)
 							return
 						}
 
-						newListID := strings.TrimSpace(r.FormValue("listId"))
-						position := r.FormValue("position")
-
 						if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-							list, err := zz.OnceListByListId(tx, newListID)
+							list, err := zz.OnceListByListId(tx, requestData.TargetListID)
 							if err != nil {
 								return fmt.Errorf("failed to load list: %w", err)
 							}
@@ -300,24 +303,11 @@ func RunBlocking(setupCtx context.Context, db *toolbelt.Database) error {
 								completed = true
 							}
 
-							pos, err := strconv.ParseInt(position, 10, 64)
-							if err != nil {
-								return fmt.Errorf("invalid position: %w", err)
-							}
-
-							// First, shift all cards at or after the insert position
-							if err := zz.OnceShiftCardPositionsInList(tx, zz.ShiftCardPositionsInListParams{
-								ListId:   newListID,
-								Position: pos,
-							}); err != nil {
-								return fmt.Errorf("failed to shift card positions: %w", err)
-							}
-
-							// Then update the moved card
+							// Use the parsed values
 							return zz.OnceUpdateListAndCardPosition(tx, zz.UpdateListAndCardPositionParams{
 								Id:        cardID,
-								ListId:    newListID,
-								Position:  pos,
+								ListId:    requestData.TargetListID,
+								Position:  requestData.InsertPosition,
 								Completed: completed,
 							})
 						}); err != nil {

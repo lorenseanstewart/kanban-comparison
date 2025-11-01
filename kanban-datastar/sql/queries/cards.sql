@@ -47,9 +47,3 @@ WHERE id = ?;
 UPDATE cards
 SET position = ?, list_id = ?, completed = ?
 WHERE id = ?;
-
--- name: ShiftCardPositionsInList :exec
-UPDATE cards
-SET position = position + 1
-WHERE list_id = ? AND position >= ?;
-
