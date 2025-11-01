@@ -84,7 +84,6 @@ require (
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
-	github.com/rzajac/clock v0.2.1 // indirect
 	github.com/rzajac/zflake v0.8.1 // indirect
 	github.com/sajari/fuzzy v1.0.0 // indirect
 	github.com/samber/lo v1.51.0 // indirect
