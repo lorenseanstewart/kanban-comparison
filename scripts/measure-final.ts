@@ -105,6 +105,7 @@ async function main() {
   // Parse CLI arguments
   const args = process.argv.slice(2);
   let numRuns = 10; // Default to 10 runs for better statistical power with IQR outlier removal
+  let networkCondition = '4g'; // Default to 4G
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--runs' && i + 1 < args.length) {
@@ -114,11 +115,20 @@ async function main() {
         process.exit(1);
       }
       i++; // Skip next arg
+    } else if (args[i] === '--network' && i + 1 < args.length) {
+      networkCondition = args[i + 1];
+      if (!['4g', '3g', 'slow-3g'].includes(networkCondition)) {
+        console.error(`❌ Error: Invalid network condition "${networkCondition}"`);
+        console.error('Available conditions: 4g, 3g, slow-3g');
+        process.exit(1);
+      }
+      i++; // Skip next arg
     }
   }
 
   console.error('\n🚀 Final Production Measurements');
   console.error(`   Runs per page: ${numRuns}`);
+  console.error(`   Network: ${networkCondition}`);
   console.error(`   Frameworks: ${FRAMEWORKS.length}\n`);
 
   // Validate all builds exist
@@ -152,7 +162,7 @@ async function main() {
     console.error(`${'='.repeat(60)}`);
 
     try {
-      const output = execSync(`tsx scripts/measure-single.ts "${framework.name}" --runs ${numRuns}`, {
+      const output = execSync(`tsx scripts/measure-single.ts "${framework.name}" --runs ${numRuns} --network ${networkCondition}`, {
         encoding: 'utf-8',
         maxBuffer: 10 * 1024 * 1024,
         stdio: ['pipe', 'pipe', 'inherit'] // stderr goes to console
@@ -182,6 +192,7 @@ async function main() {
       timestamp: new Date().toISOString(),
       runsPerPage: numRuns,
       measurementType: 'cold-load',
+      networkCondition: allResults[0]?.networkCondition || networkCondition,
       chromeVersion: allResults[0]?.chromeVersion || 'unknown',
       compressionType: allResults[0]?.compressionType || 'gzip'
     },

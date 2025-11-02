@@ -1,4 +1,4 @@
-# Performance Measurement Methodology
+# Bundle Size Measurement Methodology
 
 **Audience**: Blog readers, external researchers, and anyone wanting to understand or critique our measurement approach.
 
@@ -6,9 +6,11 @@
 
 ## Overview
 
-All frameworks implement identical functionality (a Kanban board app) with identical features, database, and UI framework (Tailwind CSS + DaisyUI). Measurements focus on JavaScript bundle sizes and performance metrics using Chrome Lighthouse.
+All frameworks implement identical functionality (a Kanban board app) with identical features, database, and UI framework (Tailwind CSS + DaisyUI). **All frameworks achieve excellent Lighthouse performance scores (100) with First Contentful Paint in the 35-71ms range, demonstrating instant initial page load.** With performance being essentially identical, this evaluation focuses primarily on **JavaScript bundle sizes**, which range from 28.8 kB to 176.3 kB compressed—a 6.1x difference that impacts mobile users through data usage, parse time, and battery drain.
 
 ## Statistical Approach
+
+**Note**: The statistical methodology below primarily applies to **Lighthouse performance scores** (which all frameworks achieve near-perfectly at 100). Bundle sizes are stable measurements of built artifacts and show minimal variance (±1-2% from build timestamps). Since bundle size is the key differentiator in this evaluation, the statistical rigor is less critical than it would be for performance comparisons.
 
 ### Multiple Runs
 
@@ -19,13 +21,13 @@ All frameworks implement identical functionality (a Kanban board app) with ident
 
 ### Why 10 Runs?
 
-With 10 runs we achieve:
+For Lighthouse performance scores, 10 runs provide:
 - Sufficient statistical power for outlier detection
 - Reliable IQR (Interquartile Range) calculation
 - More stable median values
 - Better confidence in reported variances
 
-Fewer runs (5 or less) don't provide enough data points for reliable outlier detection.
+**For bundle sizes**: Multiple runs are less critical since bundle sizes are stable measurements of built files. The primary value is confirming consistency.
 
 ### Outlier Removal (IQR Method)
 
@@ -36,7 +38,7 @@ We use the **Interquartile Range (IQR) method** to identify and remove statistic
 3. Remove values outside the range: [Q1 - 1.5×IQR, Q3 + 1.5×IQR]
 4. Calculate statistics from remaining values
 
-**Why this matters**: Performance measurements can be affected by background processes, system interrupts, or cold-start delays. The IQR method is a standard statistical technique that identifies genuine outliers while preserving the true performance distribution.
+**Why this matters**: Lighthouse performance measurements can be affected by background processes, system interrupts, or cold-start delays. The IQR method is a standard statistical technique that identifies genuine outliers while preserving the true performance distribution. **Bundle sizes rarely have outliers** since they're measuring static build artifacts.
 
 **Note**: Outlier removal only applies when we have ≥7 runs. With fewer runs, all values are used. Min/max values in reports show the full range before outlier removal.
 
@@ -48,11 +50,11 @@ Before measurements, we perform **warmup requests**:
 - 2-second stabilization delay after warmup
 - Ensures server caches, database connections, and compilation are ready
 
-This reduces variance from cold-start effects while still measuring cold-cache browser performance (Lighthouse clears browser cache between runs).
+This reduces variance from cold-start effects while still measuring cold-cache browser performance (Lighthouse clears browser cache between runs). **Note**: Server warmup stabilizes performance metrics; it doesn't affect bundle size measurements.
 
 ### Why Median?
 
-The median is more robust to outliers than the mean. Combined with IQR outlier removal, our reported medians represent true "typical" performance without being skewed by anomalous runs.
+For Lighthouse performance scores, the median is more robust to outliers than the mean. Combined with IQR outlier removal, our reported medians represent true "typical" performance without being skewed by anomalous runs. **For bundle sizes**, median vs mean makes minimal difference since variance is so low (±1-2%).
 
 ### Expected Variance
 
@@ -62,6 +64,10 @@ Based on our measurements with 10 runs and outlier removal:
 - **Core Web Vitals** (FCP, LCP, etc.): ±3-5% (network and CPU scheduling variance, significantly reduced with warmup and outlier removal)
 
 ## What We Measure
+
+### Primary Focus: Bundle Sizes
+
+We track bundle sizes meticulously with two complementary measurements:
 
 ### Bundle Size: Two Numbers That Matter
 
@@ -97,13 +103,15 @@ Example:
 - Framework B: 15 kB compressed (90 kB raw, 83% compression)
 - **Winner**: Framework A (users download 5 kB less, despite worse compression ratio)
 
-### Performance Metrics
+### Secondary: Performance Metrics
 
-- **Performance Score**: Lighthouse overall score (0-100)
-- **First Contentful Paint (FCP)**: Time to first content render
+**Note**: All frameworks achieve similar performance scores (100) and FCP times (35-71ms), making these metrics less useful for differentiation. We report them for completeness.
+
+- **Performance Score**: Lighthouse overall score (0-100) - All frameworks achieve 100
+- **First Contentful Paint (FCP)**: Time to first content render - All frameworks: 35-71ms
 - **Largest Contentful Paint (LCP)**: Time to main content render
-- **Total Blocking Time (TBT)**: Main thread blocking time
-- **Cumulative Layout Shift (CLS)**: Visual stability metric
+- **Total Blocking Time (TBT)**: Main thread blocking time - All frameworks: 0ms at 1x CPU
+- **Cumulative Layout Shift (CLS)**: Visual stability metric - All frameworks: ≈0
 - **Speed Index**: Visual completion speed
 
 ## Test Environment
@@ -138,37 +146,38 @@ Example:
 - Lighthouse version captured for reproducibility
 - Consistent version used across all measurements
 
-## Cold vs Warm Load
+## First-Load Measurements
 
-**We measure cold-load performance** (cache cleared between runs).
+**We measure first-load bundle sizes** (cache cleared between runs).
 
 **Why:**
 - Represents first-time visitor experience
-- Worst-case scenario for performance
+- Worst-case scenario for bundle size impact
 - More sensitive to bundle size differences
 - Eliminates cache as a confounding variable
 
 **Trade-off:**
 - Real users often benefit from cached resources
 - Subsequent page loads will be faster than measured
-- This comparison favors frameworks with better initial load performance
+- This comparison favors frameworks with smaller initial bundles
 
 ## Limitations & Caveats
 
 ### What This Measures
 
-✅ Initial page load bundle size
-✅ Cold-cache performance
-✅ Bundle size impact on loading performance
-✅ Framework baseline cost
+✅ Initial page load bundle size (primary focus)
+✅ First-load measurements (cache cleared)
+✅ Framework baseline cost (JavaScript shipped to users)
+✅ Lighthouse performance scores (all frameworks score 100)
 
 ### What This Doesn't Capture
 
 ❌ Code splitting effectiveness for large apps
-❌ Runtime performance after initial load
+❌ Runtime performance after initial load (all frameworks feel instant)
 ❌ Real-world CDN latency (localhost measurement)
 ❌ Progressive enhancement strategies
 ❌ Warm-cache / repeat visit performance
+❌ Interactivity differences (all frameworks achieve instant TTI)
 
 ### Localhost vs Production
 
@@ -202,21 +211,18 @@ To ensure apples-to-apples comparisons:
 
 ## Interpreting Results
 
-### Bundle Size Differences
+### Bundle Size Differences (Primary Focus)
 
 When comparing bundle sizes, consider:
 
-- **< 20 kB difference**: Likely not perceptible to users on 4G+
-- **20-50 kB difference**: Noticeable on slower connections (3G)
-- **> 50 kB difference**: Significant impact on initial load, especially mobile
+- **< 20 kB difference**: Noticeable on 3G networks (~0.15s download time difference)
+- **20-50 kB difference**: Meaningful impact on mobile (0.15-0.4s download + parse time)
+- **50-100 kB difference**: Significant impact (0.4-0.8s), especially on spotty networks
+- **> 100 kB difference**: Major impact (1+ seconds), compounds with additional dependencies
 
-### Performance Score Differences
+### Performance Score Differences (Less Useful)
 
-Lighthouse scores are weighted composites:
-
-- **< 5 points**: Within measurement noise
-- **5-10 points**: Potentially meaningful but verify with specific metrics
-- **> 10 points**: Significant difference, investigate specific metrics (FCP, LCP, etc.)
+**Note**: All frameworks in this evaluation achieve perfect or near-perfect scores (100), making performance scores less useful for comparison. Bundle size is the meaningful differentiator.
 
 ### Statistical Significance
 
@@ -270,12 +276,13 @@ cat metrics/final-measurements.md
 
 You can modify the scripts to add CPU throttling if you want to measure that aspect.
 
-### "Cold-cache only doesn't reflect real usage"
+### "First-load only doesn't reflect real usage"
 
-**Response**: We're measuring worst-case (first visit) performance:
+**Response**: We're measuring worst-case (first visit) bundle sizes:
 - Most sensitive to bundle size differences
 - Relevant for SEO, first impressions, and bounce rates
 - Warm-cache performance favors frameworks with aggressive caching, which isn't the focus here
+- Bundle size differences matter on every deployment (cache busting)
 
 ### "Localhost doesn't reflect production"
 
@@ -319,17 +326,18 @@ This reflects the out-of-box developer experience.
 ## Changelog
 
 ### Current Version
+- Primary focus on bundle sizes (all frameworks achieve similar Lighthouse scores)
 - Multiple runs with statistical measures (median ± std dev)
 - 10 runs per page default for better statistical power
 - IQR outlier removal for robust statistics
 - Server warmup requests before measurements
-- Cache clearing between runs (cold-load)
+- Cache clearing between runs (first-load measurements)
 - Chrome/Lighthouse version tracking
 - Compression type detection
 - Raw + compressed bundle sizes tracked
 
 ### Future Improvements
 - Add warm-cache measurements
-- Test with CPU throttling variants
-- Measure interaction/runtime performance
+- Test with CPU throttling variants (4x, 6x)
+- Measure interaction/runtime performance (though all frameworks feel instant)
 - Test on actual mobile devices (not just emulation)

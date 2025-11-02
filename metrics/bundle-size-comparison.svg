@@ -71,8 +71,8 @@
     <rect x="835.0" y="119.2828125" width="25.0" height="200.7171875" fill="#10b981" opacity="0.8" rx="3"/>
     <text x="847.5" y="114.2828125" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">376</text>
     <text x="850.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 850.0, 335)">Analog</text>
-    <rect x="905.0" y="18.717187500000023" width="25.0" height="301.2828125" fill="#3b82f6" opacity="0.8" rx="3"/>
-    <text x="917.5" y="13.717187500000023" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">565</text>
+    <rect x="905.0" y="19.34843749999999" width="25.0" height="300.6515625" fill="#3b82f6" opacity="0.8" rx="3"/>
+    <text x="917.5" y="14.348437499999989" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">564</text>
     <rect x="935.0" y="60.75156249999998" width="25.0" height="259.2484375" fill="#10b981" opacity="0.8" rx="3"/>
     <text x="947.5" y="55.75156249999998" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">486</text>
     <text x="950.0" y="335" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 950.0, 335)">Next.js</text>

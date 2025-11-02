@@ -27,6 +27,8 @@ interface PageBundleStats {
   tbt: number;
   cls: number;
   si: number;
+  scriptEvaluation: number;
+  mainThreadWork: number;
   timestamp: string;
   compressionType?: string;
 }
@@ -52,10 +54,56 @@ interface AggregatedStats {
   tbt: StatisticalSummary;
   cls: StatisticalSummary;
   si: StatisticalSummary;
+  scriptEvaluation: StatisticalSummary;
+  mainThreadWork: StatisticalSummary;
   compressionType: string;
   chromeVersion: string;
+  networkCondition: string;
+  cpuThrottling: string;
   measurementTimestamp: string;
 }
+
+// Network throttling configurations
+const NETWORK_CONDITIONS = {
+  '4g': {
+    name: '4G',
+    downloadThroughput: 10 * 1024 * 1024 / 8, // 10 Mbps in bytes/sec
+    uploadThroughput: 1 * 1024 * 1024 / 8,
+    rttMs: 40
+  },
+  '3g': {
+    name: 'Regular 3G',
+    downloadThroughput: 1.6 * 1024 * 1024 / 8, // 1.6 Mbps in bytes/sec
+    uploadThroughput: 0.75 * 1024 * 1024 / 8,
+    rttMs: 150
+  },
+  'slow-3g': {
+    name: 'Slow 3G',
+    downloadThroughput: 0.4 * 1024 * 1024 / 8, // 0.4 Mbps in bytes/sec
+    uploadThroughput: 0.4 * 1024 * 1024 / 8,
+    rttMs: 400
+  }
+} as const;
+
+type NetworkCondition = keyof typeof NETWORK_CONDITIONS;
+
+// CPU throttling configurations
+const CPU_THROTTLING = {
+  '1x': {
+    name: 'No throttling',
+    multiplier: 1
+  },
+  '4x': {
+    name: '4x slowdown (mid-tier mobile)',
+    multiplier: 4
+  },
+  '6x': {
+    name: '6x slowdown (low-end mobile)',
+    multiplier: 6
+  }
+} as const;
+
+type CpuThrottling = keyof typeof CPU_THROTTLING;
 
 const FRAMEWORKS = [
   { name: 'Next.js', dir: 'kanban-nextjs', port: 3000, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
@@ -237,7 +285,7 @@ async function warmupServer(urls: string[]): Promise<void> {
   console.error(`   ✅ Warmup complete`);
 }
 
-async function measurePageBundle(url: string, runNumber: number, totalRuns: number): Promise<{
+async function measurePageBundle(url: string, runNumber: number, totalRuns: number, networkCondition: NetworkCondition, cpuThrottling: CpuThrottling): Promise<{
   jsTransferred: number;
   jsUncompressed: number;
   totalRequests: number;
@@ -247,10 +295,14 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
   tbt: number;
   cls: number;
   si: number;
+  scriptEvaluation: number;
+  mainThreadWork: number;
   compressionType: string;
 }> {
   console.error(`      Run ${runNumber}/${totalRuns}...`);
 
+  const throttling = NETWORK_CONDITIONS[networkCondition];
+  const cpu = CPU_THROTTLING[cpuThrottling];
   const cmd = `npx lighthouse ${url} \
     --form-factor=mobile \
     --screenEmulation.mobile \
@@ -258,6 +310,12 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
     --output-path=stdout \
     --only-categories=performance \
     --throttling-method=provided \
+    --throttling.rttMs=${throttling.rttMs} \
+    --throttling.throughputKbps=${Math.round(throttling.downloadThroughput * 8 / 1024)} \
+    --throttling.requestLatencyMs=${throttling.rttMs / 2} \
+    --throttling.downloadThroughputKbps=${Math.round(throttling.downloadThroughput * 8 / 1024)} \
+    --throttling.uploadThroughputKbps=${Math.round(throttling.uploadThroughput * 8 / 1024)} \
+    --throttling.cpuSlowdownMultiplier=${cpu.multiplier} \
     --clear-storage \
     --chrome-flags="--headless --no-sandbox --disable-gpu" \
     --quiet`;
@@ -297,6 +355,15 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
     const cls = lhr.audits['cumulative-layout-shift']?.numericValue || 0;
     const si = lhr.audits['speed-index']?.numericValue || 0;
 
+    // Extract parse/compile metrics
+    const bootupTime = lhr.audits['bootup-time']?.details?.items || [];
+    let scriptEvaluation = 0;
+    for (const item of bootupTime) {
+      scriptEvaluation += (item.scripting || 0);
+    }
+
+    const mainThreadWorkBreakdown = lhr.audits['mainthread-work-breakdown']?.numericValue || 0;
+
     return {
       jsTransferred,
       jsUncompressed,
@@ -307,6 +374,8 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
       tbt: Math.round(tbt),
       cls: Math.round(cls * 1000) / 1000,
       si: Math.round(si),
+      scriptEvaluation: Math.round(scriptEvaluation),
+      mainThreadWork: Math.round(mainThreadWorkBreakdown),
       compressionType
     };
   } catch (error) {
@@ -315,7 +384,7 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
   }
 }
 
-async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number): Promise<AggregatedStats[]> {
+async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number, networkCondition: NetworkCondition, cpuThrottling: CpuThrottling): Promise<AggregatedStats[]> {
   console.error(`\n📦 Measuring ${framework.name} (${numRuns} runs per page)...`);
 
   const cleanup = await startServer(framework);
@@ -345,12 +414,14 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
         tbt: number;
         cls: number;
         si: number;
+        scriptEvaluation: number;
+        mainThreadWork: number;
         compressionType: string;
       }> = [];
 
       // Run measurements multiple times
       for (let i = 1; i <= numRuns; i++) {
-        const stats = await measurePageBundle(page.url, i, numRuns);
+        const stats = await measurePageBundle(page.url, i, numRuns, networkCondition, cpuThrottling);
         runs.push(stats);
         await sleep(2000); // Brief pause between runs
       }
@@ -364,6 +435,8 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
       const tbtStats = calculateStats(runs.map(r => r.tbt));
       const clsStats = calculateStatsFloat(runs.map(r => r.cls));
       const siStats = calculateStats(runs.map(r => r.si));
+      const scriptEvaluationStats = calculateStats(runs.map(r => r.scriptEvaluation));
+      const mainThreadWorkStats = calculateStats(runs.map(r => r.mainThreadWork));
 
       const compressionType = runs[0].compressionType;
 
@@ -372,7 +445,7 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
         ? Math.round(((jsUncompressedStats.median - jsTransferredStats.median) / jsUncompressedStats.median) * 100)
         : 0;
 
-      console.error(`   ✅ ${page.name}: ${(jsTransferredStats.median / 1024).toFixed(1)} kB compressed (${(jsUncompressedStats.median / 1024).toFixed(1)} kB raw, ${compressionRatio}% reduction) | Score: ${performanceScoreStats.median} (±${performanceScoreStats.stddev.toFixed(1)})`);
+      console.error(`   ✅ ${page.name}: ${(jsTransferredStats.median / 1024).toFixed(1)} kB compressed (${(jsUncompressedStats.median / 1024).toFixed(1)} kB raw, ${compressionRatio}% reduction) | Score: ${performanceScoreStats.median} (±${performanceScoreStats.stddev.toFixed(1)}) | Script eval: ${scriptEvaluationStats.median}ms`);
 
       allResults.push({
         framework: framework.name,
@@ -386,8 +459,12 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
         tbt: tbtStats,
         cls: clsStats,
         si: siStats,
+        scriptEvaluation: scriptEvaluationStats,
+        mainThreadWork: mainThreadWorkStats,
         compressionType,
         chromeVersion: getChromeVersion(),
+        networkCondition: NETWORK_CONDITIONS[networkCondition].name,
+        cpuThrottling: CPU_THROTTLING[cpuThrottling].name,
         measurementTimestamp: new Date().toISOString()
       });
     }
@@ -405,6 +482,8 @@ async function main() {
   const args = process.argv.slice(2);
   let frameworkName: string | undefined;
   let numRuns = 5; // Default to 5 runs
+  let networkCondition: NetworkCondition = '4g'; // Default to 4G
+  let cpuThrottling: CpuThrottling = '1x'; // Default to no CPU throttling
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--runs' && i + 1 < args.length) {
@@ -414,6 +493,24 @@ async function main() {
         process.exit(1);
       }
       i++; // Skip next arg
+    } else if (args[i] === '--network' && i + 1 < args.length) {
+      const network = args[i + 1] as NetworkCondition;
+      if (!NETWORK_CONDITIONS[network]) {
+        console.error(`❌ Error: Invalid network condition "${network}"`);
+        console.error('Available conditions: 4g, 3g, slow-3g');
+        process.exit(1);
+      }
+      networkCondition = network;
+      i++; // Skip next arg
+    } else if (args[i] === '--cpu' && i + 1 < args.length) {
+      const cpu = args[i + 1] as CpuThrottling;
+      if (!CPU_THROTTLING[cpu]) {
+        console.error(`❌ Error: Invalid CPU throttling "${cpu}"`);
+        console.error('Available options: 1x, 4x, 6x');
+        process.exit(1);
+      }
+      cpuThrottling = cpu;
+      i++; // Skip next arg
     } else if (!frameworkName) {
       frameworkName = args[i];
     }
@@ -421,11 +518,13 @@ async function main() {
 
   if (!frameworkName) {
     console.error('❌ Error: Framework name required');
-    console.error('\nUsage: tsx scripts/measure-single.ts <framework-name> [--runs N]');
+    console.error('\nUsage: tsx scripts/measure-single.ts <framework-name> [--runs N] [--network CONDITION] [--cpu THROTTLING]');
     console.error('\nAvailable frameworks:');
     FRAMEWORKS.forEach(f => console.error(`  - "${f.name}"`));
     console.error('\nOptions:');
-    console.error('  --runs N    Number of measurement runs per page (default: 5)');
+    console.error('  --runs N              Number of measurement runs per page (default: 5)');
+    console.error('  --network CONDITION   Network condition: 4g, 3g, slow-3g (default: 4g)');
+    console.error('  --cpu THROTTLING      CPU throttling: 1x, 4x, 6x (default: 1x)');
     process.exit(1);
   }
 
@@ -440,15 +539,18 @@ async function main() {
 
   // Display measurement configuration
   const chromeVersion = getChromeVersion();
+  const networkConfig = NETWORK_CONDITIONS[networkCondition];
+  const cpuConfig = CPU_THROTTLING[cpuThrottling];
   console.error(`\n🔍 Measurement Configuration`);
   console.error(`   Framework: ${framework.name}`);
   console.error(`   Runs per page: ${numRuns}`);
+  console.error(`   Network: ${networkConfig.name} (${(networkConfig.downloadThroughput * 8 / 1024 / 1024).toFixed(1)} Mbps, ${networkConfig.rttMs}ms RTT)`);
+  console.error(`   CPU: ${cpuConfig.name}`);
   console.error(`   Lighthouse version: ${chromeVersion}`);
   console.error(`   Cache: Cleared between runs (cold-load measurement)`);
-  console.error(`   Throttling: Mobile 4G simulation`);
 
   try {
-    const results = await measureFramework(framework, numRuns);
+    const results = await measureFramework(framework, numRuns, networkCondition, cpuThrottling);
 
     // Output JSON to stdout for programmatic consumption
     console.log(JSON.stringify(results, null, 2));

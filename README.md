@@ -1,10 +1,10 @@
-# Framework Performance Comparison
+# Framework Bundle Size Comparison
 
-A comprehensive performance comparison of 10 modern web frameworks, measuring real-world bundle sizes and runtime performance using identical Kanban board implementations.
+A comprehensive comparison of 10 modern web frameworks, measuring real-world bundle sizes using identical Kanban board implementations. **All frameworks achieve excellent Lighthouse performance scores (100) with similar First Contentful Paint times (35-71ms), making bundle size the key differentiator** for mobile users.
 
 ## Overview
 
-This project implements the same Kanban board application in 10 different frameworks to provide fair, reproducible performance comparisons. All implementations share identical functionality, database schema, and UI framework (Tailwind CSS + DaisyUI).
+This project implements the same Kanban board application in 10 different frameworks to provide fair, reproducible bundle size comparisons. All implementations share identical functionality, database schema, and UI framework (Tailwind CSS + DaisyUI). With performance being essentially identical across frameworks, this evaluation focuses on JavaScript bundle sizes, which range from 28.8 kB to 176.3 kB compressed—a 6.1x difference that impacts mobile users through data usage, parse time, and battery drain.
 
 ## Frameworks Compared
 
@@ -19,30 +19,34 @@ This project implements the same Kanban board application in 10 different framew
 9. **Qwik City** (Resumability-based)
 10. **Astro + HTMX** (MPA approach)
 
+## Tech Stack Comparison
+
+| Category             | Next.js                          | TanStack Start                   | TanStack Start + Solid       | Nuxt                         | Analog                       | Marko                        | SolidStart                   | SvelteKit                           | Qwik                         | Astro + HTMX                 |
+| -------------------- | -------------------------------- | -------------------------------- | ---------------------------- | ---------------------------- | ---------------------------- | ---------------------------- | ---------------------------- | ----------------------------------- | ---------------------------- | ---------------------------- |
+| **Framework**        | Next.js 16 (App Router)          | TanStack Start 1.133.8 (w/React) | TanStack Start 1.133.8       | Nuxt 4                       | Analog (Angular)             | @marko/run 0.8               | SolidStart 1.1.0             | SvelteKit + Svelte 5                | Qwik City                    | Astro 5 + HTMX               |
+| **UI Library**       | React 19 + Compiler              | React 19 + Compiler              | SolidJS 1.9                  | Vue 3                        | Angular 20                   | Marko 6                      | SolidJS 1.9                  | Svelte 5                            | Qwik                         | HTMX (server-driven)         |
+| **Reactivity Model** | Virtual DOM + Compiler           | Virtual DOM + Compiler           | Signals (fine-grained)       | Reactive refs                | Signals (zoneless)           | Signals (fine-grained)       | Signals (fine-grained)       | Runes (fine-grained)                | Signals + Resumability       | Server-driven (HTMX)         |
+| **Data Fetching**    | Server Components                | TanStack Router loaders          | TanStack Router loaders      | `useAsyncData` / `useFetch`  | `injectLoad` + DI            | Route data handlers          | `createAsync` with cache     | Remote functions (`query`)          | `routeLoader$`               | Route handlers               |
+| **Mutations**        | Server Actions                   | Server functions (RPC)           | Server functions (RPC)       | API routes (`server/api/*`)  | `ApiService` + RxJS          | POST handlers                | Server functions             | Remote functions (`form`/`command`) | Server actions               | API routes + HTMX            |
+| **Database**         | Drizzle ORM + better-sqlite3     | Drizzle ORM + better-sqlite3     | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3        | Drizzle ORM + better-sqlite3 | Drizzle ORM + better-sqlite3 |
+| **Styling**          | DaisyUI                          | DaisyUI                          | DaisyUI                      | DaisyUI                      | DaisyUI                      | DaisyUI                      | DaisyUI                      | DaisyUI                             | DaisyUI                      | DaisyUI                      |
+| **Drag & Drop**      | @dnd-kit/core, @dnd-kit/sortable | @dnd-kit/core, @dnd-kit/sortable | @thisbeyond/solid-dnd        | @formkit/drag-and-drop       | @angular/cdk                 | @formkit/drag-and-drop       | @thisbeyond/solid-dnd        | Native HTML5                        | Native HTML5                 | @formkit/drag-and-drop       |
+| **Build Tool**       | Turbopack                        | Vite                             | Vite                         | Vite                         | Vite + Angular               | Vite                         | Vinxi                        | Vite                                | Vite + Qwik optimizer        | Vite                         |
+
 ## Key Results
 
-**Bundle Size Champions (Board Page):**
+**Bundle Size Rankings (Board Page - Smallest to Largest):**
 
-- **Marko**: 88.8 kB raw (28.8 kB compressed) - 6.36x smaller than Next.js
-- **Qwik**: 114.8 kB raw (58.4 kB compressed) - 4.92x smaller than Next.js
-- **SvelteKit**: 125.2 kB raw (54.1 kB compressed) - 4.51x smaller than Next.js
-- **SolidStart**: 128.6 kB raw (41.5 kB compressed) - 4.39x smaller than Next.js
-
-**Middle of the Pack:**
-
-- **TanStack Start (React)**: 373.6 kB raw (118.2 kB compressed) - 1.51x smaller than Next.js
-- **Analog**: 376.3 kB raw (103.9 kB compressed) - 1.50x smaller than Next.js
-
-**Performance Champions (First Contentful Paint):**
-
-- **SolidStart**: 35ms FCP (fastest)
-- **Nuxt**: 38ms FCP (tied for 2nd)
-- **SvelteKit**: 38ms FCP (tied for 2nd)
-- **Marko**: 39ms FCP
-
-**Baseline:**
-
-- **Next.js 16**: 564.9 kB raw (176.3 kB compressed), 444ms FCP
+1. **Marko**: 88.8 kB raw (28.8 kB compressed) - 6.36x smaller than Next.js
+2. **Astro + HTMX**: 127.3 kB raw (34.3 kB compressed) - 5.14x smaller than Next.js
+3. **SolidStart**: 128.6 kB raw (41.5 kB compressed) - 4.25x smaller than Next.js
+4. **SvelteKit**: 125.2 kB raw (54.1 kB compressed) - 3.26x smaller than Next.js
+5. **Qwik**: 114.8 kB raw (58.4 kB compressed) - 3.02x smaller than Next.js
+6. **TanStack Start + Solid**: 182.6 kB raw (60.4 kB compressed) - 2.92x smaller than Next.js
+7. **Nuxt**: 224.9 kB raw (72.3 kB compressed) - 2.44x smaller than Next.js
+8. **Analog (Angular)**: 376.3 kB raw (103.9 kB compressed) - 1.70x smaller than Next.js
+9. **TanStack Start (React)**: 373.6 kB raw (118.2 kB compressed) - 1.49x smaller than Next.js
+10. **Next.js 16**: 564.9 kB raw (176.3 kB compressed) - Baseline
 
 All measurements performed on mobile devices (Pixel 5 emulation) with 4G throttling using Chrome Lighthouse. See [METHODOLOGY.md](./METHODOLOGY.md) for complete details.
 

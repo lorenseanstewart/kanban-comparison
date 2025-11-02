@@ -113,8 +113,8 @@
         <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:0.7" />
       </linearGradient>
     </defs>
-    <rect x="591.5" y="21.05683593750001" width="52.0" height="338.9431640625" fill="url(#grad9)" rx="4"/>
-    <text x="617.5" y="13.056835937500011" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">564.9</text>
+    <rect x="591.5" y="21.766992187499966" width="52.0" height="338.23300781250003" fill="url(#grad9)" rx="4"/>
+    <text x="617.5" y="13.766992187499966" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">563.7</text>
     <text x="617.5" y="375" text-anchor="end" font-size="11" fill="#374151" transform="rotate(-45, 617.5, 375)">Next.js</text>
 
     <!-- X-axis -->

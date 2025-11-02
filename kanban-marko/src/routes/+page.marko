@@ -1,13 +1,16 @@
 import AddBoardModal from "../components/modals/AddBoardModal.marko";
+import type { BoardSummary } from "../lib/api";
 
-<let/boards=$global.boards>
+<let/boards: BoardSummary[]=$global.boards as BoardSummary[]>
 
 <main class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
   <header class="text-center space-y-3">
     <p class="text-sm uppercase tracking-wide text-secondary">
       Your workspace
     </p>
-    <h1 class="text-4xl font-black text-primary">Boards</h1>
+    <h1 class="text-4xl font-black text-primary">
+      Boards
+    </h1>
     <p class="text-base text-base-content/60">
       Choose a board to jump into your Kanban flow.
     </p>
@@ -23,7 +26,9 @@ import AddBoardModal from "../components/modals/AddBoardModal.marko";
     <if=boards.length === 0>
       <div class="card bg-base-200 dark:bg-base-300 shadow-xl">
         <div class="card-body items-center text-center">
-          <h2 class="card-title text-secondary">No boards yet</h2>
+          <h2 class="card-title text-secondary">
+            No boards yet
+          </h2>
           <p class="text-base-content/60">
             Create your first board to get started.
           </p>
@@ -34,10 +39,11 @@ import AddBoardModal from "../components/modals/AddBoardModal.marko";
       <for|board| of=boards>
         <a
           href=`/board/${board.id}`
-          class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
-        >
+          class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all">
           <div class="card-body">
-            <h2 class="card-title text-primary">${board.title}</h2>
+            <h2 class="card-title text-primary">
+              ${board.title}
+            </h2>
             <if=board.description>
               <p class="text-sm text-base-content/60">
                 ${board.description}
