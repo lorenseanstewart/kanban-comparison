@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createBoard } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
 export function AddBoardModal({
@@ -23,8 +22,17 @@ export function AddBoardModal({
     setIsSubmitting(true);
 
     try {
-      // Wait for server response to get the real ID
-      const result = await createBoard(formData);
+      // Call API route
+      const response = await fetch('/api/boards/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.get('title'),
+          description: formData.get('description'),
+        }),
+      });
+
+      const result = await response.json() as { success: boolean; error?: string; data?: { id: string; title: string; description: string | null } };
 
       if (!result.success) {
         setError(result.error || "An error occurred");

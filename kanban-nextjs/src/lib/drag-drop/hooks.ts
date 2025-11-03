@@ -2,7 +2,6 @@
 
 import type { DragEndEvent } from "@dnd-kit/core";
 import type { BoardDetails } from "@/lib/api";
-import { updateCardList, updateCardPositions } from "@/lib/actions";
 import {
   parseDragEvent,
   calculateReorder,
@@ -56,7 +55,11 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
 
       // Persist to database
       try {
-        await updateCardPositions(reorderResult.reorderedIds);
+        await fetch('/api/cards/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardIds: reorderResult.reorderedIds }),
+        });
       } catch {
         revertToServerState();
       }
@@ -66,7 +69,11 @@ export function useBoardDragDrop(options: UseBoardDragDropOptions) {
 
       // Persist to database
       try {
-        await updateCardList(result.cardId, result.targetListId);
+        await fetch('/api/cards/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardId: result.cardId, newListId: result.targetListId }),
+        });
       } catch {
         revertToServerState();
       }

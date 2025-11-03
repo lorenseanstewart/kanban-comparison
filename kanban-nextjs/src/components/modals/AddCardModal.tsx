@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import type { UsersList, TagsList } from "@/lib/api";
-import { createCard } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 
 export function AddCardModal({
@@ -70,8 +69,20 @@ export function AddCardModal({
     setIsSubmitting(true);
 
     try {
-      // Wait for server response to get the real ID
-      const result = await createCard(formData);
+      // Call API route
+      const response = await fetch('/api/cards/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boardId,
+          title,
+          description: description || null,
+          assigneeId: assigneeId || null,
+          tagIds: Array.from(selectedTagIds),
+        }),
+      });
+
+      const result = await response.json() as { success: boolean; error?: string; data?: { id: string } };
 
       if (!result.success) {
         setError(result.error || "An error occurred");

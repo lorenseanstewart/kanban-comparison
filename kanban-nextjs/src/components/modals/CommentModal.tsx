@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { BoardCard, UsersList } from "@/lib/api";
-import { addComment } from "@/lib/actions";
 
 export function CommentModal({
   card,
@@ -39,7 +38,15 @@ export function CommentModal({
     setSelectedUserId(users[0]?.id || "");
 
     // Persist to server in background
-    await addComment(formData);
+    await fetch('/api/comments/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cardId: card.id,
+        userId,
+        text,
+      }),
+    });
   };
 
   if (!isOpen) return null;

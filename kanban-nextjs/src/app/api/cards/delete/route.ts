@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
+import { getDatabase } from '@/lib/db';
+import { cards } from '../../../../../drizzle/schema';
+import { revalidatePath } from 'next/cache';
+
+export const runtime = 'edge';
+
+export async function POST(request: NextRequest) {
+  try {
+    // @ts-ignore
+    const d1 = process.env.DB as D1Database | undefined;
+    if (!d1) {
+      return NextResponse.json(
+        { error: 'D1 binding not found' },
+        { status: 500 }
+      );
+    }
+
+    const db = getDatabase(d1);
+    const body = await request.json() as { cardId: string };
+    const { cardId } = body;
+
+    if (!cardId) {
+      return NextResponse.json(
+        { success: false, error: 'Card ID is required' },
+        { status: 400 }
+      );
+    }
+
+    await db.delete(cards).where(eq(cards.id, cardId));
+
+    revalidatePath('/board/[id]', 'page');
+    revalidatePath('/');
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete card:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete card. Please try again.',
+      },
+      { status: 500 }
+    );
+  }
+}

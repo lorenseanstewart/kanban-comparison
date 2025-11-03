@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import type { BoardCard, UsersList, TagsList } from "@/lib/api";
-import { updateCard, deleteCard } from "@/lib/actions";
 
 export function CardEditModal({
   card,
@@ -49,7 +48,13 @@ export function CardEditModal({
     setIsDeleting(true);
 
     try {
-      const result = await deleteCard(card.id);
+      const response = await fetch('/api/cards/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardId: card.id }),
+      });
+
+      const result = await response.json() as { success: boolean; error?: string };
 
       if (result.success) {
         if (onDelete) {
@@ -75,11 +80,6 @@ export function CardEditModal({
     const description = formData.get("description") as string;
     const assigneeId = formData.get("assigneeId") as string;
 
-    // Add all selected tag IDs to form data
-    selectedTagIds.forEach((tagId) => {
-      formData.append("tagIds", tagId);
-    });
-
     // Optimistically update the UI
     if (onUpdate) {
       const updatedTags = tags.filter((tag) => selectedTagIds.has(tag.id));
@@ -94,7 +94,17 @@ export function CardEditModal({
     onClose();
 
     // Persist to server in background
-    await updateCard(formData);
+    await fetch('/api/cards/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cardId: card.id,
+        title,
+        description: description || null,
+        assigneeId: assigneeId || null,
+        tagIds: Array.from(selectedTagIds),
+      }),
+    });
   };
 
   if (!isOpen) return null;
