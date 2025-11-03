@@ -12,8 +12,8 @@
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.types": "tsc --incremental --noEmit",
-    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
-    "dev": "vite --mode ssr",
+    "deploy": "npm run pages:build && wrangler pages deploy dist",
+    "dev": "npm run pages:build && wrangler pages dev dist --d1=DB=kanban-db --live-reload",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
@@ -21,18 +21,19 @@
     "preview": "qwik build preview && vite preview --open",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
+    "pages:build": "qwik build",
+    "pages:deploy": "npm run pages:build && wrangler pages deploy dist",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate-db.ts",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
     "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
+    "setup": "npm run db:reset && npm run seed"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.16.1",
     "@builder.io/qwik-city": "^1.16.1",
+    "@cloudflare/workers-types": "^4.20251014.0",
     "@eslint/js": "latest",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "20.19.0",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.5",
@@ -48,10 +49,10 @@
     "typescript-plugin-css-modules": "latest",
     "undici": "*",
     "vite": "7.1.4",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "wrangler": "^4.45.3"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
     "charts.css": "^1.2.0",
     "daisyui": "^5.1.26",
     "drizzle-orm": "^0.44.5",
