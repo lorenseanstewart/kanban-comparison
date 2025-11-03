@@ -12,7 +12,9 @@ export default extendConfig(baseConfig, () => {
       outDir: ".cloudflare",
     },
     plugins: [
-      cloudflarePagesAdapter(),
+      cloudflarePagesAdapter({
+        functionRoutes: true,
+      }),
     ],
   };
 });

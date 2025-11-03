@@ -22,7 +22,7 @@
     "preview": "qwik build preview && vite preview --open",
     "start": "vite --open --mode ssr",
     "qwik": "qwik",
-    "pages:build": "npm run build.client && npm run build.server && cp -r .cloudflare/* dist/ && cp -r functions dist/ && rm -f dist/_worker.js",
+    "pages:build": "rm -rf dist && npm run build.client && npm run build.server && rm -f dist/_worker.js && cp -r .cloudflare/* dist/ && cp -r functions dist/",
     "pages:deploy": "npm run pages:build && wrangler pages deploy dist",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 execute kanban-db --file=./drizzle/migrations/0000_narrow_kylun.sql",
