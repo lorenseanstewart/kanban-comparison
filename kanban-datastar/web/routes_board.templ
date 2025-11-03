@@ -10,9 +10,9 @@ templ BoardPage(boardDetails Board, users []User, tags []Tag) {
 
 templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 	<div id="boardDetails" style="display: contents">
-		<div class="min-h-screen bg-base-200">
-			<div class="min-h-screen bg-base-300 text-base-content p-4 md:p-8">
-				<main class="w-full p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
+		<div class="min-h-screen w-full bg-base-200">
+			<div class="min-h-screen w-full flex justify-center bg-base-300 text-base-content p-4 md:p-8">
+				<main class="w-full max-w-[1440px] p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
 					<div class="breadcrumbs text-sm">
 						<ul>
 							<li>
@@ -23,7 +23,7 @@ templ BoardDetails(boardDetails Board, users []User, tags []Tag) {
 							</li>
 						</ul>
 					</div>
-					<div class="space-y-8">
+					<div class="space-y-8 w-full justify-center">
 						@BoardOverview(boardDetails)
 						<div class="card-actions">
 							<button class="btn btn-primary" onclick="addCardModal.showModal()">
