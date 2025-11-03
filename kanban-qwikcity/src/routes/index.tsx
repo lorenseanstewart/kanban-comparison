@@ -9,14 +9,15 @@ import { routeLoader$, routeAction$, Link } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { getBoards } from "~/db/queries";
 import type { BoardSummary } from "~/db/queries";
-import { db } from "~/db/index";
+import { getDatabase } from "~/db/index";
 import { boards, lists } from "../../drizzle/schema";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
 import { BoardSchema } from "~/lib/validation";
 import * as v from "valibot";
 
-export const useBoards = routeLoader$(async () => {
-  return await getBoards();
+export const useBoards = routeLoader$(async ({ platform }) => {
+  const d1 = platform.env?.DB as D1Database;
+  return await getBoards(d1);
 });
 
 type CreateBoardActionReturn =
@@ -24,8 +25,11 @@ type CreateBoardActionReturn =
   | { success: false; error: string };
 
 export const useCreateBoardAction = routeAction$<CreateBoardActionReturn>(
-  async (data) => {
+  async (data, { platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
       // Validate input data
       const parsed = v.safeParse(BoardSchema, {
         title: data.title,

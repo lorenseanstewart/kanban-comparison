@@ -16,7 +16,7 @@ import type { BoardDetails, BoardCard } from "~/db/queries";
 import { BoardOverview } from "~/components/BoardOverview";
 import { CardList } from "~/components/CardList";
 import { AddCardModal } from "~/components/modals/AddCardModal";
-import { db } from "~/db/index";
+import { getDatabase } from "~/db/index";
 import { cards, cardTags, comments, lists } from "../../../../drizzle/schema";
 import {
   MoveCardSchema,
@@ -30,17 +30,20 @@ import * as v from "valibot";
 export const DraggedCardContext =
   createContextId<Signal<string>>("dragged-card");
 
-export const useBoardData = routeLoader$(async (requestEvent) => {
-  const boardId = requestEvent.params.id;
-  return await getBoard(boardId);
+export const useBoardData = routeLoader$(async ({ params, platform }) => {
+  const d1 = platform.env?.DB as D1Database;
+  const boardId = params.id;
+  return await getBoard(d1, boardId);
 });
 
-export const useUsersData = routeLoader$(async () => {
-  return await getUsers();
+export const useUsersData = routeLoader$(async ({ platform }) => {
+  const d1 = platform.env?.DB as D1Database;
+  return await getUsers(d1);
 });
 
-export const useTagsData = routeLoader$(async () => {
-  return await getTags();
+export const useTagsData = routeLoader$(async ({ platform }) => {
+  const d1 = platform.env?.DB as D1Database;
+  return await getTags(d1);
 });
 
 type ActionResult = { success: true } | { success: false; error: string };
@@ -50,8 +53,11 @@ type CreateCardActionResult =
   | { success: false; error: string };
 
 export const useCreateCardAction = routeAction$<CreateCardActionResult>(
-  async (data, requestEvent) => {
+  async (data, { params, platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
       // Parse tagIds first for validation
       let tagIds: string[] = [];
       if (data.tagIds) {
@@ -81,7 +87,7 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
       }
 
       const validatedData = parsed.output;
-      const boardId = requestEvent.params.id;
+      const boardId = params.id;
 
       // Find the Todo list for this board
       const todoLists = await db
@@ -148,8 +154,11 @@ export const useCreateCardAction = routeAction$<CreateCardActionResult>(
 );
 
 // Update Card Action
-export const useUpdateCardAction = routeAction$<ActionResult>(async (data) => {
+export const useUpdateCardAction = routeAction$<ActionResult>(async (data, { platform }) => {
   try {
+    const d1 = platform.env?.DB as D1Database;
+    const db = getDatabase(d1);
+
     // Parse tagIds first for validation
     let tagIds: string[] = [];
     if (data.tagIds) {
@@ -219,8 +228,11 @@ export const useUpdateCardAction = routeAction$<ActionResult>(async (data) => {
 });
 
 // Delete Card Action
-export const useDeleteCardAction = routeAction$<ActionResult>(async (data) => {
+export const useDeleteCardAction = routeAction$<ActionResult>(async (data, { platform }) => {
   try {
+    const d1 = platform.env?.DB as D1Database;
+    const db = getDatabase(d1);
+
     const cardId = (data as Record<string, string>).cardId;
 
     if (!cardId) {
@@ -249,8 +261,11 @@ export const useDeleteCardAction = routeAction$<ActionResult>(async (data) => {
 
 // Update Card List Action (move card to different list)
 export const useUpdateCardListAction = routeAction$<ActionResult>(
-  async (data) => {
+  async (data, { platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
       const parsed = v.safeParse(MoveCardSchema, data);
 
       if (!parsed.success) {
@@ -285,8 +300,11 @@ export const useUpdateCardListAction = routeAction$<ActionResult>(
 
 // Update Card Position Action
 export const useUpdateCardPositionAction = routeAction$<ActionResult>(
-  async (data) => {
+  async (data, { platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
       const parsed = v.safeParse(UpdateCardPositionSchema, data);
 
       if (!parsed.success) {
@@ -321,9 +339,12 @@ export const useUpdateCardPositionAction = routeAction$<ActionResult>(
 
 // Update Card Tags Action
 export const useUpdateCardTagsAction = routeAction$<ActionResult>(
-  async (_data, requestEvent) => {
+  async (_data, { request, platform }) => {
     try {
-      const formData = await requestEvent.request.formData();
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
+      const formData = await request.formData();
       const cardId = formData.get("cardId") as string;
       const tagIds = JSON.parse((formData.get("tagIds") as string) || "[]");
 
@@ -363,8 +384,11 @@ export const useUpdateCardTagsAction = routeAction$<ActionResult>(
 
 // Create Comment Action
 export const useCreateCommentAction = routeAction$<ActionResult>(
-  async (data) => {
+  async (data, { platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+      const db = getDatabase(d1);
+
       // Validate input data
       const parsed = v.safeParse(CommentSchema, {
         cardId: data.cardId,
@@ -408,8 +432,10 @@ export const useCreateCommentAction = routeAction$<ActionResult>(
 
 // Move Card Action (for drag and drop)
 export const useMoveCardAction = routeAction$<ActionResult>(
-  async (formData) => {
+  async (formData, { platform }) => {
     try {
+      const d1 = platform.env?.DB as D1Database;
+
       // When called via submit(), formData is the object passed
       // When called via form, formData is the FormData object
       let cardId: string;
@@ -446,6 +472,7 @@ export const useMoveCardAction = routeAction$<ActionResult>(
       const { updateCardListAndPosition } = await import("~/db/actions");
 
       await updateCardListAndPosition(
+        d1,
         payload.cardId,
         payload.listId,
         payload.newPosition,

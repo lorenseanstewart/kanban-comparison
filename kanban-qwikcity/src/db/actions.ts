@@ -1,15 +1,17 @@
 import { eq, and, gte, lt, lte, sql } from "drizzle-orm";
-import { db } from "./index";
+import { getDatabase } from "./index";
 import { cards } from "../../drizzle/schema";
 
 /**
  * Update a card's list and position
  */
 export async function updateCardListAndPosition(
+  d1: D1Database,
   cardId: string,
   newListId: string,
   newPosition: number,
 ): Promise<void> {
+  const db = getDatabase(d1);
   // Get the current card
   const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
 
@@ -81,9 +83,11 @@ export async function updateCardListAndPosition(
  * Update only a card's position within its current list
  */
 export async function updateCardPosition(
+  d1: D1Database,
   cardId: string,
   newPosition: number,
 ): Promise<void> {
+  const db = getDatabase(d1);
   // Get the current card
   const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
 

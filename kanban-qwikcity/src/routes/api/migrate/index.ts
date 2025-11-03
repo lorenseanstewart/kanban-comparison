@@ -1,9 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 import type { RequestHandler } from '@builder.io/qwik-city';
 
-export const onPost: RequestHandler = async ({ json }) => {
+export const onPost: RequestHandler = async ({ json, platform }) => {
   try {
-    const d1 = process.env.DB as D1Database | undefined;
+    const d1 = platform.env?.DB as D1Database | undefined;
 
     if (!d1) {
       json(500, { error: 'D1 binding not found' });

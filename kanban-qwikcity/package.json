@@ -14,7 +14,7 @@
     "build.server": "vite build -c adapters/cloudflare-pages/vite.config.ts",
     "build.types": "tsc --incremental --noEmit",
     "deploy": "npm run pages:build && wrangler pages deploy dist",
-    "dev": "npm run pages:build && wrangler pages dev dist --d1 DB --live-reload",
+    "dev": "npm run pages:build && wrangler pages dev dist --d1=DB=kanban-db --live-reload",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
@@ -25,10 +25,14 @@
     "pages:build": "npm run build.client && npm run build.server && cp -r .cloudflare/* dist/ && echo 'import { onRequest as fetch } from \"./entry.cloudflare-pages.js\"; export default { fetch };' > dist/_worker.js",
     "pages:deploy": "npm run pages:build && wrangler pages deploy dist",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 execute kanban-db --file=./drizzle/migrations/0000_narrow_kylun.sql",
+    "db:migrate:local": "wrangler d1 execute kanban-db --local --file=./drizzle/migrations/0000_narrow_kylun.sql",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
-    "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:reset && npm run seed"
+    "seed": "wrangler d1 execute kanban-db --file=./scripts/seed-d1.sql",
+    "seed:local": "wrangler d1 execute kanban-db --local --file=./scripts/seed-d1.sql",
+    "setup": "bash scripts/seed-dev.sh",
+    "setup:remote": "npm run db:migrate && npm run seed"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.16.1",
