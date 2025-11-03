@@ -58,15 +58,16 @@ export async function getBoards(): Promise<BoardSummary[]> {
 }
 
 export async function getBoard(boardId: string): Promise<BoardDetails | null> {
-  const board = await db
+  const boardRows = await db
     .select({
       id: boards.id,
       title: boards.title,
       description: boards.description,
     })
     .from(boards)
-    .where(eq(boards.id, boardId))
-    .get();
+    .where(eq(boards.id, boardId));
+
+  const board = boardRows[0];
 
   if (!board) {
     return null;

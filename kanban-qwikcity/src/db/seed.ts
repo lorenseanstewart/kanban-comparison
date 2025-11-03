@@ -1,4 +1,4 @@
-import { db } from "../lib/db";
+import { db } from "./index";
 import {
   users,
   boards,
@@ -7,7 +7,7 @@ import {
   tags,
   cardTags,
   comments,
-} from "../lib/db/schema";
+} from "../../drizzle/schema";
 
 const timestamp = (day: number, hour: number, minute = 0) =>
   new Date(Date.UTC(2024, 0, day, hour, minute));
@@ -629,30 +629,30 @@ const commentsData = [
   ),
 ];
 
-const seed = () => {
-  db.transaction((tx) => {
-    tx.delete(cardTags).run();
-    tx.delete(comments).run();
-    tx.delete(cards).run();
-    tx.delete(lists).run();
-    tx.delete(boards).run();
-    tx.delete(tags).run();
-    tx.delete(users).run();
-    tx.insert(users).values(usersData).run();
-    tx.insert(boards).values(boardsData).run();
-    tx.insert(lists).values(listsData).run();
-    tx.insert(tags).values(tagsData).run();
-    tx.insert(cards).values(cardsData).run();
-    tx.insert(cardTags).values(cardTagsData).run();
-    tx.insert(comments).values(commentsData).run();
-  });
+const seed = async () => {
+  await db.delete(cardTags);
+  await db.delete(comments);
+  await db.delete(cards);
+  await db.delete(lists);
+  await db.delete(boards);
+  await db.delete(tags);
+  await db.delete(users);
+  await db.insert(users).values(usersData);
+  await db.insert(boards).values(boardsData);
+  await db.insert(lists).values(listsData);
+  await db.insert(tags).values(tagsData);
+  await db.insert(cards).values(cardsData);
+  await db.insert(cardTags).values(cardTagsData);
+  await db.insert(comments).values(commentsData);
 };
 
-try {
-  seed();
-  console.log("Database seeded");
-  process.exit(0);
-} catch (error) {
-  console.error(error);
-  process.exit(1);
-}
+(async () => {
+  try {
+    await seed();
+    console.log("Database seeded");
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+})();

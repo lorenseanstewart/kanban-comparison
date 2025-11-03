@@ -44,24 +44,20 @@ export const updateCardAction = action(
 
     const { cardId, title, description, assigneeId, tagIds } = validation.output;
 
-    db.transaction((tx) => {
-      tx.update(cards)
-        .set({
-          title,
-          description: description ?? null,
-          assigneeId,
-        })
-        .where(eq(cards.id, cardId))
-        .run();
+    await db
+      .update(cards)
+      .set({
+        title,
+        description: description ?? null,
+        assigneeId,
+      })
+      .where(eq(cards.id, cardId));
 
-      tx.delete(cardTags).where(eq(cardTags.cardId, cardId)).run();
+    await db.delete(cardTags).where(eq(cardTags.cardId, cardId));
 
-      if (tagIds && tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(tagIds.map((tagId) => ({ cardId, tagId })))
-          .run();
-      }
-    });
+    if (tagIds && tagIds.length > 0) {
+      await db.insert(cardTags).values(tagIds.map((tagId) => ({ cardId, tagId })));
+    }
 
     return json({ success: true } as const, { revalidate: ["boards:detail", "boards:list"] });
   },
@@ -124,30 +120,24 @@ export const createCardAction = action(
     const nextPosition = (maxPositionRow[0]?.maxPos ?? -1) + 1;
     const cardId = crypto.randomUUID();
 
-    db.transaction((tx) => {
-      tx.insert(cards)
-        .values({
-          id: cardId,
-          listId: todoList.id,
-          title: validation.output.title,
-          description: validation.output.description ?? null,
-          assigneeId: validation.output.assigneeId,
-          position: nextPosition,
-          completed: false,
-        })
-        .run();
-
-      if (validation.output.tagIds && validation.output.tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(
-            validation.output.tagIds.map((tagId) => ({
-              cardId,
-              tagId,
-            }))
-          )
-          .run();
-      }
+    await db.insert(cards).values({
+      id: cardId,
+      listId: todoList.id,
+      title: validation.output.title,
+      description: validation.output.description ?? null,
+      assigneeId: validation.output.assigneeId,
+      position: nextPosition,
+      completed: false,
     });
+
+    if (validation.output.tagIds && validation.output.tagIds.length > 0) {
+      await db.insert(cardTags).values(
+        validation.output.tagIds.map((tagId) => ({
+          cardId,
+          tagId,
+        }))
+      );
+    }
 
     return json(
       { success: true, data: { id: cardId, listId: todoList.id } },

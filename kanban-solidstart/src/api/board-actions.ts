@@ -21,27 +21,21 @@ export const createBoardAction = action(async (formData: FormData) => {
 
   const boardId = crypto.randomUUID();
 
-  db.transaction((tx) => {
-    tx.insert(boards)
-      .values({
-        id: boardId,
-        title: result.output.title,
-        description: result.output.description,
-      })
-      .run();
-
-    const listTitles = ["Todo", "In-Progress", "QA", "Done"];
-    tx.insert(lists)
-      .values(
-        listTitles.map((listTitle, index) => ({
-          id: crypto.randomUUID(),
-          boardId,
-          title: listTitle,
-          position: index + 1,
-        }))
-      )
-      .run();
+  await db.insert(boards).values({
+    id: boardId,
+    title: result.output.title,
+    description: result.output.description,
   });
+
+  const listTitles = ["Todo", "In-Progress", "QA", "Done"];
+  await db.insert(lists).values(
+    listTitles.map((listTitle, index) => ({
+      id: crypto.randomUUID(),
+      boardId,
+      title: listTitle,
+      position: index + 1,
+    }))
+  );
 
   return json(
     {

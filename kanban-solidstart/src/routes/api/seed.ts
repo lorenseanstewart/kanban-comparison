@@ -1,4 +1,5 @@
-import { db } from '../api/db';
+/// <reference types="@cloudflare/workers-types" />
+import { getDatabase } from '~/api/db';
 import { users, boards, lists, cards, tags, cardTags, comments } from '../../drizzle/schema';
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
@@ -66,11 +67,11 @@ const cardsData = [
 ];
 
 const tagsData = [
-  { id: 'bf87f479-2a05-4fe8-8122-22afa5e30141', name: 'Design', color: '#8B5CF6', createdAt: timestamp(1, 12) }, // Purple
-  { id: '3b8bff79-df12-4e14-860b-3e2cebe73cff', name: 'Product', color: '#EC4899', createdAt: timestamp(1, 13) }, // Pink
-  { id: '68421280-45b2-4276-8e4c-9dfc33a349f0', name: 'Engineering', color: '#3B82F6', createdAt: timestamp(1, 14) }, // Blue
-  { id: '14415f32-16aa-4860-87ef-636a7f0dd47f', name: 'Marketing', color: '#10B981', createdAt: timestamp(1, 15) }, // Green
-  { id: '828ba03d-c9b4-402c-8165-59cb9f67d30f', name: 'QA', color: '#F59E0B', createdAt: timestamp(1, 16) }, // Amber
+  { id: 'bf87f479-2a05-4fe8-8122-22afa5e30141', name: 'Design', color: '#8B5CF6', createdAt: timestamp(1, 12) },
+  { id: '3b8bff79-df12-4e14-860b-3e2cebe73cff', name: 'Product', color: '#EC4899', createdAt: timestamp(1, 13) },
+  { id: '68421280-45b2-4276-8e4c-9dfc33a349f0', name: 'Engineering', color: '#3B82F6', createdAt: timestamp(1, 14) },
+  { id: '14415f32-16aa-4860-87ef-636a7f0dd47f', name: 'Marketing', color: '#10B981', createdAt: timestamp(1, 15) },
+  { id: '828ba03d-c9b4-402c-8165-59cb9f67d30f', name: 'QA', color: '#F59E0B', createdAt: timestamp(1, 16) },
 ];
 
 const cardTagsData = [
@@ -97,11 +98,7 @@ const cardTagsData = [
 ];
 
 const comment = (id: string, cardId: string, userId: string, text: string, day: number, hour: number, minute = 0) => ({
-  id,
-  cardId,
-  userId,
-  text,
-  createdAt: timestamp(day, hour, minute),
+  id, cardId, userId, text, createdAt: timestamp(day, hour, minute),
 });
 
 const commentsData = [
@@ -139,30 +136,75 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-const seed = async () => {
-  await db.delete(cardTags);
-  await db.delete(comments);
-  await db.delete(cards);
-  await db.delete(lists);
-  await db.delete(boards);
-  await db.delete(tags);
-  await db.delete(users);
-  await db.insert(users).values(usersData);
-  await db.insert(boards).values(boardsData);
-  await db.insert(lists).values(listsData);
-  await db.insert(tags).values(tagsData);
-  await db.insert(cards).values(cardsData);
-  await db.insert(cardTags).values(cardTagsData);
-  await db.insert(comments).values(commentsData);
-};
+const SEED_SECRET = process.env.SEED_SECRET || 'development-only';
 
-(async () => {
+export async function POST(request: Request) {
   try {
-    await seed();
-    console.log('Database seeded');
-    process.exit(0);
+    const authHeader = request.headers.get('authorization');
+    const providedSecret = authHeader?.replace('Bearer ', '');
+
+    if (process.env.NODE_ENV === 'production' && providedSecret !== SEED_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized. Provide SEED_SECRET in Authorization header.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const d1 = process.env.DB as D1Database | undefined;
+
+    if (!d1) {
+      return new Response(
+        JSON.stringify({ error: 'D1 binding not found. Check Cloudflare Pages configuration.' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const db = getDatabase(d1);
+
+    console.log('[Seed] Starting database seed...');
+
+    await db.delete(cardTags);
+    await db.delete(comments);
+    await db.delete(cards);
+    await db.delete(tags);
+    await db.delete(lists);
+    await db.delete(boards);
+    await db.delete(users);
+
+    console.log('[Seed] Cleared existing data');
+
+    await db.insert(users).values(usersData);
+    await db.insert(boards).values(boardsData);
+    await db.insert(lists).values(listsData);
+    await db.insert(tags).values(tagsData);
+    await db.insert(cards).values(cardsData);
+    await db.insert(cardTags).values(cardTagsData);
+    await db.insert(comments).values(commentsData);
+
+    console.log('[Seed] Database seeded successfully');
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Database seeded successfully',
+        data: {
+          users: usersData.length,
+          boards: boardsData.length,
+          lists: listsData.length,
+          cards: cardsData.length,
+          tags: tagsData.length,
+        },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    console.error(error);
-    process.exit(1);
+    console.error('[Seed] Error:', error);
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to seed database',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
-})();
+}

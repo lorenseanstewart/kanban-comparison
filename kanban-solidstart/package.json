@@ -2,32 +2,34 @@
   "name": "kanban-solidstart",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
+    "dev": "npm run pages:build && wrangler pages dev .output/public --d1=DB=kanban-db --live-reload",
     "build": "vinxi build",
     "start": "vinxi start",
+    "pages:build": "vinxi build",
+    "pages:deploy": "npm run pages:build && wrangler pages deploy .output/public",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate-db.ts",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
     "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
+    "setup": "npm run db:reset && npm run seed"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.10",
+    "@cloudflare/workers-types": "^4.20251014.0",
     "@types/node": "^20.14.8",
     "autoprefixer": "^10.4.21",
     "daisyui": "^5.1.25",
     "drizzle-kit": "^0.31.5",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
+    "solid-start-cloudflare-pages": "^1.1.0",
     "tailwindcss": "^3.4.17",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "wrangler": "^4.45.3"
   },
   "dependencies": {
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
     "@thisbeyond/solid-dnd": "^0.7.5",
-    "better-sqlite3": "^11.0.0",
     "browserslist-config-baseline": "^0.5.0",
     "charts.css": "^1.2.0",
     "drizzle-orm": "^0.44.5",

@@ -22,11 +22,9 @@ export const updateCardListAction = action(async (cardId: string, targetId: stri
 export const updateCardPositionsAction = action(async (cardIds: string[]) => {
   "use server";
   try {
-    await db.transaction((tx) => {
-      cardIds.forEach((cardId, index) => {
-        tx.update(cards).set({ position: index }).where(eq(cards.id, cardId)).run();
-      });
-    });
+    for (let index = 0; index < cardIds.length; index++) {
+      await db.update(cards).set({ position: index }).where(eq(cards.id, cardIds[index]));
+    }
 
     return json({ success: true } as const, { revalidate: "boards:detail" });
   } catch (error) {

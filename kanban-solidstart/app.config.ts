@@ -2,11 +2,11 @@ import { defineConfig } from "@solidjs/start/config";
 
 export default defineConfig({
   server: {
-    preset: "node-server",
+    preset: "cloudflare-pages",
   },
   vite: {
     ssr: {
-      external: ["drizzle-orm", "better-sqlite3"],
+      external: ["drizzle-orm"],
       noExternal: ["@thisbeyond/solid-dnd"],
     },
   },

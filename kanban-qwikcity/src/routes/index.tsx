@@ -10,7 +10,7 @@ import type { DocumentHead } from "@builder.io/qwik-city";
 import { getBoards } from "~/db/queries";
 import type { BoardSummary } from "~/db/queries";
 import { db } from "~/db/index";
-import { boards, lists } from "~/lib/db/schema";
+import { boards, lists } from "../../drizzle/schema";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
 import { BoardSchema } from "~/lib/validation";
 import * as v from "valibot";

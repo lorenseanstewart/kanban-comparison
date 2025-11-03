@@ -28,22 +28,19 @@ export async function updateCardListAndPosition(
       .set({ position: sql`${cards.position} - 1` })
       .where(
         and(eq(cards.listId, oldListId), gte(cards.position, oldPosition + 1)),
-      )
-      .run();
+      );
 
     // Get all cards in the new list at or after the target position
     await db
       .update(cards)
       .set({ position: sql`${cards.position} + 1` })
-      .where(and(eq(cards.listId, newListId), gte(cards.position, newPosition)))
-      .run();
+      .where(and(eq(cards.listId, newListId), gte(cards.position, newPosition)));
 
     // Update the card itself
     await db
       .update(cards)
       .set({ listId: newListId, position: newPosition })
-      .where(eq(cards.id, cardId))
-      .run();
+      .where(eq(cards.id, cardId));
   } else {
     // Moving within the same list
     if (newPosition < oldPosition) {
@@ -57,8 +54,7 @@ export async function updateCardListAndPosition(
             gte(cards.position, newPosition),
             lt(cards.position, oldPosition),
           ),
-        )
-        .run();
+        );
     } else if (newPosition > oldPosition) {
       // Moving down: decrement positions of cards between old and new
       await db
@@ -70,16 +66,14 @@ export async function updateCardListAndPosition(
             gte(cards.position, oldPosition + 1),
             lte(cards.position, newPosition),
           ),
-        )
-        .run();
+        );
     }
 
     // Update the card itself
     await db
       .update(cards)
       .set({ position: newPosition })
-      .where(eq(cards.id, cardId))
-      .run();
+      .where(eq(cards.id, cardId));
   }
 }
 
@@ -115,8 +109,7 @@ export async function updateCardPosition(
           gte(cards.position, newPosition),
           lt(cards.position, oldPosition),
         ),
-      )
-      .run();
+      );
   } else {
     // Moving down: get cards between old and new position
     await db
@@ -128,14 +121,12 @@ export async function updateCardPosition(
           gte(cards.position, oldPosition + 1),
           lte(cards.position, newPosition),
         ),
-      )
-      .run();
+      );
   }
 
   // Update the card itself
   await db
     .update(cards)
     .set({ position: newPosition })
-    .where(eq(cards.id, cardId))
-    .run();
+    .where(eq(cards.id, cardId));
 }

@@ -17,7 +17,7 @@ import { BoardOverview } from "~/components/BoardOverview";
 import { CardList } from "~/components/CardList";
 import { AddCardModal } from "~/components/modals/AddCardModal";
 import { db } from "~/db/index";
-import { cards, cardTags, comments, lists } from "~/lib/db/schema";
+import { cards, cardTags, comments, lists } from "../../../../drizzle/schema";
 import {
   MoveCardSchema,
   UpdateCardPositionSchema,
