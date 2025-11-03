@@ -52,7 +52,7 @@ func setupRoutes(db *toolbelt.Database) chi.Router {
 	r.Put("/board/{boardID}/card/{cardID}", updateCard(db))
 	r.Delete("/board/{boardID}/card/{cardID}", deleteCard(db))
 	r.Post("/board/{boardID}/card/{cardID}/comment", addComment(db))
-	r.Put("/board/{boardID}/card/{cardID}/list", moveCard(db))
+	r.Put("/board/{boardID}/list/move", moveCard(db))
 
 	return r
 }
@@ -313,23 +313,53 @@ func moveCard(db *toolbelt.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		boardID := chi.URLParam(r, "boardID")
-		cardID := chi.URLParam(r, "cardID")
 
-		var requestData struct {
-			TargetListID   string `json:"targetListId"`
+		var req struct {
+			CardId         string `json:"cardId"`
+			SourceListId   string `json:"sourceListId"`
+			TargetListId   string `json:"targetListId"`
 			InsertPosition int64  `json:"insertPosition"`
 		}
 
-		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Failed to parse JSON body", http.StatusBadRequest)
 			return
 		}
 
 		if err := db.WriteTX(ctx, func(tx *sqlite.Conn) error {
-			list, err := zz.OnceListByListId(tx, requestData.TargetListID)
+			// for ListID card used to belong to, update all indexes accordingly
+			myCard, err := zz.OnceCardByCardId(tx, req.CardId)
+			sourceCardList, err := zz.OnceCardsByListId(tx, req.SourceListId)
+			for _, card := range sourceCardList {
+				if card.CardId == myCard.Id {
+					continue
+				}
+				// move cards from previous list down 1 index
+				if myCard.Position < card.Position {
+					zz.OnceUpdateCardPosition(tx, zz.UpdateCardPositionParams{
+						Position: card.Position - 1,
+						Id:       card.CardId,
+					})
+				}
+			}
+			targetCardList, err := zz.OnceCardsByListId(tx, req.TargetListId)
 			if err != nil {
 				return fmt.Errorf("failed to load list: %w", err)
 			}
+			for _, card := range targetCardList {
+				// move cards from new list up 1 index from calculated insertPosition
+				// Insert Position + 1 because cards are [1] indexed in DB
+				if req.InsertPosition+1 <= card.Position {
+					if int(card.Position) <= len(targetCardList) {
+						zz.OnceUpdateCardPosition(tx, zz.UpdateCardPositionParams{
+							Position: card.Position + 1,
+							Id:       card.CardId,
+						})
+					}
+				}
+			}
+
+			list, err := zz.OnceListByListId(tx, req.TargetListId)
 
 			var completed bool
 			if list.Title == "Done" {
@@ -337,9 +367,10 @@ func moveCard(db *toolbelt.Database) http.HandlerFunc {
 			}
 
 			return zz.OnceUpdateListAndCardPosition(tx, zz.UpdateListAndCardPositionParams{
-				Id:        cardID,
-				ListId:    requestData.TargetListID,
-				Position:  requestData.InsertPosition,
+				Id:     req.CardId,
+				ListId: req.TargetListId,
+				// Insert Position + 1 because cards are 1 - indexed in DB
+				Position:  req.InsertPosition + 1,
 				Completed: completed,
 			})
 		}); err != nil {

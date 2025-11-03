@@ -4,7 +4,7 @@ import "fmt"
 
 templ CardList(list ListWithCards, boardID string, users []User) {
 	<article class="card bg-base-200 dark:bg-base-300 min-w-[20rem] shadow-xl">
-		<div data-signals="{insertPosition: 0, targetListId: ''}" class="card-body gap-4">
+		<div data-signals="{insertPosition: 0, targetListId: '', sourceListId: '', cardId: ''}" class="card-body gap-4">
 			<header class="flex items-center justify-between">
 				<h2 class="card-title text-base-content">{ list.Title }</h2>
 				<div class="badge badge-primary badge-outline badge-lg shadow">
@@ -19,8 +19,8 @@ templ CardList(list ListWithCards, boardID string, users []User) {
 				data-on:drop={ fmt.Sprintf(`
                           evt.preventDefault();
                           evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
-                          const cardId = evt.dataTransfer.getData('cardId');
-                          const sourceListId = evt.dataTransfer.getData('listId');
+                          $cardId = evt.dataTransfer.getData('cardId');
+                          $sourceListId = evt.dataTransfer.getData('listId');
                           $targetListId = '%s';
 
                           const dropY = evt.clientY;
@@ -36,11 +36,11 @@ templ CardList(list ListWithCards, boardID string, users []User) {
                             }
                           }
 
-                          if (sourceListId === $targetListId) {
+                          if ($sourceListId === $targetListId) {
                               return
                           };
 
-                        @put('/board/%s/card/' + cardId + '/list')
+                        @put('/board/%s/list/move')
 
                           `, 
                    list.ID, boardID) }
@@ -140,39 +140,4 @@ templ CardList(list ListWithCards, boardID string, users []User) {
 			</div>
 		</div>
 	</article>
-}
-
-templ DropScript() {
-	<script>
-       async function drop(evt, boardId, listId) {
-          evt.preventDefault();
-          evt.currentTarget.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'bg-primary/5', 'scale-[1.02]');
-          const cardId = evt.dataTransfer.getData('cardId');
-          const sourceListId = evt.dataTransfer.getData('listId');
-          const targetListId = listId;
-
-          // Calculate drop position
-          const dropY = evt.clientY;
-          const cardsInList = evt.currentTarget.querySelectorAll('[role="listitem"]');
-          let insertPosition = cardsInList.length;
-
-          for (let i = 0; i < cardsInList.length; i++) {
-            const rect = cardsInList[i].getBoundingClientRect();
-            const cardMiddle = rect.top + rect.height / 2;
-            if (dropY < cardMiddle) {
-              insertPosition = i;
-              break;
-            }
-          }
-
-          //Update card list and position at the same time
-          if (sourceListId !== targetListId) {
-            await fetch(`/board/${boardId}/card/` + cardId + '/list', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: 'listId=' + targetListId + '&position=' + insertPosition,
-            });
-          }
-        }
-    </script>
 }
