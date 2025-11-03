@@ -106,17 +106,16 @@ const CPU_THROTTLING = {
 type CpuThrottling = keyof typeof CPU_THROTTLING;
 
 const FRAMEWORKS = [
-  { name: 'Next.js', dir: 'kanban-nextjs', port: 3000, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Next.js + Compiler', dir: 'kanban-nextjs-compiler', port: 3001, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Nuxt', dir: 'kanban-nuxt', port: 3002, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Analog', dir: 'kanban-analog', port: 3003, startCmd: 'node dist/analog/server/index.mjs', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'SolidStart', dir: 'kanban-solidstart', port: 3004, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'SvelteKit', dir: 'kanban-sveltekit', port: 3005, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Qwik', dir: 'kanban-qwikcity', port: 3006, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Astro', dir: 'kanban-htmx', port: 3007, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'TanStack Start', dir: 'kanban-tanstack', port: 3008, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'TanStack Start + Solid', dir: 'kanban-tanstack-solid', port: 3010, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
-  { name: 'Marko', dir: 'kanban-marko', port: 3009, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c' },
+  { name: 'Next.js', dir: 'kanban-nextjs', port: 3000, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'NEXTJS_URL' },
+  { name: 'Nuxt', dir: 'kanban-nuxt', port: 3002, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'NUXT_URL' },
+  { name: 'Analog', dir: 'kanban-analog', port: 3003, startCmd: 'node dist/analog/server/index.mjs', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'ANALOG_URL' },
+  { name: 'SolidStart', dir: 'kanban-solidstart', port: 3004, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'SOLIDSTART_URL' },
+  { name: 'SvelteKit', dir: 'kanban-sveltekit', port: 3005, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'SVELTEKIT_URL' },
+  { name: 'Qwik', dir: 'kanban-qwikcity', port: 3006, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'QWIK_URL' },
+  { name: 'Astro', dir: 'kanban-htmx', port: 3007, startCmd: 'npm run preview', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'ASTRO_URL' },
+  { name: 'TanStack Start', dir: 'kanban-tanstack', port: 3008, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'TANSTACK_START_URL' },
+  { name: 'TanStack Start + Solid', dir: 'kanban-tanstack-solid', port: 3010, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'TANSTACK_START_SOLID_URL' },
+  { name: 'Marko', dir: 'kanban-marko', port: 3009, startCmd: 'npm run start', homeUrl: '/', boardUrl: '/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c', envVar: 'MARKO_URL' },
 ];
 
 async function sleep(ms: number): Promise<void> {
@@ -387,20 +386,39 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
 async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number, networkCondition: NetworkCondition, cpuThrottling: CpuThrottling): Promise<AggregatedStats[]> {
   console.error(`\n📦 Measuring ${framework.name} (${numRuns} runs per page)...`);
 
-  const cleanup = await startServer(framework);
+  // Check for CDN URL in environment variables
+  const cdnUrl = process.env[framework.envVar];
+  const baseUrl = cdnUrl || `http://localhost:${framework.port}`;
+  const isCdn = !!cdnUrl;
+
+  let cleanup: (() => void) | undefined;
+
+  // Only start server if not using CDN
+  if (isCdn) {
+    console.error(`   🌐 Using CDN URL: ${baseUrl}`);
+  } else {
+    console.error(`   🏠 Using localhost (no CDN URL found in env var: ${framework.envVar})`);
+    cleanup = await startServer(framework);
+  }
+
   const allResults: AggregatedStats[] = [];
 
   try {
     const pages: Array<{ name: 'home' | 'board'; url: string }> = [
-      { name: 'home', url: `http://localhost:${framework.port}${framework.homeUrl}` },
-      { name: 'board', url: `http://localhost:${framework.port}${framework.boardUrl}` }
+      { name: 'home', url: `${baseUrl}${framework.homeUrl}` },
+      { name: 'board', url: `${baseUrl}${framework.boardUrl}` }
     ];
 
     // Warmup: request each page twice to stabilize server/database performance
-    await warmupServer([
-      ...pages.map(p => p.url),
-      ...pages.map(p => p.url) // Request each page twice
-    ]);
+    // Skip warmup for CDN since it's already "warm"
+    if (!isCdn) {
+      await warmupServer([
+        ...pages.map(p => p.url),
+        ...pages.map(p => p.url) // Request each page twice
+      ]);
+    } else {
+      console.error(`   ⏭️  Skipping warmup for CDN deployment`);
+    }
 
     for (const page of pages) {
       console.error(`   Measuring ${page.name} page (${numRuns} runs)...`);
@@ -470,8 +488,10 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
     }
 
   } finally {
-    cleanup();
-    await sleep(2000); // Let port fully release
+    if (cleanup) {
+      cleanup();
+      await sleep(2000); // Let port fully release
+    }
   }
 
   return allResults;

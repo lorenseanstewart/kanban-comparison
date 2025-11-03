@@ -1,13 +1,17 @@
 import { defineConfig } from "astro/config";
-import node from "@astrojs/node";
+// import node from "@astrojs/node";
+// Cloudflare Pages adapter (for deployment)
+import cloudflare from "@astrojs/cloudflare";
 import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  adapter: node({
-    mode: "middleware",
-  }),
+  // For Cloudflare Pages deployment
+  adapter: cloudflare({ mode: "directory" }),
+  // For local development with node adapter, uncomment below and comment out cloudflare:
+  // import node from "@astrojs/node";
+  // adapter: node({ mode: "middleware" }),
   vite: {
     plugins: [tailwindcss()],
     build: {
