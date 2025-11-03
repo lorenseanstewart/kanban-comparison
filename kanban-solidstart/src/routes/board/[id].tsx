@@ -279,6 +279,38 @@ export default function BoardPage() {
     // Let server revalidation handle this
   };
 
+  const handleCardUpdate = (cardId: string, updates: Partial<BoardCard>) => {
+    // Apply optimistic update to the board store
+    setBoardStore(
+      produce((store) => {
+        for (const list of store.board.lists) {
+          const card = list.cards.find((c) => c.id === cardId);
+          if (card) {
+            Object.assign(card, updates);
+            break;
+          }
+        }
+        store.timestamp = Date.now();
+      })
+    );
+  };
+
+  const handleCardDelete = (cardId: string) => {
+    // Apply optimistic deletion to the board store
+    setBoardStore(
+      produce((store) => {
+        for (const list of store.board.lists) {
+          const cardIndex = list.cards.findIndex((c) => c.id === cardId);
+          if (cardIndex !== -1) {
+            list.cards.splice(cardIndex, 1);
+            break;
+          }
+        }
+        store.timestamp = Date.now();
+      })
+    );
+  };
+
   return (
     <main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
       <div class="breadcrumbs text-sm">
@@ -347,6 +379,8 @@ export default function BoardPage() {
                             allUsers={effectiveUsers()}
                             allTags={effectiveTags()}
                             boardId={params.id}
+                            onCardUpdate={handleCardUpdate}
+                            onCardDelete={handleCardDelete}
                           />
                         </ErrorBoundary>
                       )}

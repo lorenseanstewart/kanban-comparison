@@ -28,17 +28,30 @@ Experimental variant with **React 19's compiler** enabled for automatic optimiza
 ### First Time Setup
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 npm install
 
-# 2. Set up local D1 database
-npm run setup
-
-# 3. Start dev server (builds and runs on Cloudflare's runtime)
+# Start the dev server (builds and starts wrangler)
 npm run dev
 ```
 
-Visit [http://localhost:8788](http://localhost:8788)
+The dev server will start on [http://localhost:8788](http://localhost:8788)
+
+**In a second terminal, initialize the database:**
+
+```bash
+npm run setup
+```
+
+Or use curl commands directly:
+
+```bash
+# Apply database schema
+curl -X POST http://localhost:8788/api/migrate
+
+# Seed with sample data
+curl -X POST http://localhost:8788/api/seed
+```
 
 > **Note**: The app uses `wrangler pages dev` which runs on Cloudflare's local runtime (workerd), not Node.js. This ensures local dev matches production exactly.
 
@@ -47,6 +60,8 @@ Visit [http://localhost:8788](http://localhost:8788)
 ```bash
 npm run dev
 ```
+
+Visit [http://localhost:8788](http://localhost:8788)
 
 ## Production Deployment
 
@@ -103,14 +118,12 @@ open https://kanban-nextjs.pages.dev/
 - `npm run start` - Run production server (Node.js)
 - `npm run lint` - Run ESLint
 
-### Database (Local)
+### Database
 - `npm run setup` - Initialize local D1 database (migrate + seed)
 - `npm run db:generate` - Generate new migration from schema changes
 - `npm run db:migrate:local` - Apply migrations to local D1
-- `npm run seed:local` - Seed local D1 with sample data
-
-### Database (Production)
 - `npm run db:migrate` - Apply migrations to production D1
+- `npm run seed:local` - Seed local D1 with sample data
 - `npm run seed` - Seed production D1 with sample data
 
 ## Database Architecture

@@ -1,16 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
-import { getDatabase } from '~/api/db';
+import { getD1Binding } from '~/api/db';
 
 export async function POST() {
   try {
-    const d1 = process.env.DB as D1Database | undefined;
-
-    if (!d1) {
-      return new Response(
-        JSON.stringify({ error: 'D1 binding not found' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    const d1 = getD1Binding();
 
     console.log('[Migrate] Applying schema...');
 

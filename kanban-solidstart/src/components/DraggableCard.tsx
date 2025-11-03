@@ -35,11 +35,11 @@ export function DraggableCard(props: {
     }
   };
 
-  const handleCommentAdd = (comment: { userId: string; text: string; id: string; cardId: string }) => {
+  const handleCommentAdd = (comment: { userId: string; text: string }) => {
     if (props.onCardUpdate) {
       const newComment = {
-        id: comment.id,
-        cardId: comment.cardId,
+        id: crypto.randomUUID(),
+        cardId: props.card.id,
         userId: comment.userId,
         text: comment.text,
         createdAt: new Date(),

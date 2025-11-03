@@ -2,7 +2,7 @@ import { action, json } from "@solidjs/router";
 import * as v from "valibot";
 import { boards, lists } from "../../drizzle/schema";
 import { BoardSchema } from "../lib/validation";
-import { db } from "./db";
+import { getDatabase, getD1Binding } from "./db";
 
 export const createBoardAction = action(async (formData: FormData) => {
   "use server";
@@ -18,6 +18,9 @@ export const createBoardAction = action(async (formData: FormData) => {
     const firstIssue = result.issues[0];
     return { success: false, error: firstIssue.message } as const;
   }
+
+  const d1 = getD1Binding();
+  const db = getDatabase(d1);
 
   const boardId = crypto.randomUUID();
 

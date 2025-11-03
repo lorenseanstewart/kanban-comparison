@@ -2,16 +2,14 @@
   "name": "kanban-solidstart",
   "type": "module",
   "scripts": {
-    "dev": "npm run pages:build && wrangler pages dev .output/public --d1=DB=kanban-db --live-reload",
+    "dev": "npm run pages:build && npx wrangler pages dev dist --d1=DB=kanban-db --live-reload",
     "build": "vinxi build",
     "start": "vinxi start",
     "pages:build": "vinxi build",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy .output/public",
+    "pages:deploy": "npm run pages:build && npx wrangler pages deploy dist",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:reset": "node scripts/reset-db.js",
-    "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:reset && npm run seed"
+    "setup": "bash scripts/seed-dev.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251014.0",
