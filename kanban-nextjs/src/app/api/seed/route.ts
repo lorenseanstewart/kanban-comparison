@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/db';
 import { users, boards, lists, cards, tags, cardTags, comments } from '../../../../drizzle/schema';
 
-// Import seed data from existing seed file
-import '../../../db/seed'; // This imports the data structures
+export const runtime = 'edge';
 
-// Re-define seed data here (copied from seed.ts for API route use)
+// Seed data for API route (copied from seed.ts)
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
 
 const usersData = [
@@ -88,7 +87,7 @@ export async function POST(request: NextRequest) {
     // @ts-ignore - Cloudflare Pages env binding
     const d1 = process.env.DB as D1Database | undefined;
 
-    if (!d1 && process.env.CF_PAGES === '1') {
+    if (!d1) {
       return NextResponse.json(
         { error: 'D1 binding not found. Check Cloudflare Pages configuration.' },
         { status: 500 }
@@ -149,6 +148,14 @@ export async function GET() {
   try {
     // @ts-ignore
     const d1 = process.env.DB as D1Database | undefined;
+
+    if (!d1) {
+      return NextResponse.json(
+        { error: 'D1 binding not found' },
+        { status: 500 }
+      );
+    }
+
     const db = getDatabase(d1);
 
     const userCount = await db.select().from(users);

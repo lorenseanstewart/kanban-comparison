@@ -2,6 +2,10 @@ import { Suspense } from "react";
 import { getBoards } from "@/lib/api";
 import { HomePageClient } from "@/components/HomePageClient";
 
+// Force dynamic rendering since we need database access
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
 function LoadingFallback() {
   return (
     <main className="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">

@@ -89,7 +89,7 @@ export const getBoard = cache(async (boardId: string): Promise<BoardDetails | nu
     return { ...board, lists: [] };
   }
 
-  const listIds = listRows.map((list) => list.id);
+  const listIds = listRows.map((list: any) => list.id);
   const cardRows = await db
     .select({
       id: cards.id,
@@ -104,7 +104,7 @@ export const getBoard = cache(async (boardId: string): Promise<BoardDetails | nu
     .where(inArray(cards.listId, listIds))
     .orderBy(asc(cards.position));
 
-  const cardIds = cardRows.map((card) => card.id);
+  const cardIds = cardRows.map((card: any) => card.id);
 
   const tagRows = cardIds.length
     ? await db

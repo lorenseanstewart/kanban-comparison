@@ -3,13 +3,14 @@
 
 name = "kanban-nextjs"
 compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
 
 # D1 Database Binding
 # This makes the D1 database available as `env.DB` in your code
 [[d1_databases]]
 binding = "DB"  # Environment variable name
 database_name = "kanban-db"  # D1 database name (you'll create this in Cloudflare dashboard)
-database_id = "YOUR_D1_DATABASE_ID"  # Replace with actual ID from `wrangler d1 create`
+database_id = "58c3811a-0dfd-4f17-8d1a-16bb8fada81b"  # Replace with actual ID from `wrangler d1 create`
 
 # Note: For Cloudflare Pages deployment, you'll also need to:
 # 1. Create the D1 database: wrangler d1 create kanban-db

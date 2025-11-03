@@ -74,29 +74,27 @@ export async function updateCard(formData: FormData) {
     }
 
     // Use a transaction to update card and tags atomically
-    await db.transaction((tx) => {
+    await db.transaction(async (tx) => {
       // Update card basic fields
-      tx.update(cards)
+      await tx.update(cards)
         .set({
           title: result.output.title,
           description: result.output.description,
           assigneeId: result.output.assigneeId,
         })
-        .where(eq(cards.id, result.output.cardId))
-        .run();
+        .where(eq(cards.id, result.output.cardId));
 
       // Update tags - delete existing and insert new ones
-      tx.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId)).run();
+      await tx.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId));
 
       if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
+        await tx.insert(cardTags)
           .values(
             result.output.tagIds.map((tagId) => ({
               cardId: result.output.cardId,
               tagId,
             }))
-          )
-          .run();
+          );
       }
     });
 
@@ -173,7 +171,7 @@ export async function createCard(formData: FormData) {
       .from(lists)
       .where(eq(lists.boardId, boardId));
 
-    const todoList = todoLists.find((list) => list.title === "Todo");
+    const todoList = todoLists.find((list: any) => list.title === "Todo");
 
     if (!todoList) {
       return { success: false, error: "Todo list not found for this board" };
@@ -191,8 +189,8 @@ export async function createCard(formData: FormData) {
     const cardId = crypto.randomUUID();
 
     // Use a transaction to create card and tags atomically
-    await db.transaction((tx) => {
-      tx.insert(cards)
+    await db.transaction(async (tx) => {
+      await tx.insert(cards)
         .values({
           id: cardId,
           listId: todoList.id,
@@ -201,19 +199,17 @@ export async function createCard(formData: FormData) {
           assigneeId: result.output.assigneeId,
           position: nextPosition,
           completed: false,
-        })
-        .run();
+        });
 
       // Add tags if any
       if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
+        await tx.insert(cardTags)
           .values(
             result.output.tagIds.map((tagId) => ({
               cardId,
               tagId,
             }))
-          )
-          .run();
+          );
       }
     });
 

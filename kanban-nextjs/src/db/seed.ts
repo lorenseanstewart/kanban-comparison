@@ -139,27 +139,27 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-const seed = () => {
-  db.transaction((tx) => {
-    tx.delete(cardTags).run();
-    tx.delete(comments).run();
-    tx.delete(cards).run();
-    tx.delete(lists).run();
-    tx.delete(boards).run();
-    tx.delete(tags).run();
-    tx.delete(users).run();
-    tx.insert(users).values(usersData).run();
-    tx.insert(boards).values(boardsData).run();
-    tx.insert(lists).values(listsData).run();
-    tx.insert(tags).values(tagsData).run();
-    tx.insert(cards).values(cardsData).run();
-    tx.insert(cardTags).values(cardTagsData).run();
-    tx.insert(comments).values(commentsData).run();
+const seed = async () => {
+  await db.transaction(async (tx) => {
+    await tx.delete(cardTags);
+    await tx.delete(comments);
+    await tx.delete(cards);
+    await tx.delete(lists);
+    await tx.delete(boards);
+    await tx.delete(tags);
+    await tx.delete(users);
+    await tx.insert(users).values(usersData);
+    await tx.insert(boards).values(boardsData);
+    await tx.insert(lists).values(listsData);
+    await tx.insert(tags).values(tagsData);
+    await tx.insert(cards).values(cardsData);
+    await tx.insert(cardTags).values(cardTagsData);
+    await tx.insert(comments).values(commentsData);
   });
 };
 
 try {
-  seed();
+  await seed();
   console.log('Database seeded');
   process.exit(0);
 } catch (error) {
