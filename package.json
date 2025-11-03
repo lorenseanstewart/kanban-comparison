@@ -10,7 +10,8 @@
     "measure:legacy": "tsx scripts/measure-all-lighthouse.ts",
     "generate:charts": "python3 scripts/generate-charts.py",
     "build:all": "for dir in kanban-*/; do (cd \"$dir\" && npm run build); done",
-    "check:deployment": "tsx scripts/check-deployment.ts"
+    "check:deployment": "tsx scripts/check-deployment.ts",
+    "verify:deployment": "tsx scripts/verify-deployment.ts"
   },
   "keywords": [
     "react",
