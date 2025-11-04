@@ -8,7 +8,13 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   output: "server",
   // For Cloudflare Pages deployment
-  adapter: cloudflare({ mode: "directory" }),
+  adapter: cloudflare({
+    mode: "directory",
+    runtime: {
+      mode: "local",
+      type: "pages",
+    },
+  }),
   // For local development with node adapter, uncomment below and comment out cloudflare:
   // import node from "@astrojs/node";
   // adapter: node({ mode: "middleware" }),
@@ -21,10 +27,12 @@ export default defineConfig({
         output: {
           manualChunks: undefined,
         },
+        external: ["better-sqlite3", "drizzle-orm/better-sqlite3"],
       },
     },
     ssr: {
-      external: ["better-sqlite3"],
+      external: ["better-sqlite3", "drizzle-orm/better-sqlite3"],
+      noExternal: [],
     },
   },
 });
