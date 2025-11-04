@@ -14,14 +14,9 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('@angular/core')) {
+            // Group all Angular core packages together to avoid initialization issues
+            if (id.includes('@angular/core') || id.includes('@angular/common') || id.includes('@angular/platform-browser')) {
               return 'angular-core';
-            }
-            if (id.includes('@angular/common')) {
-              return 'angular-common';
-            }
-            if (id.includes('@angular/platform-browser')) {
-              return 'angular-platform-browser';
             }
             if (
               id.includes('@angular/router') ||
@@ -31,6 +26,9 @@ export default defineConfig(({ mode }) => ({
             }
             if (id.includes('@angular/cdk')) {
               return 'angular-cdk';
+            }
+            if (id.includes('@analogjs/content')) {
+              return 'analogjs-content';
             }
           }
         },
