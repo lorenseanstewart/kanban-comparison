@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { db } from '../../../utils/db'
+import { useDatabase } from '../../../utils/db'
 import { cards } from '../../../../drizzle/schema'
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const db = useDatabase()
     await db.delete(cards).where(eq(cards.id, cardId))
 
     return { success: true }

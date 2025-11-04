@@ -1,10 +1,11 @@
 import * as v from 'valibot'
-import { db } from '../../utils/db'
+import { useDatabase } from '../../utils/db'
 import { boards, lists } from '../../../drizzle/schema'
 import { BoardSchema } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   try {
+    const db = useDatabase()
     const body = await readBody(event)
 
     const result = v.safeParse(BoardSchema, body)

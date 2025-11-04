@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 import { eq } from 'drizzle-orm'
-import { db } from '../../../utils/db'
+import { useDatabase } from '../../../utils/db'
 import { cards, cardTags } from '../../../../drizzle/schema'
 import { CardUpdateSchema } from '../../../utils/validation'
 
@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const db = useDatabase()
     const rawBody = await readRawBody(event, 'utf-8')
     const body = rawBody ? JSON.parse(rawBody) : null
 

@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { db } from '../../utils/db'
+import { useDatabase } from '../../utils/db'
 import { cards } from '../../../drizzle/schema'
 
 interface ReorderPayload {
@@ -9,6 +9,7 @@ interface ReorderPayload {
 
 export default defineEventHandler(async (event) => {
   try {
+    const db = useDatabase()
     const body = await readBody<ReorderPayload>(event)
     const { cardIds, listId } = body
 

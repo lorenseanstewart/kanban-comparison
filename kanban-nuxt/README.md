@@ -39,24 +39,36 @@ npm run dev
 
 ## Production Deployment
 
+**Production URL**: https://kanban-nuxt.pages.dev/
+
 ### First-time Setup
 
-1. **Install dependencies and create D1 database** (if needed):
+1. **Install dependencies**:
 
 ```bash
 npm install
 ```
 
-2. **Migrate D1 database** (one time only):
+2. **Migrate production D1 database** (one time only):
 
 ```bash
 npm run db:migrate:d1
+```
+
+This runs:
+```bash
+wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql
 ```
 
 3. **Seed production database** (optional):
 
 ```bash
 npm run seed:d1
+```
+
+This runs:
+```bash
+wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql
 ```
 
 4. **Deploy to Cloudflare Pages**:
@@ -73,6 +85,28 @@ Just build and deploy:
 
 ```bash
 npm run pages:deploy
+```
+
+### Database Setup Commands
+
+**Migrate production D1 database:**
+```bash
+wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql
+```
+
+**Seed production D1 database:**
+```bash
+wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql
+```
+
+**Verify deployment:**
+```bash
+curl https://kanban-nuxt.pages.dev/api
+```
+
+**View production logs:**
+```bash
+npx wrangler pages deployment tail --project-name=kanban-nuxt --format=pretty
 ```
 
 ## Available Scripts

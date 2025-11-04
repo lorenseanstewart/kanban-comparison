@@ -1,5 +1,5 @@
 import { eq, asc, inArray } from 'drizzle-orm'
-import { db } from '../../../utils/db'
+import { useDatabase } from '../../../utils/db'
 import { boards, lists, cards, users, tags, cardTags, comments } from '../../../../drizzle/schema'
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const db = useDatabase()
     const [boardRecord] = await db.select().from(boards).where(eq(boards.id, boardId))
 
     if (!boardRecord) {

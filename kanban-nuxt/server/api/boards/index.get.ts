@@ -1,8 +1,9 @@
-import { db } from '../../utils/db'
+import { useDatabase } from '../../utils/db'
 import { boards } from '../../../drizzle/schema'
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   try {
+    const db = useDatabase()
     const allBoards = await db.select({
       id: boards.id,
       title: boards.title,

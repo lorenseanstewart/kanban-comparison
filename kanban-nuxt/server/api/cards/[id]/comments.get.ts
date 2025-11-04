@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { db } from '../../../utils/db'
+import { useDatabase } from '../../../utils/db'
 import { comments, users } from '../../../../drizzle/schema'
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const db = useDatabase()
     const cardComments = await db.select().from(comments).where(eq(comments.cardId, cardId))
 
     const allUsers = await db.select().from(users)

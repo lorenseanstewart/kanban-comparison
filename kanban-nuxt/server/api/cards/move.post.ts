@@ -1,5 +1,5 @@
 import { eq, max } from 'drizzle-orm'
-import { db } from '../../utils/db'
+import { useDatabase } from '../../utils/db'
 import { cards } from '../../../drizzle/schema'
 
 interface MoveCardPayload {
@@ -9,6 +9,7 @@ interface MoveCardPayload {
 
 export default defineEventHandler(async (event) => {
   try {
+    const db = useDatabase()
     const body = await readBody<MoveCardPayload>(event)
     const { cardId, targetListId } = body
 
