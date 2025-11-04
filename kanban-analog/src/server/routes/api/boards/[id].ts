@@ -1,10 +1,22 @@
-import { defineEventHandler } from 'h3';
-import { db } from '../../../db/index';
+import { defineEventHandler, createError } from 'h3';
+import { getDatabase } from '../../../db/index';
 import { boards, lists, cards, tags, cardTags, comments } from '../../../../../drizzle/schema';
 import { eq, inArray, asc } from 'drizzle-orm';
 import type { Tag, Comment } from '../../../../../drizzle/schema';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
+  const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
+
+  if (!d1) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'D1 binding not found',
+    });
+  }
+
+  const db = getDatabase(d1);
+
   const id = event.context.params?.id;
 
   if (!id) {

@@ -1,11 +1,23 @@
-import { defineEventHandler, readBody } from 'h3';
-import { db } from '../../../db/index';
+import { defineEventHandler, readBody, createError } from 'h3';
+import { getDatabase } from '../../../db/index';
 import { boards, lists } from '../../../../../drizzle/schema';
 import * as v from 'valibot';
 import { BoardSchema } from '../../../../lib/validation';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
   try {
+    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
+
+    if (!d1) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'D1 binding not found',
+      });
+    }
+
+    const db = getDatabase(d1);
+
     const body = await readBody(event);
 
     // Validate with Valibot

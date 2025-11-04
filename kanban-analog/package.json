@@ -13,12 +13,8 @@
     "watch": "vite build --watch",
     "test": "vitest",
     "preview": "node dist/analog/server/index.mjs",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate-db.ts",
-    "db:push": "drizzle-kit push",
-    "db:reset": "node scripts/reset-db.js",
-    "seed": "tsx src/server/db/seed.ts",
-    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
+    "pages:deploy": "npm run build && wrangler pages deploy dist/analog/public",
+    "db:generate": "drizzle-kit generate"
   },
   "private": true,
   "dependencies": {
@@ -33,7 +29,6 @@
     "@angular/platform-server": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@tailwindcss/vite": "^4.1.4",
-    "better-sqlite3": "^12.4.1",
     "charts.css": "^1.2.0",
     "daisyui": "^5.1.29",
     "drizzle-orm": "^0.44.6",
@@ -51,7 +46,8 @@
     "@angular/build": "^20.0.0",
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
-    "@types/better-sqlite3": "^7.6.13",
+    "@cloudflare/workers-types": "^4.20251014.0",
+    "wrangler": "^4.45.3",
     "drizzle-kit": "^0.31.5",
     "jsdom": "^22.0.0",
     "tsx": "^4.20.6",

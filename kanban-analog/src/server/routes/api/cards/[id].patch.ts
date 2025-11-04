@@ -1,12 +1,24 @@
-import { defineEventHandler, readBody } from 'h3';
-import { db } from '../../../db/index';
+import { defineEventHandler, readBody, createError } from 'h3';
+import { getDatabase } from '../../../db/index';
 import { cards, cardTags } from '../../../../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import * as v from 'valibot';
 import { CardUpdateSchema } from '../../../../lib/validation';
+import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
   try {
+    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
+
+    if (!d1) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'D1 binding not found',
+      });
+    }
+
+    const db = getDatabase(d1);
+
     const cardId = event.context.params?.id;
     if (!cardId) {
       throw createError({
@@ -34,32 +46,29 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Use a transaction to update card and tags atomically
-    db.transaction((tx) => {
-      // Update card basic fields
-      tx.update(cards)
-        .set({
-          title: result.output.title,
-          description: result.output.description,
-          assigneeId: result.output.assigneeId,
-        })
-        .where(eq(cards.id, result.output.cardId))
-        .run();
+    // Update card basic fields
+    await db
+      .update(cards)
+      .set({
+        title: result.output.title,
+        description: result.output.description,
+        assigneeId: result.output.assigneeId,
+      })
+      .where(eq(cards.id, result.output.cardId));
 
-      // Update tags - delete existing and insert new ones
-      tx.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId)).run();
+    // Update tags - delete existing and insert new ones
+    await db.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId));
 
-      if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(
-            result.output.tagIds.map((tagId) => ({
-              cardId: result.output.cardId,
-              tagId,
-            }))
-          )
-          .run();
-      }
-    });
+    if (result.output.tagIds && result.output.tagIds.length > 0) {
+      await db
+        .insert(cardTags)
+        .values(
+          result.output.tagIds.map((tagId) => ({
+            cardId: result.output.cardId,
+            tagId,
+          }))
+        );
+    }
 
     return { success: true };
   } catch (error: any) {

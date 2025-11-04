@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => ({
         routes: async () => [],
       },
       nitro: {
-        preset: 'node-server',
+        preset: 'cloudflare-pages',
         minify: false,
         compressPublicAssets: true,
         routeRules: {

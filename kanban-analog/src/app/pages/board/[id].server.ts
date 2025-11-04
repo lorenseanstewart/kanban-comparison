@@ -1,15 +1,27 @@
 import { PageServerLoad } from '@analogjs/router';
-import { db } from '../../../server/db/index';
+import { getDatabase } from '../../../server/db/index';
 import { boards, lists, cards, tags, cardTags, comments, users } from '../../../../drizzle/schema';
 import { eq, inArray, asc } from 'drizzle-orm';
 import type { Tag, Comment } from '../../../../drizzle/schema';
 
-export const load = async ({ params }: PageServerLoad) => {
+export const load = async ({ params, event }: PageServerLoad) => {
   const id = params?.['id'];
 
   if (!id) {
     throw new Error('Board ID is required');
   }
+
+  // Try different paths for D1 binding (dev vs production)
+  const d1 = (event.context.cloudflare?.env?.DB ||
+               event.context.DB ||
+               (event.context as any).env?.DB) as D1Database | undefined;
+
+  if (!d1) {
+    console.error('D1 binding not found. Available context:', Object.keys(event.context));
+    throw new Error('D1 binding not found');
+  }
+
+  const db = getDatabase(d1);
 
   // Get board
   const board = await db

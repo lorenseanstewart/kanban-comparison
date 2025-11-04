@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody, createError } from 'h3';
-import { db } from '../../../db/index';
+import { getDatabase } from '../../../db/index';
 import { lists, cards, cardTags } from '../../../../../drizzle/schema';
 import { eq, max } from 'drizzle-orm';
 import * as v from 'valibot';
@@ -7,6 +7,17 @@ import { CardSchema } from '../../../../lib/validation';
 
 export default defineEventHandler(async (event) => {
   try {
+    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
+
+    if (!d1) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'D1 binding not found',
+      });
+    }
+
+    const db = getDatabase(d1);
+
     const body = await readBody(event);
 
     if (!body.boardId) {
@@ -58,32 +69,26 @@ export default defineEventHandler(async (event) => {
     // Create the card
     const cardId = crypto.randomUUID();
 
-    // Use a transaction to create card and tags atomically
-    db.transaction((tx) => {
-      tx.insert(cards)
-        .values({
-          id: cardId,
-          listId: todoList.id,
-          title: result.output.title,
-          description: result.output.description,
-          assigneeId: result.output.assigneeId,
-          position: nextPosition,
-          completed: false,
-        })
-        .run();
-
-      // Add tags if any
-      if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(
-            result.output.tagIds.map((tagId) => ({
-              cardId,
-              tagId,
-            }))
-          )
-          .run();
-      }
+    // Insert card (D1 doesn't support transactions, use sequential operations)
+    await db.insert(cards).values({
+      id: cardId,
+      listId: todoList.id,
+      title: result.output.title,
+      description: result.output.description,
+      assigneeId: result.output.assigneeId,
+      position: nextPosition,
+      completed: false,
     });
+
+    // Add tags if any
+    if (result.output.tagIds && result.output.tagIds.length > 0) {
+      await db.insert(cardTags).values(
+        result.output.tagIds.map((tagId) => ({
+          cardId,
+          tagId,
+        }))
+      );
+    }
 
     return { success: true, data: { id: cardId } };
   } catch (error: any) {

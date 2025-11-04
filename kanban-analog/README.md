@@ -2,6 +2,17 @@
 
 This project was generated with [Analog](https://analogjs.org), the fullstack meta-framework for Angular.
 
+Deployed on Cloudflare Pages with D1 database.
+
+## Important Note
+
+**Local D1 Development Limitation**: Analog (Nitro) + Cloudflare D1 local development is not currently well-supported. Wrangler does not properly expose D1 bindings to Nitro's built worker in development mode.
+
+**Recommended Workflow**:
+- Deploy directly to Cloudflare Pages for testing with D1
+- Or use Cloudflare's preview deployments
+- Local development would require a different database setup (e.g., better-sqlite3)
+
 ## Setup
 
 1. Install dependencies:
@@ -9,32 +20,50 @@ This project was generated with [Analog](https://analogjs.org), the fullstack me
 npm install
 ```
 
-2. Set up the database (reset, migrate, and seed):
+2. Build for production:
 ```bash
-npm run setup
+npm run build
 ```
 
-Alternatively, you can run the database commands individually:
-- `npm run db:reset` - Delete database files
-- `npm run db:migrate` - Run database migrations
-- `npm run seed` - Seed the database with sample data
+## Production Deployment
 
-## Development
+Deploy to Cloudflare Pages:
+```bash
+npm run pages:deploy
+```
 
-Run `npm start` for a dev server. Navigate to `http://localhost:5173/`. The application automatically reloads if you change any of the source files.
+After deployment, you need to:
 
-## Database Commands
+1. **Bind the D1 database** in Cloudflare Pages dashboard:
+   - Go to Settings → Functions → D1 database bindings
+   - Variable name: `DB`
+   - D1 database: Select `kanban-db`
 
-- `npm run db:generate` - Generate new migrations from schema changes
-- `npm run db:migrate` - Run pending database migrations
-- `npm run db:push` - Push schema changes directly to the database
-- `npm run db:reset` - Delete all database files
-- `npm run seed` - Seed the database with sample data
-- `npm run setup` - Complete database setup (reset + migrate + seed)
+2. **Run migrations and seed** on production:
+```bash
+curl -X POST https://your-app.pages.dev/api/migrate
+curl -X POST https://your-app.pages.dev/api/seed
+```
+
+## Database
+
+This app uses Cloudflare D1 (SQLite on the edge) via Drizzle ORM.
+
+**Schema generation:**
+```bash
+npm run db:generate
+```
+
+This generates Drizzle migrations from schema changes in `drizzle/schema.ts`.
 
 ## Build
 
-Run `npm run build` to build the client/server project. The client build artifacts are located in the `dist/analog/public` directory. The server for the API build artifacts are located in the `dist/analog/server` directory.
+Build the project for Cloudflare Pages:
+```bash
+npm run build
+```
+
+Build artifacts are located in `dist/analog/public/`.
 
 ## Community
 
