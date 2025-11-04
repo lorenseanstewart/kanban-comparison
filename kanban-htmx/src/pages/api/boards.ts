@@ -6,12 +6,6 @@ import { BoardSchema } from '../../lib/validation';
 export const GET: APIRoute = async (context) => {
   try {
     const d1 = context.locals?.runtime?.env?.DB;
-    if (!d1) {
-      return new Response(JSON.stringify({ error: 'D1 database binding not found' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
     const boards = await getBoards(d1);
     return new Response(JSON.stringify(boards), {
       status: 200,
@@ -29,12 +23,6 @@ export const GET: APIRoute = async (context) => {
 export const POST: APIRoute = async (context) => {
   try {
     const d1 = context.locals?.runtime?.env?.DB;
-    if (!d1) {
-      return new Response(JSON.stringify({ error: 'D1 database binding not found' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
     const formData = await context.request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;

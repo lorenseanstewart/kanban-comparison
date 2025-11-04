@@ -100,9 +100,14 @@ export function handleCommentResponse(
 }
 
 export function openEditCardModal(cardId: string) {
+  console.log('openEditCardModal called for card:', cardId);
   // Use the latest board data from namespace
   const currentBoard = (window as any).kanban?.board;
-  if (!currentBoard) return;
+  console.log('Current board data:', currentBoard);
+  if (!currentBoard) {
+    console.error('No board data found in window.kanban.board');
+    return;
+  }
 
   // Find the card in the board data
   let card = null;
@@ -114,7 +119,11 @@ export function openEditCardModal(cardId: string) {
     }
   }
 
-  if (!card) return;
+  console.log('Card found:', card);
+  if (!card) {
+    console.error('Card not found in board data');
+    return;
+  }
 
   // Set the hx-patch URL dynamically
   const form = document.getElementById("edit-card-form") as HTMLFormElement;
@@ -193,5 +202,12 @@ export function openEditCardModal(cardId: string) {
 
   // Open modal
   const modal = document.getElementById("edit-card-modal") as HTMLDialogElement;
-  modal?.showModal();
+  console.log('Modal element:', modal);
+  if (!modal) {
+    console.error('Modal element not found in DOM');
+    return;
+  }
+  console.log('Calling showModal()');
+  modal.showModal();
+  console.log('Modal should be open now');
 }

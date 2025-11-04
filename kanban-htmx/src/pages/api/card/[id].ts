@@ -6,12 +6,6 @@ import { CardUpdateSchema } from '../../../lib/validation';
 export const PATCH: APIRoute = async (context) => {
   try {
     const d1 = context.locals?.runtime?.env?.DB;
-    if (!d1) {
-      return new Response(JSON.stringify({ error: 'D1 database binding not found' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
     const cardId = context.params.id;
     if (!cardId) {
       return new Response(JSON.stringify({ error: 'Card ID is required' }), {

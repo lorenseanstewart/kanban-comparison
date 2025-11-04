@@ -3,18 +3,22 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "npm run build && wrangler pages dev dist --d1=DB --live-reload",
+    "dev": "astro dev",
     "build": "astro build",
     "preview": "node server.mjs",
     "preview:astro": "astro preview",
     "astro": "astro",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 execute kanban-htmx-db --remote --file=drizzle/migrations/0000_calm_captain_britain.sql",
-    "db:migrate:local": "wrangler d1 execute kanban-htmx-db --local --file=drizzle/migrations/0000_calm_captain_britain.sql",
+    "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:migrate:d1": "wrangler d1 execute kanban-db --remote --file=drizzle/migrations/0000_calm_captain_britain.sql",
+    "db:migrate:d1:local": "wrangler d1 execute kanban-db --local --file=drizzle/migrations/0000_calm_captain_britain.sql",
     "db:push": "drizzle-kit push",
-    "seed": "wrangler d1 execute kanban-htmx-db --remote --file=scripts/seed-d1.sql",
-    "seed:local": "wrangler d1 execute kanban-htmx-db --local --file=scripts/seed-d1.sql",
-    "setup": "npm run db:migrate:local && npm run seed:local",
+    "db:reset": "node scripts/reset-db.js",
+    "seed": "tsx scripts/seed.ts",
+    "seed:d1": "wrangler d1 execute kanban-db --remote --file=scripts/seed-d1.sql",
+    "seed:d1:local": "wrangler d1 execute kanban-db --local --file=scripts/seed-d1.sql",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed",
+    "setup:d1": "npm run db:migrate:d1:local && npm run seed:d1:local",
     "pages:deploy": "npm run build && wrangler pages deploy dist"
   },
   "dependencies": {
@@ -32,6 +36,7 @@
     "valibot": "^1.1.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.5",
     "@astrojs/cloudflare": "^12.6.10",
     "@cloudflare/workers-types": "^4.20250605.0",
     "@tailwindcss/vite": "^4.1.7",
@@ -39,6 +44,7 @@
     "daisyui": "^5.3.0",
     "tailwindcss": "^4.1.7",
     "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "wrangler": "^3.106.1"
   }
 }

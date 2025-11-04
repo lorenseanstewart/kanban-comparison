@@ -11,6 +11,8 @@ if (!boardId) {
   return new Response('Board ID required', { status: 400 });
 }
 
+const d1 = Astro.locals?.runtime?.env?.DB;
+
 const formData = await Astro.request.formData();
 const cardIds = formData.get('cardIds');
 const listId = formData.get('listId');
@@ -21,12 +23,12 @@ try {
   // Handle reorder (within same list)
   if (cardIds && listId) {
     const parsedCardIds = JSON.parse(cardIds as string) as string[];
-    await reorderCards(parsedCardIds);
+    await reorderCards(parsedCardIds, d1);
   }
 
   // Handle transfer (between lists)
   if (cardId && targetListId) {
-    await moveCard(cardId as string, targetListId as string);
+    await moveCard(cardId as string, targetListId as string, d1);
   }
 } catch (error) {
   console.error('Failed to update cards:', error);
@@ -34,8 +36,8 @@ try {
 }
 
 // Fetch fresh data
-const board = await getBoard(boardId);
-const users = await getUsers();
+const board = await getBoard(boardId, d1);
+const users = await getUsers(d1);
 
 if (!board) {
   return new Response('Board not found', { status: 404 });

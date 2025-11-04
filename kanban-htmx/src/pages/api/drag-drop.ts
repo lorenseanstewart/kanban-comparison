@@ -4,12 +4,6 @@ import { updateCardPositions } from '../../lib/api';
 export const POST: APIRoute = async (context) => {
   try {
     const d1 = context.locals?.runtime?.env?.DB;
-    if (!d1) {
-      return new Response(JSON.stringify({ error: 'D1 database binding not found' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
     const data = await context.request.json();
     const updates = data.updates as Array<{ cardId: string; listId: string; position: number }>;
 

@@ -49,7 +49,7 @@ export type UsersList = Array<User>;
 export type TagItem = Pick<Tag, "id" | "name" | "color">;
 export type TagsList = Array<TagItem>;
 
-export async function getBoards(d1: D1Database): Promise<BoardSummary[]> {
+export async function getBoards(d1?: D1Database): Promise<BoardSummary[]> {
   const db = getDatabase(d1);
   const rows = await db
     .select({
@@ -62,7 +62,7 @@ export async function getBoards(d1: D1Database): Promise<BoardSummary[]> {
   return rows;
 }
 
-export async function getBoard(boardId: string, d1: D1Database): Promise<BoardDetails | null> {
+export async function getBoard(boardId: string, d1?: D1Database): Promise<BoardDetails | null> {
   const db = getDatabase(d1);
   const board = await db
     .select({
@@ -193,7 +193,7 @@ export async function getBoard(boardId: string, d1: D1Database): Promise<BoardDe
     };
 }
 
-export async function getUsers(d1: D1Database) {
+export async function getUsers(d1?: D1Database) {
   const db = getDatabase(d1);
   return db
     .select({ id: users.id, name: users.name })
@@ -201,7 +201,7 @@ export async function getUsers(d1: D1Database) {
     .orderBy(asc(users.name));
 }
 
-export async function getTags(d1: D1Database) {
+export async function getTags(d1?: D1Database) {
   const db = getDatabase(d1);
   return db
     .select({ id: tags.id, name: tags.name, color: tags.color })
@@ -209,7 +209,7 @@ export async function getTags(d1: D1Database) {
     .orderBy(asc(tags.name));
 }
 
-export async function createBoard(data: { title: string; description: string | null }, d1: D1Database) {
+export async function createBoard(data: { title: string; description: string | null }, d1?: D1Database) {
   const db = getDatabase(d1);
   const boardId = crypto.randomUUID();
 
@@ -239,7 +239,7 @@ export async function createCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}, d1: D1Database) {
+}, d1?: D1Database) {
   const db = getDatabase(d1);
   // Find the Todo list for this board
   const todoLists = await db
@@ -264,32 +264,25 @@ export async function createCard(data: {
   // Create the card
   const cardId = crypto.randomUUID();
 
-  // Use a transaction to create card and tags atomically
-  db.transaction((tx) => {
-    tx.insert(cards)
-      .values({
-        id: cardId,
-        listId: todoList.id,
-        title: data.title,
-        description: data.description,
-        assigneeId: data.assigneeId,
-        position: nextPosition,
-        completed: false,
-      })
-      .run();
-
-    // Add tags if any
-    if (data.tagIds && data.tagIds.length > 0) {
-      tx.insert(cardTags)
-        .values(
-          data.tagIds.map((tagId) => ({
-            cardId,
-            tagId,
-          }))
-        )
-        .run();
-    }
+  await db.insert(cards).values({
+    id: cardId,
+    listId: todoList.id,
+    title: data.title,
+    description: data.description,
+    assigneeId: data.assigneeId,
+    position: nextPosition,
+    completed: false,
   });
+
+  // Add tags if any
+  if (data.tagIds && data.tagIds.length > 0) {
+    await db.insert(cardTags).values(
+      data.tagIds.map((tagId) => ({
+        cardId,
+        tagId,
+      }))
+    );
+  }
 
   return { id: cardId };
 }
@@ -300,41 +293,37 @@ export async function updateCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}, d1: D1Database) {
+}, d1?: D1Database) {
   const db = getDatabase(d1);
-  // Use a transaction to update card and tags atomically
-  db.transaction((tx) => {
-    // Update card basic fields
-    tx.update(cards)
-      .set({
-        title: data.title,
-        description: data.description,
-        assigneeId: data.assigneeId,
-      })
-      .where(eq(cards.id, data.cardId))
-      .run();
 
-    // Update tags - delete existing and insert new ones
-    tx.delete(cardTags).where(eq(cardTags.cardId, data.cardId)).run();
+  // Update card basic fields
+  await db
+    .update(cards)
+    .set({
+      title: data.title,
+      description: data.description,
+      assigneeId: data.assigneeId,
+    })
+    .where(eq(cards.id, data.cardId));
 
-    if (data.tagIds && data.tagIds.length > 0) {
-      tx.insert(cardTags)
-        .values(
-          data.tagIds.map((tagId) => ({
-            cardId: data.cardId,
-            tagId,
-          }))
-        )
-        .run();
-    }
-  });
+  // Update tags - delete existing and insert new ones
+  await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId));
+
+  if (data.tagIds && data.tagIds.length > 0) {
+    await db.insert(cardTags).values(
+      data.tagIds.map((tagId) => ({
+        cardId: data.cardId,
+        tagId,
+      }))
+    );
+  }
 }
 
 export async function addComment(data: {
   cardId: string;
   userId: string;
   text: string;
-}, d1: D1Database) {
+}, d1?: D1Database) {
   const db = getDatabase(d1);
   const commentId = crypto.randomUUID();
 
@@ -348,31 +337,27 @@ export async function addComment(data: {
   return { id: commentId };
 }
 
-export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>, d1: D1Database) {
+export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>, d1?: D1Database) {
   const db = getDatabase(d1);
-  db.transaction((tx) => {
-    for (const update of updates) {
-      tx.update(cards)
-        .set({ listId: update.listId, position: update.position })
-        .where(eq(cards.id, update.cardId))
-        .run();
-    }
-  });
+  for (const update of updates) {
+    await db
+      .update(cards)
+      .set({ listId: update.listId, position: update.position })
+      .where(eq(cards.id, update.cardId));
+  }
 }
 
-export async function reorderCards(cardIds: string[], d1: D1Database) {
+export async function reorderCards(cardIds: string[], d1?: D1Database) {
   const db = getDatabase(d1);
-  db.transaction((tx) => {
-    cardIds.forEach((cardId, index) => {
-      tx.update(cards)
-        .set({ position: index })
-        .where(eq(cards.id, cardId))
-        .run();
-    });
-  });
+  for (let index = 0; index < cardIds.length; index++) {
+    await db
+      .update(cards)
+      .set({ position: index })
+      .where(eq(cards.id, cardIds[index]));
+  }
 }
 
-export async function moveCard(cardId: string, targetListId: string, d1: D1Database) {
+export async function moveCard(cardId: string, targetListId: string, d1?: D1Database) {
   const db = getDatabase(d1);
   // Get the highest position in the target list
   const maxPositionResult = await db
@@ -388,7 +373,7 @@ export async function moveCard(cardId: string, targetListId: string, d1: D1Datab
     .where(eq(cards.id, cardId));
 }
 
-export async function deleteCard(cardId: string, d1: D1Database) {
+export async function deleteCard(cardId: string, d1?: D1Database) {
   const db = getDatabase(d1);
   if (!cardId) {
     throw new Error("Card ID is required");

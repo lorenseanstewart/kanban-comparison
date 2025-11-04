@@ -13,14 +13,16 @@ if (!id) {
   return Astro.redirect("/");
 }
 
-const board = await getBoard(id);
+const d1 = Astro.locals?.runtime?.env?.DB;
+
+const board = await getBoard(id, d1);
 
 if (!board) {
   return Astro.redirect("/");
 }
 
-const users = await getUsers();
-const tags = await getTags();
+const users = await getUsers(d1);
+const tags = await getTags(d1);
 ---
 
 <!doctype html>

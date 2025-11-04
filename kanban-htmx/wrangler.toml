@@ -1,6 +1,7 @@
 name = "kanban-htmx"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"

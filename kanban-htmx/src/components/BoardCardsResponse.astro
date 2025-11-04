@@ -29,10 +29,11 @@ const { board, users } = Astro.props;
 <BoardCardsSection board={board} users={users} />
 
 <!-- Update global board data after swap -->
-<script define:vars={{ board, users }}>
+<script is:inline define:vars={{ board, users }}>
   if (!window.kanban) {
     window.kanban = {};
   }
   window.kanban.board = board;
   window.kanban.users = users;
+  console.log('Board data updated:', board.id);
 </script>

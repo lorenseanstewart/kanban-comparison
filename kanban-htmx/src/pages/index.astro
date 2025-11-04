@@ -5,7 +5,8 @@ import BoardsList from "../components/BoardsList.astro";
 import AddBoardModal from "../components/modals/AddBoardModal.astro";
 import "../assets/app.css";
 
-const boards = await getBoards();
+const d1 = Astro.locals?.runtime?.env?.DB;
+const boards = await getBoards(d1);
 ---
 
 <!doctype html>
