@@ -139,27 +139,26 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-const seed = () => {
-  db.transaction((tx) => {
-    tx.delete(cardTags).run();
-    tx.delete(comments).run();
-    tx.delete(cards).run();
-    tx.delete(lists).run();
-    tx.delete(boards).run();
-    tx.delete(tags).run();
-    tx.delete(users).run();
-    tx.insert(users).values(usersData).run();
-    tx.insert(boards).values(boardsData).run();
-    tx.insert(lists).values(listsData).run();
-    tx.insert(tags).values(tagsData).run();
-    tx.insert(cards).values(cardsData).run();
-    tx.insert(cardTags).values(cardTagsData).run();
-    tx.insert(comments).values(commentsData).run();
-  });
+const seed = async () => {
+  // D1 doesn't support transactions, so we use sequential operations
+  await db.delete(cardTags);
+  await db.delete(comments);
+  await db.delete(cards);
+  await db.delete(lists);
+  await db.delete(boards);
+  await db.delete(tags);
+  await db.delete(users);
+  await db.insert(users).values(usersData);
+  await db.insert(boards).values(boardsData);
+  await db.insert(lists).values(listsData);
+  await db.insert(tags).values(tagsData);
+  await db.insert(cards).values(cardsData);
+  await db.insert(cardTags).values(cardTagsData);
+  await db.insert(comments).values(commentsData);
 };
 
 try {
-  seed();
+  await seed();
   console.log('Database seeded');
   process.exit(0);
 } catch (error) {

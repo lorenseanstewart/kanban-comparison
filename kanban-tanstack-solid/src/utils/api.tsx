@@ -176,32 +176,28 @@ export const updateCard = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      // Use a transaction to update card and tags atomically
-      db.transaction((tx) => {
-        // Update card basic fields
-        tx.update(cards)
-          .set({
-            title: data.title,
-            description: data.description ?? null,
-            assigneeId: data.assigneeId,
-          })
-          .where(eq(cards.id, data.cardId))
-          .run();
+      // D1 doesn't support transactions, so we use sequential operations
+      // Update card basic fields
+      await db.update(cards)
+        .set({
+          title: data.title,
+          description: data.description ?? null,
+          assigneeId: data.assigneeId,
+        })
+        .where(eq(cards.id, data.cardId));
 
-        // Update tags - delete existing and insert new ones
-        tx.delete(cardTags).where(eq(cardTags.cardId, data.cardId)).run();
+      // Update tags - delete existing and insert new ones
+      await db.delete(cardTags).where(eq(cardTags.cardId, data.cardId));
 
-        if (data.tagIds && data.tagIds.length > 0) {
-          tx.insert(cardTags)
-            .values(
-              data.tagIds.map((tagId) => ({
-                cardId: data.cardId,
-                tagId,
-              }))
-            )
-            .run();
-        }
-      });
+      if (data.tagIds && data.tagIds.length > 0) {
+        await db.insert(cardTags)
+          .values(
+            data.tagIds.map((tagId) => ({
+              cardId: data.cardId,
+              tagId,
+            }))
+          );
+      }
 
       return { success: true };
     } catch (error) {
@@ -295,32 +291,28 @@ export const createCard = createServerFn({ method: "POST" })
       // Create the card
       const cardId = crypto.randomUUID();
 
-      // Use a transaction to create card and tags atomically
-      db.transaction((tx) => {
-        tx.insert(cards)
-          .values({
-            id: cardId,
-            listId: todoList.id,
-            title: data.title,
-            description: data.description ?? null,
-            assigneeId: data.assigneeId,
-            position: nextPosition,
-            completed: false,
-          })
-          .run();
+      // D1 doesn't support transactions, so we use sequential operations
+      await db.insert(cards)
+        .values({
+          id: cardId,
+          listId: todoList.id,
+          title: data.title,
+          description: data.description ?? null,
+          assigneeId: data.assigneeId,
+          position: nextPosition,
+          completed: false,
+        });
 
-        // Add tags if any
-        if (data.tagIds && data.tagIds.length > 0) {
-          tx.insert(cardTags)
-            .values(
-              data.tagIds.map((tagId) => ({
-                cardId,
-                tagId,
-              }))
-            )
-            .run();
-        }
-      });
+      // Add tags if any
+      if (data.tagIds && data.tagIds.length > 0) {
+        await db.insert(cardTags)
+          .values(
+            data.tagIds.map((tagId) => ({
+              cardId,
+              tagId,
+            }))
+          );
+      }
 
       return { success: true, data: { id: cardId } };
     } catch (error) {
