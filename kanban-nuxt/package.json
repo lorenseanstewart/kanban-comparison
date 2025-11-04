@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
-    "build:cf": "NITRO_PRESET=cloudflare-pages nuxt build",
     "preview": "nuxt preview",
-    "pages:deploy": "npm run build:cf && wrangler pages deploy .output/public",
+    "pages:deploy": "npm run build && wrangler pages deploy dist",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate-db.ts",
     "db:migrate:d1": "wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql",

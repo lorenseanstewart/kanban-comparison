@@ -2,7 +2,7 @@
 # This file configures D1 database bindings for Cloudflare Pages
 
 name = "kanban-nuxt"
-pages_build_output_dir = ".output/public"
+pages_build_output_dir = "dist"
 compatibility_date = "2024-11-01"
 
 # D1 Database Binding
