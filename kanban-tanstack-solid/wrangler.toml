@@ -7,5 +7,5 @@ pages_build_output_dir = "dist/pages"
 # D1 Database Binding
 [[d1_databases]]
 binding = "DB"
-database_name = "kanban-db-solid"
-database_id = "YOUR_D1_DATABASE_ID"
+database_name = "kanban-db"
+database_id = "58c3811a-0dfd-4f17-8d1a-16bb8fada81b"
