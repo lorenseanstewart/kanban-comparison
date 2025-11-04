@@ -71,32 +71,30 @@ export async function updateCard(formData: FormData) {
       throw new Error(firstIssue.message);
     }
 
-    // Use a transaction to update card and tags atomically
-    db.transaction((tx) => {
-      // Update card basic fields
-      tx.update(cards)
-        .set({
-          title: result.output.title,
-          description: result.output.description,
-          assigneeId: result.output.assigneeId,
-        })
-        .where(eq(cards.id, result.output.cardId))
-        .run();
+    // D1 doesn't support transactions - use sequential operations
+    // Update card basic fields
+    await db
+      .update(cards)
+      .set({
+        title: result.output.title,
+        description: result.output.description,
+        assigneeId: result.output.assigneeId,
+      })
+      .where(eq(cards.id, result.output.cardId));
 
-      // Update tags - delete existing and insert new ones
-      tx.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId)).run();
+    // Update tags - delete existing and insert new ones
+    await db.delete(cardTags).where(eq(cardTags.cardId, result.output.cardId));
 
-      if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(
-            result.output.tagIds.map((tagId) => ({
-              cardId: result.output.cardId,
-              tagId,
-            }))
-          )
-          .run();
-      }
-    });
+    if (result.output.tagIds && result.output.tagIds.length > 0) {
+      await db
+        .insert(cardTags)
+        .values(
+          result.output.tagIds.map((tagId) => ({
+            cardId: result.output.cardId,
+            tagId,
+          }))
+        );
+    }
   } catch (error) {
     console.error("Failed to update card:", error);
     throw new Error("Failed to update card. Please try again.");
@@ -183,32 +181,28 @@ export async function createCard(formData: FormData) {
     // Create the card
     const cardId = crypto.randomUUID();
 
-    // Use a transaction to create card and tags atomically
-    db.transaction((tx) => {
-      tx.insert(cards)
-        .values({
-          id: cardId,
-          listId: todoList.id,
-          title: result.output.title,
-          description: result.output.description,
-          assigneeId: result.output.assigneeId,
-          position: nextPosition,
-          completed: false,
-        })
-        .run();
-
-      // Add tags if any
-      if (result.output.tagIds && result.output.tagIds.length > 0) {
-        tx.insert(cardTags)
-          .values(
-            result.output.tagIds.map((tagId) => ({
-              cardId,
-              tagId,
-            }))
-          )
-          .run();
-      }
+    // D1 doesn't support transactions - use sequential operations
+    await db.insert(cards).values({
+      id: cardId,
+      listId: todoList.id,
+      title: result.output.title,
+      description: result.output.description,
+      assigneeId: result.output.assigneeId,
+      position: nextPosition,
+      completed: false,
     });
+
+    // Add tags if any
+    if (result.output.tagIds && result.output.tagIds.length > 0) {
+      await db
+        .insert(cardTags)
+        .values(
+          result.output.tagIds.map((tagId) => ({
+            cardId,
+            tagId,
+          }))
+        );
+    }
 
     return { success: true, data: { id: cardId } };
   } catch (error) {

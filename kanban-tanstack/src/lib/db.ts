@@ -1,32 +1,36 @@
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import Database from "better-sqlite3";
+/// <reference types="@cloudflare/workers-types" />
 
-let sqlite: Database.Database;
+import { drizzle } from 'drizzle-orm/d1';
 
-try {
-  sqlite = new Database('./drizzle/db.sqlite');
-
-  // Enable WAL mode for better concurrent access
-  sqlite.pragma('journal_mode = WAL');
-
-  // Set busy timeout to handle locked database gracefully
-  sqlite.pragma('busy_timeout = 5000');
-} catch (error) {
-  console.error("Failed to initialize database:", error);
-  throw new Error("Database connection failed. Please ensure the database file exists and is accessible.");
+/**
+ * Get database instance from D1 binding
+ */
+export function getDatabase(d1Binding: D1Database) {
+	return drizzle(d1Binding);
 }
 
-export const db: BetterSQLite3Database = drizzle(sqlite);
+/**
+ * Default export for use in Server Functions
+ * Requires D1 binding from environment (process.env.DB)
+ *
+ * This uses a Proxy pattern to lazily access the D1 binding,
+ * allowing the database to be imported at the module level while
+ * still accessing the runtime environment binding.
+ */
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+	get(_target, prop) {
+		// @ts-ignore - Cloudflare Workers provides DB binding via process.env
+		const d1 = process.env.DB as D1Database | undefined;
 
-// Graceful shutdown handler
-if (typeof process !== 'undefined') {
-  process.on('SIGINT', () => {
-    sqlite.close();
-    process.exit(0);
-  });
+		if (!d1) {
+			throw new Error(
+				'D1 binding not found. ' +
+					'Local dev: Use `npm run dev` which runs wrangler with --d1 flag. ' +
+					'Production: Ensure DB is bound in Cloudflare Pages/Workers settings.'
+			);
+		}
 
-  process.on('SIGTERM', () => {
-    sqlite.close();
-    process.exit(0);
-  });
-}
+		const instance = getDatabase(d1);
+		return (instance as any)[prop];
+	}
+});

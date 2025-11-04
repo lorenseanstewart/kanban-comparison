@@ -1,6 +1,6 @@
 # Kanban Board - TanStack Start
 
-A modern kanban board application built with TanStack Start, React 19, and SQLite.
+A modern kanban board application built with TanStack Start, React 19, and Cloudflare D1, deployable to Cloudflare Workers.
 
 ## Features
 
@@ -15,7 +15,8 @@ A modern kanban board application built with TanStack Start, React 19, and SQLit
 
 - **Framework**: TanStack Start (React Router + Vite)
 - **UI**: React 19, DaisyUI, Tailwind CSS
-- **Database**: SQLite with Drizzle ORM
+- **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
+- **Deployment**: Cloudflare Workers & Pages
 - **Drag & Drop**: dnd-kit
 - **Validation**: Valibot
 - **Charts**: charts.css
@@ -25,7 +26,8 @@ A modern kanban board application built with TanStack Start, React 19, and SQLit
 ### Prerequisites
 
 - Node.js 20.x or higher (TanStack Start recommends Node 22+, but works with 20)
-- npm
+- npm or pnpm
+- [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) (Cloudflare CLI) - installed automatically via npm
 
 ### Installation
 
@@ -33,29 +35,21 @@ A modern kanban board application built with TanStack Start, React 19, and SQLit
 npm install
 ```
 
-### Database Setup
+### Local Development
+
+The app uses Cloudflare D1 database and Wrangler for local development:
 
 ```bash
-# Generate migrations, reset db, run migrations, and seed data
-npm run setup
-```
-
-Individual database commands:
-```bash
-npm run db:generate  # Generate migrations from schema
-npm run db:migrate   # Run migrations
-npm run db:push      # Push schema changes (alternative to migrations)
-npm run db:reset     # Reset database
-npm run seed         # Seed database with sample data
-```
-
-### Development
-
-```bash
+# Build the app and start Wrangler dev server with D1 binding
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000)
+The dev server will start at `http://localhost:8788` with:
+- Hot module replacement (HMR) enabled
+- Local D1 database (ephemeral, resets on restart)
+- Wrangler live reload
+
+**Note:** Since D1 local database is ephemeral, you'll need to seed it on each restart.
 
 ### Build
 
@@ -63,11 +57,70 @@ Visit [http://localhost:3000](http://localhost:3000)
 npm run build
 ```
 
-### Production
+This builds the app for Cloudflare Workers using TanStack Start and the Cloudflare Vite plugin.
+
+## Cloudflare Deployment
+
+This app is designed to be deployed to Cloudflare Pages with D1 database.
+
+### Setting Up Cloudflare
+
+1. **Create a D1 Database**:
+   ```bash
+   npx wrangler d1 create kanban-db
+   ```
+
+   Copy the database ID from the output and update `wrangler.toml` if needed.
+
+2. **Apply Database Schema**:
+   ```bash
+   # Generate Drizzle migrations
+   npm run db:generate
+
+   # Apply schema to production D1
+   npx wrangler d1 execute kanban-db --file=./drizzle/migrations/0000_*.sql
+   ```
+
+3. **Connect to Cloudflare Pages**:
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
+   - Navigate to Workers & Pages → Create Application → Pages → Connect to Git
+   - Select your repository
+   - Configure build settings:
+     - **Build command**: `npm run build`
+     - **Build output directory**: `.wrangler/dist`
+     - **Root directory**: Leave empty (or set to `/kanban-tanstack` if monorepo)
+
+4. **Bind D1 Database**:
+   - After first deployment (may fail without DB), go to Settings → Functions
+   - Scroll to **D1 database bindings**
+   - Add binding:
+     - Variable name: `DB`
+     - D1 database: Select `kanban-db`
+   - Save and trigger a new deployment
+
+5. **Seed Production Database** (optional):
+   - You can create API endpoints to seed data, or
+   - Insert data directly via Wrangler CLI:
+     ```bash
+     npx wrangler d1 execute kanban-db --command="INSERT INTO..."
+     ```
+
+### Deploy via CLI
+
+Alternatively, deploy directly using Wrangler:
 
 ```bash
-npm run start
+# Deploy to Cloudflare Workers
+npm run deploy
 ```
+
+### Key Differences for Cloudflare
+
+- **No Transactions**: D1 doesn't support transactions. Sequential operations are used instead.
+- **Async Only**: All database operations must use `await`.
+- **Parameter Limits**: D1 has a 448 parameter limit for prepared statements. Batch large inserts accordingly.
+- **D1 Access**: Database is accessed via `process.env.DB` using a proxy pattern (see `src/lib/db.ts`).
+- **Environment**: App runs on Cloudflare Workers runtime (V8 isolates), not Node.js.
 
 ## Project Structure
 
