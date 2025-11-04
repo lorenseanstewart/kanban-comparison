@@ -8,15 +8,11 @@ useHead({
   ],
 });
 
-const { data: boards, pending, error } = await useAsyncData(
-  'boards',
-  () => $fetch('/api/boards'),
-  {
-    dedupe: 'defer',
-    default: () => [],
-    getCachedData: (key) => useNuxtData(key).data.value,
-  }
-);
+// Fetch boards data - use SSR data but refetch on client
+const { data: boards, pending, error } = await useFetch('/api/boards', {
+  key: 'boards',
+  default: () => [],
+});
 
 const showAddBoardModal = ref(false)
 
@@ -55,7 +51,7 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
 
     <section class="grid gap-8 md:grid-cols-2">
       <div
-        v-if="!boards || boards.length === 0"
+        v-if="!pending && (!boards || boards.length === 0)"
         class="card bg-base-200 dark:bg-base-300 shadow-xl"
       >
         <div class="card-body items-center text-center mx-auto">
@@ -66,27 +62,29 @@ function handleBoardAdd(boardData: { id: string; title: string; description: str
         </div>
       </div>
 
-      <NuxtLink
-        v-for="board in boards"
-        :key="board.id"
-        :to="`/board/${board.id}`"
-        class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
-      >
-        <div class="card-body">
-          <h2 class="card-title text-primary">{{ board.title }}</h2>
-          <p v-if="board.description" class="text-sm text-base-content/60">
-            {{ board.description }}
-          </p>
-          <p v-else class="badge badge-secondary badge-outline w-fit shadow">
-            No description
-          </p>
-          <div class="card-actions justify-end">
-            <span class="btn btn-secondary btn-sm shadow-lg">
-              Open board
-            </span>
+      <template v-if="boards && boards.length > 0">
+        <NuxtLink
+          v-for="board in boards"
+          :key="board.id"
+          :to="`/board/${board.id}`"
+          class="card bg-base-200 dark:bg-base-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all"
+        >
+          <div class="card-body">
+            <h2 class="card-title text-primary">{{ board.title }}</h2>
+            <p v-if="board.description" class="text-sm text-base-content/60">
+              {{ board.description }}
+            </p>
+            <p v-else class="badge badge-secondary badge-outline w-fit shadow">
+              No description
+            </p>
+            <div class="card-actions justify-end">
+              <span class="btn btn-secondary btn-sm shadow-lg">
+                Open board
+              </span>
+            </div>
           </div>
-        </div>
-      </NuxtLink>
+        </NuxtLink>
+      </template>
     </section>
 
     <LazyAddBoardModal

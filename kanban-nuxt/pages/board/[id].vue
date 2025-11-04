@@ -3,16 +3,11 @@ import { initializeDragAndDrop, type DragDropState } from '../lib/drag-and-drop'
 
 const route = useRoute();
 
-const { data: serverData, pending, error, refresh } = await useAsyncData(
-  `board-${route.params.id}`,
-  () => $fetch(`/api/boards/${route.params.id}`),
-  {
-    // Cache for 60 seconds
-    dedupe: 'defer',
-    default: () => null,
-    getCachedData: (key) => useNuxtData(key).data.value,
-  }
-);
+const { data: serverData, pending, error, refresh } = await useFetch(`/api/boards/${route.params.id}`, {
+  key: `board-${route.params.id}`,
+  default: () => null,
+  watch: [() => route.params.id],
+});
 
 // Use serverData directly for reactive updates
 // This ensures board is always in sync with server data
