@@ -27,6 +27,7 @@
   "scripts": {
     "dev": "marko-run",
     "build": "marko-run build",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview": "marko-run preview",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "db:generate": "drizzle-kit generate",
