@@ -12,7 +12,8 @@ export const POST = async (context: { request: Request }) => {
   }
 
   try {
-    const result = await addComment({ cardId, userId, text });
+    const d1 = context.platform?.env?.DB || context.env?.DB;
+    const result = await addComment({ cardId, userId, text }, d1);
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 200 : 400,

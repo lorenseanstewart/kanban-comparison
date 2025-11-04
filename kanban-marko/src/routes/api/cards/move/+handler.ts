@@ -12,7 +12,8 @@ export const POST = async (context: { request: Request }) => {
   }
 
   try {
-    const result = await updateCardList(cardId, targetListId);
+    const d1 = context.platform?.env?.DB || context.env?.DB;
+    const result = await updateCardList(cardId, targetListId, undefined, d1);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

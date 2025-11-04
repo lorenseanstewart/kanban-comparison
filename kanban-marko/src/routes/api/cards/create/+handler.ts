@@ -12,13 +12,14 @@ export const POST = async (context: { request: Request }) => {
   }
 
   try {
+    const d1 = context.platform?.env?.DB || context.env?.DB;
     const result = await createCard({
       boardId,
       title,
       description: description || null,
       assigneeId: assigneeId || null,
       tagIds: tagIds || []
-    });
+    }, d1);
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 200 : 400,

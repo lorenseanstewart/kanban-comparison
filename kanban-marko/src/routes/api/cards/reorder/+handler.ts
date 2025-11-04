@@ -12,7 +12,8 @@ export const POST = async (context: { request: Request }) => {
   }
 
   try {
-    const result = await updateCardPositions(cardIds);
+    const d1 = context.platform?.env?.DB || context.env?.DB;
+    const result = await updateCardPositions(cardIds, d1);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

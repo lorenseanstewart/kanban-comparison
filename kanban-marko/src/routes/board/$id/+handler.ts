@@ -4,10 +4,11 @@ export async function GET(context: any) {
   const boardId = context.params.id;
 
   try {
+    const d1 = context.platform?.env?.DB || context.env?.DB;
     const [boardData, allUsers, allTags] = await Promise.all([
-      getBoard(boardId),
-      getUsers(),
-      getTags(),
+      getBoard(boardId, d1),
+      getUsers(d1),
+      getTags(d1),
     ]);
 
     if (!boardData) {

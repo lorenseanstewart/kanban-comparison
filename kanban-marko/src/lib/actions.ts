@@ -1,11 +1,13 @@
+/// <reference types="@cloudflare/workers-types" />
 import { eq, max } from "drizzle-orm";
-import { db } from "./db";
+import { getDatabase } from "./db";
 import { boards, lists, cards, cardTags, comments } from "../../drizzle/schema";
 import * as v from "valibot";
 import { BoardSchema, CardSchema, CardUpdateSchema, CommentSchema } from "./validation";
 
-export async function createBoard(data: { title: string; description: string | null }) {
+export async function createBoard(data: { title: string; description: string | null }, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     // Validate with Valibot
     const result = v.safeParse(BoardSchema, {
       title: data.title,
@@ -50,8 +52,9 @@ export async function updateCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}) {
+}, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     // Validate with Valibot
     const result = v.safeParse(CardUpdateSchema, {
       cardId: data.cardId,
@@ -104,8 +107,9 @@ export async function addComment(data: {
   cardId: string;
   userId: string;
   text: string;
-}) {
+}, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     // Validate with Valibot
     const result = v.safeParse(CommentSchema, {
       cardId: data.cardId,
@@ -140,8 +144,9 @@ export async function createCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}) {
+}, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     if (!data.boardId) {
       return { success: false, error: "Board ID is required" };
     }
@@ -216,8 +221,9 @@ export async function createCard(data: {
   }
 }
 
-export async function updateCardList(cardId: string, newListId: string, newPosition?: number) {
+export async function updateCardList(cardId: string, newListId: string, newPosition?: number, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     const updateData: { listId: string; position?: number } = { listId: newListId };
 
     if (newPosition !== undefined) {
@@ -236,8 +242,9 @@ export async function updateCardList(cardId: string, newListId: string, newPosit
   }
 }
 
-export async function updateCardPositions(cardIds: string[]) {
+export async function updateCardPositions(cardIds: string[], d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     // Update each card's position based on its index in the array
     await Promise.all(
       cardIds.map((cardId, index) =>
@@ -255,8 +262,9 @@ export async function updateCardPositions(cardIds: string[]) {
   }
 }
 
-export async function deleteCard(cardId: string) {
+export async function deleteCard(cardId: string, d1?: D1Database) {
   try {
+    const db = await getDatabase(d1);
     if (!cardId) {
       return { success: false, error: "Card ID is required" };
     }

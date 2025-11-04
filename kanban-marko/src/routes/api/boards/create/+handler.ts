@@ -12,6 +12,7 @@ export const POST = async (context: { request: Request }) => {
   }
 
   try {
+    const d1 = context.platform?.env?.DB || context.env?.DB;
     const result = await createBoard({
       title,
       description: description || null

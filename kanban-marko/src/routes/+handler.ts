@@ -2,7 +2,9 @@ import { getBoards } from "../lib/api";
 
 export async function GET(context: any) {
   try {
-    const boards = await getBoards();
+    // Access D1 database binding from Cloudflare context
+    const d1 = context.platform?.env?.DB || context.env?.DB;
+    const boards = await getBoards(d1);
 
     context.meta = {
       ...context.meta,
