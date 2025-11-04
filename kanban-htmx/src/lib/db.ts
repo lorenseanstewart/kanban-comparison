@@ -4,6 +4,7 @@ import * as schema from "../../drizzle/schema";
 
 // Singleton for better-sqlite3 in development
 let sqliteDb: any = null;
+let initializingDb = false;
 
 /**
  * Get database instance with D1 or better-sqlite3
@@ -11,17 +12,19 @@ let sqliteDb: any = null;
  * @param d1Binding - Optional D1 database binding from Cloudflare
  * @returns Drizzle database instance
  */
-export function getDatabase(d1Binding?: D1Database) {
+export async function getDatabase(d1Binding?: D1Database) {
   // Production: use D1 from Cloudflare
   if (d1Binding) {
     return drizzleD1(d1Binding, { schema });
   }
 
   // Development: use better-sqlite3 (loaded dynamically to avoid bundling for Cloudflare)
-  if (!sqliteDb) {
+  if (!sqliteDb && !initializingDb) {
+    initializingDb = true;
+
     // Dynamic imports to prevent bundling in Cloudflare build
-    const { drizzle: drizzleSqlite } = require('drizzle-orm/better-sqlite3');
-    const Database = require('better-sqlite3');
+    const { drizzle: drizzleSqlite } = await import('drizzle-orm/better-sqlite3');
+    const Database = (await import('better-sqlite3')).default;
 
     const sqlite = new Database('./drizzle/db.sqlite');
 
@@ -45,10 +48,13 @@ export function getDatabase(d1Binding?: D1Database) {
         process.exit(0);
       });
     }
+
+    initializingDb = false;
   }
 
   return sqliteDb;
 }
 
-// Legacy export for backwards compatibility with existing code
-export const db = getDatabase();
+// Legacy export - Note: This will be null until first call to getDatabase()
+// For production with D1, this won't be used as D1 binding will be passed
+export const db = await getDatabase();
