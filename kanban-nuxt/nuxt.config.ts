@@ -67,14 +67,15 @@ export default defineNuxtConfig({
       },
     },
     '/': {
-      swr: 60, // Cache homepage for 60 seconds with stale-while-revalidate
+      ssr: true,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
     },
     '/board/**': {
-      swr: 60, // Cache board pages for 60 seconds with stale-while-revalidate
-    },
-    '/**': {
+      ssr: true,
       headers: {
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     },
   },

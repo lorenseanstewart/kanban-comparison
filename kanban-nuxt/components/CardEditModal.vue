@@ -26,6 +26,7 @@ const emit = defineEmits<{
 
 const selectedTagIds = ref(new Set(props.card.tags.map((t) => t.id)))
 const isDeleting = ref(false)
+const isSaving = ref(false)
 
 // Reset selected tags when card changes
 watch(
@@ -76,12 +77,16 @@ async function handleSubmit(e: Event) {
   const assigneeId = formData.get('assigneeId') as string
 
   const updatedTags = props.tags.filter((tag) => selectedTagIds.value.has(tag.id))
+
+  // Optimistic update
   emit('update', {
     title,
     description: description || null,
     assigneeId: assigneeId || null,
     tags: updatedTags,
   })
+
+  isSaving.value = true
 
   try {
     const payload = {
@@ -91,11 +96,12 @@ async function handleSubmit(e: Event) {
       tagIds: Array.from(selectedTagIds.value),
     }
 
-    await $fetch(`/api/cards/${props.card.id}`, {
+    const response = await $fetch(`/api/cards/${props.card.id}`, {
       method: 'POST',
       body: payload,
     })
 
+    // Success - close the modal
     emit('close')
   } catch (error: any) {
     // Revert optimistic change on failure
@@ -107,6 +113,9 @@ async function handleSubmit(e: Event) {
       tags: props.card.tags,
     })
     console.error('Failed to update card:', error)
+    alert('Failed to update card. Please try again.')
+  } finally {
+    isSaving.value = false
   }
 }
 </script>
@@ -200,10 +209,12 @@ async function handleSubmit(e: Event) {
             {{ isDeleting ? 'Deleting...' : 'Delete Card' }}
           </button>
           <div class="flex gap-2">
-            <button type="button" class="btn btn-ghost" @click="emit('close')">
+            <button type="button" class="btn btn-ghost" @click="emit('close')" :disabled="isSaving">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSaving">
+              {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            </button>
           </div>
         </div>
       </form>

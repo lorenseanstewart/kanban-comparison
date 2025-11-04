@@ -14,16 +14,9 @@ const { data: serverData, pending, error, refresh } = await useAsyncData(
   }
 );
 
-// Local mutable copy for optimistic updates
-const board = ref(null);
-
-// Initialize from server data
-board.value = serverData.value;
-
-// Sync local state with server data when serverData changes
-watch(serverData, (newBoard) => {
-  board.value = newBoard;
-});
+// Use serverData directly for reactive updates
+// This ensures board is always in sync with server data
+const board = serverData;
 
 // Set dynamic meta tags based on board data
 watchEffect(() => {
