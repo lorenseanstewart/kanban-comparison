@@ -4,17 +4,13 @@ This project was generated with [Analog](https://analogjs.org), the fullstack me
 
 Deployed on Cloudflare Pages with D1 database.
 
-## Important Note
+## Local Development
 
-**Local D1 Development Limitation**: Analog (Nitro) + Cloudflare D1 local development is not currently well-supported. Wrangler does not properly expose D1 bindings to Nitro's built worker in development mode.
+The app uses a dual-database setup:
+- **Development**: Better-SQLite3 with `local.db`
+- **Production**: Cloudflare D1
 
-**Recommended Workflow**:
-
-- Deploy directly to Cloudflare Pages for testing with D1
-- Or use Cloudflare's preview deployments
-- Local development would require a different database setup (e.g., better-sqlite3)
-
-## Setup
+### Setup
 
 1. Install dependencies:
 
@@ -22,47 +18,73 @@ Deployed on Cloudflare Pages with D1 database.
 npm install
 ```
 
-2. Build for production:
+2. Set up local database (creates and seeds `local.db`):
 
 ```bash
-npm run build
+npm run setup
 ```
+
+3. Start dev server:
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
 
 ## Production Deployment
 
-Deploy to Cloudflare Pages:
+### First-time Setup
+
+1. **Create and migrate D1 database** (one time only):
+
+```bash
+npm run db:migrate
+```
+
+2. **Seed production database** (optional):
+
+```bash
+npm run seed
+```
+
+3. **Deploy to Cloudflare Pages**:
 
 ```bash
 npm run pages:deploy
 ```
 
-After deployment, you need to:
-
-1. **Bind the D1 database** in Cloudflare Pages dashboard:
-   - Go to Settings → Functions → D1 database bindings
-   - Variable name: `DB`
-   - D1 database: Select `kanban-db`
-
-2. **Run migrations and seed** on production:
-
-```bash
-curl -X POST https://kanban-analog.pages.dev/api/migrate
-curl -X POST https://kanban-analog.pages.dev/api/seed
-```
+The D1 database binding is configured in `wrangler.toml` and should automatically work once deployed.
 
 **Production URL**: https://kanban-analog.pages.dev
+
+### Subsequent Deployments
+
+Just build and deploy:
+
+```bash
+npm run pages:deploy
+```
 
 ## Database
 
 This app uses Cloudflare D1 (SQLite on the edge) via Drizzle ORM.
 
-**Schema generation:**
+### Available Scripts
 
-```bash
-npm run db:generate
-```
+- `npm run setup` - Set up local database (migrate + seed)
+- `npm run db:generate` - Generate Drizzle migrations from schema changes
+- `npm run db:migrate:local` - Apply migrations to local D1 database
+- `npm run db:migrate` - Apply migrations to production D1 database
+- `npm run seed:local` - Seed local database with sample data
+- `npm run seed` - Seed production database with sample data
 
-This generates Drizzle migrations from schema changes in `drizzle/schema.ts`.
+### Schema Changes
+
+1. Modify schema in `drizzle/schema.ts`
+2. Generate migration: `npm run db:generate`
+3. Apply locally: `npm run db:migrate:local`
+4. Apply to production: `npm run db:migrate`
 
 ## Build
 
@@ -75,6 +97,8 @@ npm run build
 Build artifacts are located in `dist/analog/public/`.
 
 ## Logs
+
+View production logs:
 
 ```bash
 npx wrangler pages deployment tail --project-name=kanban-analog --format=pretty

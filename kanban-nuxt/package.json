@@ -5,13 +5,20 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
+    "build:cf": "NITRO_PRESET=cloudflare-pages nuxt build",
     "preview": "nuxt preview",
+    "pages:deploy": "npm run build:cf && wrangler pages deploy .output/public",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:migrate:d1": "wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql",
+    "db:migrate:d1:local": "wrangler d1 execute kanban-db --local --file=./drizzle/migrations/0000_calm_captain_britain.sql",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
     "seed": "tsx server/db/seed.ts",
-    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
+    "seed:d1": "wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql",
+    "seed:d1:local": "wrangler d1 execute kanban-db --local --file=./scripts/seed-d1.sql",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed",
+    "setup:d1": "npm run db:migrate:d1:local && npm run seed:d1:local"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
@@ -28,12 +35,14 @@
     "vue": "latest"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251014.0",
     "@types/better-sqlite3": "^7.6.12",
     "@vueuse/components": "^13.9.0",
     "browserslist-config-baseline": "^0.5.0",
     "daisyui": "^5.1.25",
     "drizzle-kit": "^0.30.1",
     "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "wrangler": "^4.45.3"
   }
 }
