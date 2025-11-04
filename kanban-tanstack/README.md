@@ -81,21 +81,43 @@ This app is designed to be deployed to Cloudflare Pages with D1 database.
    npx wrangler d1 execute kanban-db --file=./drizzle/migrations/0000_*.sql
    ```
 
-3. **Connect to Cloudflare Pages**:
+3. **Deploy to Cloudflare Pages**:
+
+   **Option A: Deploy via CLI (Recommended)**
+   ```bash
+   npm run deploy
+   ```
+
+   This runs the custom build script `scripts/build-cloudflare.mjs` which:
+   - Runs standard TanStack Start build
+   - Bundles worker with Vite using `inlineDynamicImports: true`
+   - Externalizes Node.js built-ins (provided by `nodejs_compat` flag)
+   - Externalizes React (Wrangler bundles it correctly)
+   - Creates a single `_worker.js` file with env.ASSETS support
+   - Copies client assets and worker to `dist/pages`
+
+   **Option B: Deploy via Git (Cloudflare Dashboard)**
    - Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
    - Navigate to Workers & Pages → Create Application → Pages → Connect to Git
    - Select your repository
    - Configure build settings:
-     - **Build command**: `npm run build`
-     - **Build output directory**: `dist/server`
+     - **Build command**: `npm run build:cloudflare`
+     - **Build output directory**: `dist/pages`
      - **Root directory**: Leave empty (or set to `/kanban-tanstack` if monorepo)
 
-4. **D1 Database Binding**:
-   - The D1 binding is configured in `wrangler.jsonc` and should be automatically applied
-   - If needed, you can manually bind in Cloudflare Pages:
-     - Go to Settings → Functions
-     - Scroll to **D1 database bindings**
-     - Add binding: Variable name `DB`, D1 database `kanban-db`
+4. **Configure D1 Database Binding** (Required):
+
+   After deploying, the D1 database must be bound manually in Cloudflare Dashboard:
+   - Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Workers & Pages
+   - Select your `kanban-tanstack` project
+   - Go to **Settings** → **Functions**
+   - Scroll to **D1 database bindings**
+   - Click **Add binding**:
+     - **Variable name**: `DB`
+     - **D1 database**: `kanban-db`
+   - Click **Save**
+
+   **Note:** The D1 binding in `wrangler.toml` is for local development only. Pages deployments require manual dashboard configuration.
 
 5. **Seed Production Database** (optional):
    - You can create API endpoints to seed data, or
@@ -104,21 +126,13 @@ This app is designed to be deployed to Cloudflare Pages with D1 database.
      npx wrangler d1 execute kanban-db --command="INSERT INTO..."
      ```
 
-### Deploy via CLI
-
-Alternatively, deploy directly using Wrangler:
-
-```bash
-# Deploy to Cloudflare Workers
-npm run deploy
-```
-
 ### Key Differences for Cloudflare
 
 - **No Transactions**: D1 doesn't support transactions. Sequential operations are used instead.
 - **Async Only**: All database operations must use `await`.
 - **Parameter Limits**: D1 has a 448 parameter limit for prepared statements. Batch large inserts accordingly.
 - **D1 Access**: Database is accessed via `process.env.DB` using a proxy pattern (see `src/lib/db.ts`).
+- **Custom Build Script**: Uses `scripts/build-cloudflare.mjs` to bundle the worker with Vite, following the kanban-marko pattern.
 - **Environment**: App runs on Cloudflare Workers runtime (V8 isolates), not Node.js.
 
 ## Project Structure

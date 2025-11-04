@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "npm run build && wrangler pages dev dist/server --live-reload",
     "build": "vite build && tsc --noEmit",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "start": "wrangler pages dev dist/server",
-    "deploy": "npm run build && wrangler deploy dist/server/wrangler.json",
-    "pages:deploy": "npm run build && wrangler pages deploy dist/server",
+    "deploy": "npm run build:cloudflare && wrangler pages deploy dist/pages --project-name=kanban-tanstack",
     "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
@@ -39,6 +39,7 @@
     "autoprefixer": "^10.4.21",
     "cssnano": "^7.1.1",
     "drizzle-kit": "^0.31.5",
+    "esbuild": "^0.25.12",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.20.6",

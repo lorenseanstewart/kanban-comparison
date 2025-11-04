@@ -1,0 +1,11 @@
+# Cloudflare Pages configuration for TanStack Start (Solid) with D1
+name = "kanban-tanstack-solid"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist/pages"
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "kanban-db-solid"
+database_id = "YOUR_D1_DATABASE_ID"

@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && tsc --noEmit",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "start": "node server.mjs",
+    "deploy": "npm run build:cloudflare && wrangler pages deploy dist/pages --project-name=kanban-tanstack-solid",
+    "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate-db.ts",
     "db:push": "drizzle-kit push",
@@ -28,6 +31,7 @@
     "valibot": "^1.1.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250106.0",
     "@tailwindcss/vite": "^4.1.14",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.5.4",
@@ -40,6 +44,7 @@
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
     "vite-plugin-solid": "^2.11.10",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "wrangler": "^3.100.0"
   }
 }
