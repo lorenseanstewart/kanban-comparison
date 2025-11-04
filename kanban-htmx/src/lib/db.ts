@@ -1,41 +1,24 @@
 /// <reference types="@cloudflare/workers-types" />
-import Database from 'better-sqlite3'
-import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3'
-import { drizzle as drizzleD1 } from 'drizzle-orm/d1'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
-import * as schema from '../../drizzle/schema'
-
-// Singleton for better-sqlite3 in development
-let sqliteDb: ReturnType<typeof drizzleBetterSqlite<typeof schema>> | null = null
 
 /**
  * Get database instance with D1 or better-sqlite3
  *
+ * Uses dynamic imports to prevent better-sqlite3 from being bundled in Cloudflare Workers.
+ * In production, d1Binding is always provided, so the local code path is never taken.
+ *
  * @param d1Binding - Optional D1 database binding from Cloudflare
  * @returns Drizzle database instance
  */
-export function getDatabase(d1Binding?: D1Database) {
-  // Production: use D1 from Cloudflare
+export async function getDatabase(d1Binding?: D1Database) {
   if (d1Binding) {
-    return drizzleD1(d1Binding, { schema })
+    // Production: use D1 from Cloudflare
+    // Dynamic import prevents bundling of better-sqlite3
+    const { getDatabase: getD1Database } = await import('./db.d1.js')
+    return getD1Database(d1Binding)
   }
 
   // Development: use better-sqlite3
-  if (!sqliteDb) {
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = dirname(__filename)
-    const projectRoot = join(__dirname, '../..')
-    const dbPath = join(projectRoot, 'drizzle/db.sqlite')
-
-    const sqlite = new Database(dbPath)
-
-    // Enable WAL mode for better concurrency
-    sqlite.pragma('journal_mode = WAL')
-    sqlite.pragma('busy_timeout = 5000')
-
-    sqliteDb = drizzleBetterSqlite(sqlite, { schema })
-  }
-
-  return sqliteDb
+  // This code path is never reached in Cloudflare Workers
+  const { getDatabase: getLocalDatabase } = await import('./db.local.js')
+  return getLocalDatabase()
 }
