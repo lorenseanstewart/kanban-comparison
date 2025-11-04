@@ -4,26 +4,23 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "wrangler pages dev .svelte-kit/cloudflare --d1=DB=kanban-db --live-reload",
 		"build": "vite build",
-		"preview": "vite preview",
+		"preview": "wrangler pages dev .svelte-kit/cloudflare",
+		"pages:deploy": "wrangler pages deploy .svelte-kit/cloudflare",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "tsx scripts/migrate-db.ts",
-		"db:push": "drizzle-kit push",
-		"db:reset": "node scripts/reset-db.js",
-		"seed": "tsx src/db/seed.ts",
-		"setup": "npm run db:reset && npm run db:migrate && npm run seed"
+		"setup": "bash scripts/seed-dev.sh"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250111.0",
 		"@sveltejs/adapter-auto": "^6.1.1",
 		"@sveltejs/adapter-cloudflare": "^7.2.4",
 		"@sveltejs/kit": "^2.47.3",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/vite": "^4.1.14",
-		"@types/better-sqlite3": "^7.6.13",
 		"autoprefixer": "^10.4.21",
 		"drizzle-kit": "^0.31.5",
 		"svelte": "^5.41.0",
@@ -31,10 +28,10 @@
 		"tailwindcss": "^4.1.14",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3",
-		"vite": "^7.1.10"
+		"vite": "^7.1.10",
+		"wrangler": "^3.102.0"
 	},
 	"dependencies": {
-		"better-sqlite3": "^12.4.1",
 		"charts.css": "^1.2.0",
 		"daisyui": "^5.3.7",
 		"drizzle-orm": "^0.44.6",

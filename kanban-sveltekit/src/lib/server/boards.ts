@@ -1,5 +1,6 @@
+/// <reference types="@cloudflare/workers-types" />
 import { eq, inArray, asc } from 'drizzle-orm';
-import { db } from '$lib/db';
+import { getDatabase } from '$lib/db';
 import {
 	boards,
 	lists,
@@ -38,8 +39,9 @@ export type BoardCard = BoardList['cards'][number];
 export type UsersList = Array<{ id: string; name: string }>;
 export type TagsList = Array<Pick<Tag, 'id' | 'name' | 'color'>>;
 
-export async function getBoards(): Promise<BoardSummary[]> {
+export async function getBoards(d1: D1Database): Promise<BoardSummary[]> {
 	try {
+		const db = getDatabase(d1);
 		const rows = await db
 			.select({
 				id: boards.id,
@@ -55,8 +57,9 @@ export async function getBoards(): Promise<BoardSummary[]> {
 	}
 }
 
-export async function getBoard(boardId: string): Promise<BoardDetails | null> {
+export async function getBoard(d1: D1Database, boardId: string): Promise<BoardDetails | null> {
 	try {
+		const db = getDatabase(d1);
 		const board = await db
 			.select({
 				id: boards.id,
@@ -187,8 +190,9 @@ export async function getBoard(boardId: string): Promise<BoardDetails | null> {
 	}
 }
 
-export async function getUsers() {
+export async function getUsers(d1: D1Database) {
 	try {
+		const db = getDatabase(d1);
 		return db
 			.select({ id: users.id, name: users.name })
 			.from(users)
@@ -199,8 +203,9 @@ export async function getUsers() {
 	}
 }
 
-export async function getTags() {
+export async function getTags(d1: D1Database) {
 	try {
+		const db = getDatabase(d1);
 		return db
 			.select({ id: tags.id, name: tags.name, color: tags.color })
 			.from(tags)

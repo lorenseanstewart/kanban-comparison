@@ -1,34 +1,13 @@
-import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+/// <reference types="@cloudflare/workers-types" />
+import { drizzle } from 'drizzle-orm/d1';
 
-let sqlite: Database.Database;
-
-try {
-	sqlite = new Database('./drizzle/db.sqlite');
-
-	// Enable WAL mode for better concurrent access
-	sqlite.pragma('journal_mode = WAL');
-
-	// Set busy timeout to handle locked database gracefully
-	sqlite.pragma('busy_timeout = 5000');
-} catch (error) {
-	console.error('Failed to initialize database:', error);
-	throw new Error(
-		'Database connection failed. Please ensure the database file exists and is accessible.'
-	);
-}
-
-export const db: BetterSQLite3Database = drizzle(sqlite);
-
-// Graceful shutdown handler
-if (typeof process !== 'undefined') {
-	process.on('SIGINT', () => {
-		sqlite.close();
-		process.exit(0);
-	});
-
-	process.on('SIGTERM', () => {
-		sqlite.close();
-		process.exit(0);
-	});
+/**
+ * Factory function to create a Drizzle database instance from a D1 binding.
+ * This pattern is required for Cloudflare D1 deployment.
+ *
+ * @param d1Binding - The D1Database binding from platform.env.DB
+ * @returns Drizzle database instance configured for D1
+ */
+export function getDatabase(d1Binding: D1Database) {
+	return drizzle(d1Binding);
 }

@@ -1,7 +1,7 @@
 import { build } from 'vite';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync, writeFileSync, rmSync } from 'fs';
+import { readFileSync, writeFileSync, rmSync, existsSync, cpSync, readdirSync } from 'fs';
 import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,13 +10,11 @@ const root = join(__dirname, '..');
 
 console.log('Building for Cloudflare Pages...');
 
-// First build with marko-run
-console.log('Step 1: Running marko-run build...');
+console.log('Step 1: Running standard Marko build...');
 execSync('npm run build', { cwd: root, stdio: 'inherit' });
 
-console.log('Step 2: Building Cloudflare Worker entry...');
+console.log('Step 2: Patching index.mjs to remove Node.js code...');
 
-// Read the index.mjs and remove the dynamic import to better-sqlite3
 const indexPath = join(root, 'dist/index.mjs');
 let indexContent = readFileSync(indexPath, 'utf-8');
 
@@ -26,13 +24,36 @@ indexContent = indexContent.replace(
   'const getLocalDatabase = () => { throw new Error("Local SQLite not available in Cloudflare Workers"); };'
 );
 
-// Export the fetch function for the Cloudflare Worker
-indexContent = indexContent.replace(
-  /export { schema as s };/,
-  'export { schema as s, fetch };'
-);
+// Remove unused Node.js imports
+indexContent = indexContent.replace(/import .* from ['"]compression['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]serve-static['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]zlib['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]http['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]path['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]url['"];?\n?/g, '');
+indexContent = indexContent.replace(/import .* from ['"]fs['"];?\n?/g, '');
+
+// Extract the __MARKO_MANIFEST__ definition (everything after the last semicolon)
+const lastSemicolon = indexContent.lastIndexOf(';var __MARKO_MANIFEST__');
+const manifest = lastSemicolon >= 0 ? indexContent.substring(lastSemicolon) : '';
+
+// Remove/stub out all the Node.js HTTP server code at the end
+// Find everything after the fetch function definition and before export
+const fetchFunctionMatch = indexContent.match(/(async function fetch\(request, platform\) \{[\s\S]*?\n\})/);
+if (!fetchFunctionMatch) {
+  throw new Error('Could not find fetch function in index.mjs');
+}
+
+// Keep only up to the end of the fetch function, then add export and manifest
+const endOfFetchIndex = indexContent.indexOf(fetchFunctionMatch[0]) + fetchFunctionMatch[0].length;
+const beforeFetch = indexContent.substring(0, endOfFetchIndex);
+
+// Add export and manifest at the end
+indexContent = beforeFetch + '\n\nexport { schema as s, fetch };\n' + manifest + '\n';
 
 writeFileSync(indexPath, indexContent);
+
+console.log('Step 3: Building Cloudflare Worker...');
 
 // Build the worker
 await build({
@@ -46,7 +67,7 @@ await build({
       output: {
         entryFileNames: '_worker.js',
         format: 'esm',
-        inlineDynamicImports: true, // Inline everything into one file
+        inlineDynamicImports: true,
       },
     },
   },
@@ -61,8 +82,37 @@ await build({
   },
 });
 
-// Remove the better-sqlite3 chunk files
-console.log('Step 3: Cleaning up Node.js-specific files...');
+console.log('Step 4: Cleaning up _worker.js...');
+
+// Remove unused imports from _worker.js
+const workerPath = join(root, 'dist/_worker.js');
+let workerContent = readFileSync(workerPath, 'utf-8');
+
+workerContent = workerContent.replace(/import ['"]compression['"];?\n?/g, '');
+workerContent = workerContent.replace(/import ['"]serve-static['"];?\n?/g, '');
+
+writeFileSync(workerPath, workerContent);
+
+console.log('Step 5: Moving static assets to dist root...');
+
+// Move everything from dist/public/ to dist/
+const publicDir = join(root, 'dist/public');
+if (existsSync(publicDir)) {
+  // Copy everything from public to dist root
+  const items = readdirSync(publicDir);
+  for (const item of items) {
+    const src = join(publicDir, item);
+    const dest = join(root, 'dist', item);
+    cpSync(src, dest, { recursive: true });
+    console.log(`  Moved ${item} to dist root`);
+  }
+
+  // Remove the public directory
+  rmSync(publicDir, { recursive: true });
+  console.log('  Removed public directory');
+}
+
+console.log('Step 6: Cleaning up Node.js-specific files...');
 const files = ['_CIhK7HE9.js', '_BA_G8cDY.js'];
 for (const file of files) {
   try {

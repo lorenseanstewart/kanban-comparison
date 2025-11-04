@@ -1,11 +1,15 @@
 # Kanban Board - Marko Implementation
 
-A full-featured Kanban board application built with Marko, featuring drag-and-drop, real-time updates, and SQLite persistence.
+A full-featured Kanban board application built with Marko, featuring drag-and-drop, real-time updates, and database persistence with support for both local development and Cloudflare Pages deployment.
 
 ## Tech Stack
 
 - **Framework**: Marko 6 with [@marko/run](https://github.com/marko-js/run)
-- **Database**: SQLite with Drizzle ORM
+- **Database**:
+  - **Local**: SQLite with better-sqlite3
+  - **Production**: Cloudflare D1
+  - **ORM**: Drizzle ORM
+- **Deployment**: Cloudflare Pages with Workers
 - **Styling**: Tailwind CSS + DaisyUI
 - **Drag & Drop**: @formkit/drag-and-drop
 - **Animations**: @formkit/auto-animate
@@ -33,10 +37,16 @@ npm run dev
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build production bundle
+### Development & Building
+
+- `npm run dev` - Start development server (uses SQLite)
+- `npm run build` - Build production bundle for Node.js
+- `npm run build:cloudflare` - Build for Cloudflare Pages deployment
 - `npm run preview` - Preview production build
 - `npm run start` - Run production server
+
+### Database Management
+
 - `npm run setup` - Initialize database (reset + migrate + seed)
 - `npm run db:reset` - Delete database files
 - `npm run db:generate` - Generate new migration from schema changes
@@ -46,9 +56,16 @@ npm run dev
 
 ## Database Setup
 
-The app uses SQLite with Drizzle ORM. The database file is located at `drizzle/db.sqlite`.
+The app supports two database configurations:
 
-### Reset Database
+- **Local Development**: Uses SQLite with better-sqlite3 (`drizzle/db.sqlite`)
+- **Cloudflare Production**: Uses Cloudflare D1 (serverless SQLite)
+
+The database adapter is automatically selected based on the environment:
+- Local: `src/lib/db.local.ts` (better-sqlite3)
+- Cloudflare: `src/lib/db.d1.ts` (D1 binding)
+
+### Reset Local Database
 
 ```bash
 npm run setup  # This automatically resets, migrates, and seeds
@@ -58,7 +75,8 @@ npm run setup  # This automatically resets, migrates, and seeds
 
 1. Modify schema in `drizzle/schema.ts`
 2. Generate migration: `npm run db:generate`
-3. Apply migration: `npm run db:migrate`
+3. Apply migration locally: `npm run db:migrate`
+4. Apply migration to D1: See Cloudflare Deployment section
 
 ## Project Structure
 
@@ -70,12 +88,19 @@ src/
 │   └── board/          # Board detail pages
 ├── components/         # Reusable components
 ├── lib/               # Utilities and helpers
-│   ├── db.ts          # Database connection
-│   └── server/        # Server-side utilities
+│   ├── db.ts          # Database entry point (dynamic import)
+│   ├── db.local.ts    # SQLite adapter (local dev)
+│   ├── db.d1.ts       # D1 adapter (Cloudflare)
+│   ├── api.ts         # Data fetching functions
+│   └── actions.ts     # Data mutation functions
+├── entry.cloudflare.ts # Cloudflare Worker entry point
 └── db/                # Database seeds
 drizzle/
 ├── schema.ts          # Database schema
 └── migrations/        # Migration files
+scripts/
+└── build-cloudflare.mjs # Cloudflare build script
+wrangler.toml          # Cloudflare configuration
 ```
 
 ## Features
@@ -92,11 +117,69 @@ drizzle/
 - ✅ Responsive design with DaisyUI theme
 - ✅ Board overview charts
 
+## Cloudflare Pages Deployment
+
+This app is configured for deployment on Cloudflare Pages with D1 database support.
+
+### Prerequisites
+
+1. Install Wrangler CLI: `npm install -g wrangler`
+2. Authenticate: `wrangler login`
+3. Create a D1 database:
+   ```bash
+   wrangler d1 create kanban-db
+   ```
+4. Update `wrangler.toml` with your D1 database ID
+
+### Initial Setup
+
+1. Apply migrations to D1:
+   ```bash
+   wrangler d1 migrations apply kanban-db --remote
+   ```
+
+2. (Optional) Seed the D1 database:
+   ```bash
+   # You'll need to create a seed script or manually insert data
+   ```
+
+### Deploy
+
+```bash
+npm run build:cloudflare
+npx wrangler pages deploy dist --project-name=kanban-marko
+```
+
+### How It Works
+
+The Cloudflare build process:
+1. Runs standard Marko build
+2. Removes Node.js-specific imports (better-sqlite3, http, etc.)
+3. Builds a custom `_worker.js` entry point
+4. Moves static assets to dist root for ASSETS binding
+5. Includes the Marko manifest for client-side hydration
+
+Key files for Cloudflare:
+- `src/entry.cloudflare.ts` - Worker entry point that handles static assets and routes
+- `src/lib/db.d1.ts` - D1 database adapter
+- `scripts/build-cloudflare.mjs` - Custom build script
+- `wrangler.toml` - Cloudflare configuration
+
+### Environment Variables
+
+The app automatically detects the environment:
+- **Local**: Uses `src/lib/db.local.ts` with SQLite
+- **Cloudflare**: Uses `src/lib/db.d1.ts` with D1 binding
+
+No environment variables needed - the D1 binding is configured in `wrangler.toml`.
+
 ## Learn More
 
 - [Marko Documentation](https://markojs.com/)
 - [@marko/run Documentation](https://github.com/marko-js/run)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
 
 ## License
 

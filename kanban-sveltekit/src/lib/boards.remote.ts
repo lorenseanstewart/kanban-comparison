@@ -1,17 +1,23 @@
-import { form, query } from '$app/server';
+/// <reference types="@cloudflare/workers-types" />
+import { form, query, getRequestEvent } from '$app/server';
 import { BoardSchema } from '$lib/validation';
-import { db } from '$lib/db';
+import { getDatabase } from '$lib/db';
 import { boards, lists } from '$lib/db/schema';
 import { getBoards as getBoardsFromServer } from '$lib/server/boards';
 
 export const getBoards = query(async () => {
-	return await getBoardsFromServer();
+	const event = getRequestEvent();
+	const d1 = event.platform?.env?.DB as D1Database;
+	return await getBoardsFromServer(d1);
 });
 
 export const addBoard = form(
 	BoardSchema,
 	async ({ title, description = null }, invalid) => {
 		try {
+			const event = getRequestEvent();
+			const d1 = event.platform?.env?.DB as D1Database;
+			const db = getDatabase(d1);
 			const boardId = crypto.randomUUID();
 
 			await db.insert(boards).values({
