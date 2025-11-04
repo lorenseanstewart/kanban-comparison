@@ -11,7 +11,7 @@ const root = join(__dirname, '..');
 console.log('Building for Cloudflare Pages...');
 
 console.log('Step 1: Running standard TanStack Start build...');
-execSync('npm run build', { cwd: root, stdio: 'inherit' });
+execSync('npx vite build', { cwd: root, stdio: 'inherit' });
 
 console.log('Step 2: Bundling Worker with Vite + inlineDynamicImports...');
 
