@@ -29,7 +29,7 @@
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3",
 		"vite": "^7.1.10",
-		"wrangler": "^3.102.0"
+		"wrangler": "^4.0.0"
 	},
 	"dependencies": {
 		"charts.css": "^1.2.0",
