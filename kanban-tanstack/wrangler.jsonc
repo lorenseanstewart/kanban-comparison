@@ -3,5 +3,12 @@
 	"name": "kanban-tanstack",
 	"compatibility_date": "2025-01-01",
 	"compatibility_flags": ["nodejs_compat"],
-	"main": "@tanstack/react-start/server-entry"
+	"main": "@tanstack/react-start/server-entry",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "kanban-db",
+			"database_id": "58c3811a-0dfd-4f17-8d1a-16bb8fada81b"
+		}
+	]
 }

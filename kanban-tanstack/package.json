@@ -4,11 +4,11 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "npm run build && wrangler pages dev .wrangler/dist --d1=DB=kanban-db --live-reload",
+    "dev": "npm run build && wrangler pages dev dist/server --live-reload",
     "build": "vite build && tsc --noEmit",
-    "start": "wrangler pages dev .wrangler/dist",
-    "deploy": "npm run build && wrangler deploy",
-    "pages:deploy": "npm run build && wrangler pages deploy .wrangler/dist",
+    "start": "wrangler pages dev dist/server",
+    "deploy": "npm run build && wrangler deploy dist/server/wrangler.json",
+    "pages:deploy": "npm run build && wrangler pages deploy dist/server",
     "cf-typegen": "wrangler types",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"

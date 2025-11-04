@@ -87,16 +87,15 @@ This app is designed to be deployed to Cloudflare Pages with D1 database.
    - Select your repository
    - Configure build settings:
      - **Build command**: `npm run build`
-     - **Build output directory**: `.wrangler/dist`
+     - **Build output directory**: `dist/server`
      - **Root directory**: Leave empty (or set to `/kanban-tanstack` if monorepo)
 
-4. **Bind D1 Database**:
-   - After first deployment (may fail without DB), go to Settings → Functions
-   - Scroll to **D1 database bindings**
-   - Add binding:
-     - Variable name: `DB`
-     - D1 database: Select `kanban-db`
-   - Save and trigger a new deployment
+4. **D1 Database Binding**:
+   - The D1 binding is configured in `wrangler.jsonc` and should be automatically applied
+   - If needed, you can manually bind in Cloudflare Pages:
+     - Go to Settings → Functions
+     - Scroll to **D1 database bindings**
+     - Add binding: Variable name `DB`, D1 database `kanban-db`
 
 5. **Seed Production Database** (optional):
    - You can create API endpoints to seed data, or
