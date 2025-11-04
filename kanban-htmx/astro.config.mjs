@@ -20,7 +20,6 @@ export default defineConfig({
       cssCodeSplit: true,
       cssMinify: true,
       rollupOptions: {
-        external: ["better-sqlite3", "drizzle-orm/better-sqlite3", "url", "path"],
         output: {
           manualChunks: undefined,
         },
