@@ -18,6 +18,11 @@ SELECT CAST(COALESCE(MAX(position), -1) AS INTEGER) as max_position
 FROM cards
 WHERE list_id = ?;
 
+-- name: CardByCardId :one
+SELECT *
+FROM cards
+WHERE id = ?;
+
 -- name: CreateCard :exec
 INSERT INTO cards (id, list_id, title, description, assignee_id, position, completed, created_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);

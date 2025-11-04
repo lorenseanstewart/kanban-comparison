@@ -16,8 +16,8 @@ tasks:
       - npm:install
     sources:
       - ./web/input.css
-      - ./node_modules/daisyui/**/*
-      - ./node_modules/@tailwindcss/**/*
+      - ./web/**/*.templ
+      - ./web/**/*.go
     generates:
       - ./web/static/style.css
     cmd: npx @tailwindcss/cli -i ./web/input.css -o ./web/static/style.css
