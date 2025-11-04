@@ -23,6 +23,8 @@ A modern kanban board application built with TanStack Start for Solid.js, deploy
 
 ## Getting Started
 
+**Note:** This project is optimized for Cloudflare Pages deployment by default. The `npm run build` command creates a Cloudflare-ready build in `dist/pages`. For local Node.js builds, use `npm run build:local`.
+
 ### Prerequisites
 
 - Node.js 20.x or higher
@@ -80,7 +82,13 @@ This app is designed to be deployed to Cloudflare Pages with D1 database.
    npm run deploy
    ```
 
-   This runs the custom build script `scripts/build-cloudflare.mjs` which:
+   Or using the standard build command (optimized for Cloudflare by default):
+   ```bash
+   npm run build
+   wrangler pages deploy dist/pages --project-name=kanban-tanstack-solid
+   ```
+
+   The build command runs the custom script `scripts/build-cloudflare.mjs` which:
    - Runs standard TanStack Start build
    - Bundles worker with Vite using `inlineDynamicImports: true`
    - Externalizes Node.js built-ins (provided by `nodejs_compat` flag)
@@ -93,7 +101,7 @@ This app is designed to be deployed to Cloudflare Pages with D1 database.
    - Navigate to Workers & Pages → Create Application → Pages → Connect to Git
    - Select your repository
    - Configure build settings:
-     - **Build command**: `npm run build:cloudflare`
+     - **Build command**: `npm run build` (automatically uses Cloudflare build)
      - **Build output directory**: `dist/pages`
      - **Root directory**: Leave empty (or set to `/kanban-tanstack-solid` if monorepo)
 
