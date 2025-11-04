@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	Port   int    `envconfig:"PORT" default:"7331"`
+	Port   int    `envconfig:"PORT" default:"3011"`
 	IsDev  bool   `default:"false" split_words:"true"`
 	DBPath string `envconfig:"DB_PATH" default:"./data/kanban.db"`
 }
