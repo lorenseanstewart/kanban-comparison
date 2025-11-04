@@ -6,6 +6,12 @@ import { CommentSchema } from '../../lib/validation';
 export const POST: APIRoute = async (context) => {
   try {
     const d1 = context.locals?.runtime?.env?.DB;
+    if (!d1) {
+      return new Response(JSON.stringify({ error: 'D1 database binding not found' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     const formData = await context.request.formData();
     const cardId = formData.get('cardId') as string;
     const userId = formData.get('userId') as string;
