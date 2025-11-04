@@ -14,7 +14,12 @@
     "test": "vitest",
     "preview": "node dist/analog/server/index.mjs",
     "pages:deploy": "npm run build && wrangler pages deploy dist/analog/public",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_sturdy_analog.sql",
+    "db:migrate:local": "wrangler d1 execute kanban-db --local --file=./drizzle/migrations/0000_sturdy_analog.sql",
+    "seed": "wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql",
+    "seed:local": "wrangler d1 execute kanban-db --local --file=./scripts/seed-d1.sql",
+    "setup": "npm run db:migrate:local && npm run seed:local"
   },
   "private": true,
   "dependencies": {
@@ -29,6 +34,7 @@
     "@angular/platform-server": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@tailwindcss/vite": "^4.1.4",
+    "better-sqlite3": "^12.4.1",
     "charts.css": "^1.2.0",
     "daisyui": "^5.1.29",
     "drizzle-orm": "^0.44.6",
@@ -47,13 +53,14 @@
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
     "@cloudflare/workers-types": "^4.20251014.0",
-    "wrangler": "^4.45.3",
+    "@types/better-sqlite3": "^7.6.13",
     "drizzle-kit": "^0.31.5",
     "jsdom": "^22.0.0",
     "tsx": "^4.20.6",
     "typescript": "~5.8.0",
     "vite": "^7.0.0",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "wrangler": "^4.45.3"
   }
 }

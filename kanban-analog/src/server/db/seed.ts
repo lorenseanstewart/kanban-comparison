@@ -1,5 +1,5 @@
-import { db } from './index';
 import { users, boards, lists, cards, tags, cardTags, comments } from '../../../drizzle/schema';
+import type { getDatabase } from './index';
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
 
@@ -139,30 +139,35 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-const seed = () => {
-  db.transaction((tx) => {
-    tx.delete(cardTags).run();
-    tx.delete(comments).run();
-    tx.delete(cards).run();
-    tx.delete(lists).run();
-    tx.delete(boards).run();
-    tx.delete(tags).run();
-    tx.delete(users).run();
-    tx.insert(users).values(usersData).run();
-    tx.insert(boards).values(boardsData).run();
-    tx.insert(lists).values(listsData).run();
-    tx.insert(tags).values(tagsData).run();
-    tx.insert(cards).values(cardsData).run();
-    tx.insert(cardTags).values(cardTagsData).run();
-    tx.insert(comments).values(commentsData).run();
-  });
-};
+export async function seedData(db: ReturnType<typeof getDatabase>) {
+  // Delete existing data
+  await db.delete(cardTags);
+  await db.delete(comments);
+  await db.delete(cards);
+  await db.delete(lists);
+  await db.delete(boards);
+  await db.delete(tags);
+  await db.delete(users);
 
-try {
-  seed();
-  console.log('Database seeded');
-  process.exit(0);
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+  // Insert seed data
+  await db.insert(users).values(usersData);
+  await db.insert(boards).values(boardsData);
+  await db.insert(lists).values(listsData);
+  await db.insert(tags).values(tagsData);
+
+  // Batch cards to avoid parameter limits
+  const CARD_BATCH_SIZE = 10;
+  for (let i = 0; i < cardsData.length; i += CARD_BATCH_SIZE) {
+    const batch = cardsData.slice(i, i + CARD_BATCH_SIZE);
+    await db.insert(cards).values(batch);
+  }
+
+  await db.insert(cardTags).values(cardTagsData);
+
+  // Batch comments to avoid parameter limits
+  const COMMENT_BATCH_SIZE = 10;
+  for (let i = 0; i < commentsData.length; i += COMMENT_BATCH_SIZE) {
+    const batch = commentsData.slice(i, i + COMMENT_BATCH_SIZE);
+    await db.insert(comments).values(batch);
+  }
 }

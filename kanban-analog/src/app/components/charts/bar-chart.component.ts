@@ -34,7 +34,6 @@ export interface ChartData {
   `,
   styles: `
     table {
-      height: 120px;
       max-width: 100%;
       margin: 0;
     }

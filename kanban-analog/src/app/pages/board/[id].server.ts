@@ -16,11 +16,7 @@ export const load = async ({ params, event }: PageServerLoad) => {
                event.context.DB ||
                (event.context as any).env?.DB) as D1Database | undefined;
 
-  if (!d1) {
-    console.error('D1 binding not found. Available context:', Object.keys(event.context));
-    throw new Error('D1 binding not found');
-  }
-
+  // getDatabase will use better-sqlite3 if d1 is undefined (local dev)
   const db = getDatabase(d1);
 
   // Get board
