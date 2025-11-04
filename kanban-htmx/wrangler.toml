@@ -4,5 +4,5 @@ compatibility_date = "2024-11-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "kanban-htmx-db"
-database_id = "your-database-id-here"
+database_name = "kanban-db"
+database_id = "58c3811a-0dfd-4f17-8d1a-16bb8fada81b"
