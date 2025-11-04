@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getBoard } from '../../../lib/api';
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async (context) => {
   try {
-    const boardId = params.id;
+    const d1 = context.locals?.runtime?.env?.DB;
+    const boardId = context.params.id;
 
     if (!boardId) {
       return new Response(JSON.stringify({ error: 'Board ID is required' }), {
@@ -12,7 +13,7 @@ export const GET: APIRoute = async ({ params }) => {
       });
     }
 
-    const board = await getBoard(boardId);
+    const board = await getBoard(boardId, d1);
 
     if (!board) {
       return new Response(JSON.stringify({ error: 'Board not found' }), {

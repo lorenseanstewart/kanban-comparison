@@ -3,9 +3,10 @@ import { getBoards, createBoard } from '../../lib/api';
 import * as v from 'valibot';
 import { BoardSchema } from '../../lib/validation';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async (context) => {
   try {
-    const boards = await getBoards();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const boards = await getBoards(d1);
     return new Response(JSON.stringify(boards), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -19,9 +20,10 @@ export const GET: APIRoute = async () => {
   }
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    const formData = await request.formData();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const formData = await context.request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
 
@@ -39,7 +41,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const board = await createBoard(result.output);
+    const board = await createBoard(result.output, d1);
 
     return new Response(JSON.stringify({ success: true, board }), {
       status: 201,

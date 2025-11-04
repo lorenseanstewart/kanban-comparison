@@ -3,9 +3,10 @@ import { addComment } from '../../lib/api';
 import * as v from 'valibot';
 import { CommentSchema } from '../../lib/validation';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    const formData = await request.formData();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const formData = await context.request.formData();
     const cardId = formData.get('cardId') as string;
     const userId = formData.get('userId') as string;
     const text = formData.get('text') as string;
@@ -25,7 +26,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const comment = await addComment(result.output);
+    const comment = await addComment(result.output, d1);
 
     return new Response(JSON.stringify({ success: true, comment }), {
       status: 201,

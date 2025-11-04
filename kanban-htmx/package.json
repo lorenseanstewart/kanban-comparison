@@ -10,10 +10,15 @@
     "astro": "astro",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate-db.ts",
+    "db:migrate:d1": "wrangler d1 execute kanban-htmx-db --remote --file=drizzle/migrations/0000_calm_captain_britain.sql",
+    "db:migrate:d1:local": "wrangler d1 execute kanban-htmx-db --local --file=drizzle/migrations/0000_calm_captain_britain.sql",
     "db:push": "drizzle-kit push",
     "db:reset": "node scripts/reset-db.js",
     "seed": "tsx src/db/seed.ts",
-    "setup": "npm run db:reset && npm run db:migrate && npm run seed"
+    "seed:d1": "wrangler d1 execute kanban-htmx-db --remote --file=scripts/seed-d1.sql",
+    "seed:d1:local": "wrangler d1 execute kanban-htmx-db --local --file=scripts/seed-d1.sql",
+    "setup": "npm run db:reset && npm run db:migrate && npm run seed",
+    "pages:deploy": "npm run build && wrangler pages deploy dist"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.6",
@@ -31,10 +36,12 @@
   },
   "devDependencies": {
     "@astrojs/cloudflare": "^12.6.10",
+    "@cloudflare/workers-types": "^4.20250605.0",
     "@tailwindcss/vite": "^4.1.7",
     "autoprefixer": "^10.4.21",
     "daisyui": "^5.3.0",
     "tailwindcss": "^4.1.7",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "wrangler": "^3.106.1"
   }
 }

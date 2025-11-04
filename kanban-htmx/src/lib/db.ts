@@ -1,32 +1,52 @@
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+/// <reference types="@cloudflare/workers-types" />
+import { drizzle as drizzleSqlite, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
 import Database from "better-sqlite3";
+import * as schema from "../../drizzle/schema";
 
-let sqlite: Database.Database;
+// Singleton for better-sqlite3 in development
+let sqliteDb: BetterSQLite3Database<typeof schema> | null = null;
 
-try {
-  sqlite = new Database('./drizzle/db.sqlite');
+/**
+ * Get database instance with D1 or better-sqlite3
+ *
+ * @param d1Binding - Optional D1 database binding from Cloudflare
+ * @returns Drizzle database instance
+ */
+export function getDatabase(d1Binding?: D1Database) {
+  // Production: use D1 from Cloudflare
+  if (d1Binding) {
+    return drizzleD1(d1Binding, { schema });
+  }
 
-  // Enable WAL mode for better concurrent access
-  sqlite.pragma('journal_mode = WAL');
+  // Development: use better-sqlite3
+  if (!sqliteDb) {
+    const sqlite = new Database('./drizzle/db.sqlite');
 
-  // Set busy timeout to handle locked database gracefully
-  sqlite.pragma('busy_timeout = 5000');
-} catch (error) {
-  console.error("Failed to initialize database:", error);
-  throw new Error("Database connection failed. Please ensure the database file exists and is accessible.");
+    // Enable WAL mode for better concurrent access
+    sqlite.pragma('journal_mode = WAL');
+
+    // Set busy timeout to handle locked database gracefully
+    sqlite.pragma('busy_timeout = 5000');
+
+    sqliteDb = drizzleSqlite(sqlite, { schema });
+
+    // Graceful shutdown handler
+    if (typeof process !== 'undefined') {
+      process.on('SIGINT', () => {
+        sqlite.close();
+        process.exit(0);
+      });
+
+      process.on('SIGTERM', () => {
+        sqlite.close();
+        process.exit(0);
+      });
+    }
+  }
+
+  return sqliteDb;
 }
 
-export const db: BetterSQLite3Database = drizzle(sqlite);
-
-// Graceful shutdown handler
-if (typeof process !== 'undefined') {
-  process.on('SIGINT', () => {
-    sqlite.close();
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    sqlite.close();
-    process.exit(0);
-  });
-}
+// Legacy export for backwards compatibility with existing code
+export const db = getDatabase();

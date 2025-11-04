@@ -3,9 +3,10 @@ import { createCard } from '../../lib/api';
 import * as v from 'valibot';
 import { CardSchema } from '../../lib/validation';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    const formData = await request.formData();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const formData = await context.request.formData();
     const boardId = formData.get('boardId') as string;
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
@@ -36,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const card = await createCard(result.output);
+    const card = await createCard(result.output, d1);
 
     return new Response(JSON.stringify({ success: true, card }), {
       status: 201,

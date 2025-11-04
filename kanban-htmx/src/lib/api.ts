@@ -1,5 +1,6 @@
+/// <reference types="@cloudflare/workers-types" />
 import { eq, inArray, asc, max } from "drizzle-orm";
-import { db } from "./db";
+import { getDatabase } from "./db";
 import {
   boards,
   lists,
@@ -48,7 +49,8 @@ export type UsersList = Array<User>;
 export type TagItem = Pick<Tag, "id" | "name" | "color">;
 export type TagsList = Array<TagItem>;
 
-export async function getBoards(): Promise<BoardSummary[]> {
+export async function getBoards(d1?: D1Database): Promise<BoardSummary[]> {
+  const db = getDatabase(d1);
   const rows = await db
     .select({
       id: boards.id,
@@ -60,7 +62,8 @@ export async function getBoards(): Promise<BoardSummary[]> {
   return rows;
 }
 
-export async function getBoard(boardId: string): Promise<BoardDetails | null> {
+export async function getBoard(boardId: string, d1?: D1Database): Promise<BoardDetails | null> {
+  const db = getDatabase(d1);
   const board = await db
     .select({
       id: boards.id,
@@ -190,21 +193,24 @@ export async function getBoard(boardId: string): Promise<BoardDetails | null> {
     };
 }
 
-export async function getUsers() {
+export async function getUsers(d1?: D1Database) {
+  const db = getDatabase(d1);
   return db
     .select({ id: users.id, name: users.name })
     .from(users)
     .orderBy(asc(users.name));
 }
 
-export async function getTags() {
+export async function getTags(d1?: D1Database) {
+  const db = getDatabase(d1);
   return db
     .select({ id: tags.id, name: tags.name, color: tags.color })
     .from(tags)
     .orderBy(asc(tags.name));
 }
 
-export async function createBoard(data: { title: string; description: string | null }) {
+export async function createBoard(data: { title: string; description: string | null }, d1?: D1Database) {
+  const db = getDatabase(d1);
   const boardId = crypto.randomUUID();
 
   await db.insert(boards).values({
@@ -233,7 +239,8 @@ export async function createCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}) {
+}, d1?: D1Database) {
+  const db = getDatabase(d1);
   // Find the Todo list for this board
   const todoLists = await db
     .select()
@@ -293,7 +300,8 @@ export async function updateCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}) {
+}, d1?: D1Database) {
+  const db = getDatabase(d1);
   // Use a transaction to update card and tags atomically
   db.transaction((tx) => {
     // Update card basic fields
@@ -326,7 +334,8 @@ export async function addComment(data: {
   cardId: string;
   userId: string;
   text: string;
-}) {
+}, d1?: D1Database) {
+  const db = getDatabase(d1);
   const commentId = crypto.randomUUID();
 
   await db.insert(comments).values({
@@ -339,7 +348,8 @@ export async function addComment(data: {
   return { id: commentId };
 }
 
-export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>) {
+export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>, d1?: D1Database) {
+  const db = getDatabase(d1);
   db.transaction((tx) => {
     for (const update of updates) {
       tx.update(cards)
@@ -350,7 +360,8 @@ export async function updateCardPositions(updates: Array<{ cardId: string; listI
   });
 }
 
-export async function reorderCards(cardIds: string[]) {
+export async function reorderCards(cardIds: string[], d1?: D1Database) {
+  const db = getDatabase(d1);
   db.transaction((tx) => {
     cardIds.forEach((cardId, index) => {
       tx.update(cards)
@@ -361,7 +372,8 @@ export async function reorderCards(cardIds: string[]) {
   });
 }
 
-export async function moveCard(cardId: string, targetListId: string) {
+export async function moveCard(cardId: string, targetListId: string, d1?: D1Database) {
+  const db = getDatabase(d1);
   // Get the highest position in the target list
   const maxPositionResult = await db
     .select({ maxPos: max(cards.position) })
@@ -376,7 +388,8 @@ export async function moveCard(cardId: string, targetListId: string) {
     .where(eq(cards.id, cardId));
 }
 
-export async function deleteCard(cardId: string) {
+export async function deleteCard(cardId: string, d1?: D1Database) {
+  const db = getDatabase(d1);
   if (!cardId) {
     throw new Error("Card ID is required");
   }

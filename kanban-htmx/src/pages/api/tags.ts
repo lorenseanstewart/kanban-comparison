@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getTags } from '../../lib/api';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async (context) => {
   try {
-    const tags = await getTags();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const tags = await getTags(d1);
     return new Response(JSON.stringify(tags), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
 import { updateCardPositions } from '../../lib/api';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    const data = await request.json();
+    const d1 = context.locals?.runtime?.env?.DB;
+    const data = await context.request.json();
     const updates = data.updates as Array<{ cardId: string; listId: string; position: number }>;
 
     if (!updates || !Array.isArray(updates)) {
@@ -13,7 +14,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    await updateCardPositions(updates);
+    await updateCardPositions(updates, d1);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

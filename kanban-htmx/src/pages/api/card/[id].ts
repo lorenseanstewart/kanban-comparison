@@ -3,9 +3,10 @@ import { updateCard } from '../../../lib/api';
 import * as v from 'valibot';
 import { CardUpdateSchema } from '../../../lib/validation';
 
-export const PATCH: APIRoute = async ({ params, request }) => {
+export const PATCH: APIRoute = async (context) => {
   try {
-    const cardId = params.id;
+    const d1 = context.locals?.runtime?.env?.DB;
+    const cardId = context.params.id;
     if (!cardId) {
       return new Response(JSON.stringify({ error: 'Card ID is required' }), {
         status: 400,
@@ -13,7 +14,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
       });
     }
 
-    const formData = await request.formData();
+    const formData = await context.request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const assigneeId = formData.get('assigneeId') as string;
@@ -36,7 +37,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
       });
     }
 
-    await updateCard(result.output);
+    await updateCard(result.output, d1);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
