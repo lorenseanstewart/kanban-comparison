@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/db';
-import { users, boards, lists, cards, tags, cardTags, comments } from '../../../../drizzle/schema';
+import { db } from '@/lib/db';
+import { users, boards, lists, cards, tags, cardTags, comments } from "@/drizzle/schema";
 
-export const runtime = 'edge';
 
 // Seed data for API route (copied from seed.ts)
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
@@ -84,17 +83,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Get D1 binding from Cloudflare Pages env
-    // @ts-ignore - Cloudflare Pages env binding
-    const d1 = process.env.DB as D1Database | undefined;
-
-    if (!d1) {
-      return NextResponse.json(
-        { error: 'D1 binding not found. Check Cloudflare Pages configuration.' },
-        { status: 500 }
-      );
-    }
-
-    const db = getDatabase(d1);
 
     console.log('[Seed] Starting database seed...');
 
@@ -146,17 +134,6 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check if database is seeded
 export async function GET() {
   try {
-    // @ts-ignore
-    const d1 = process.env.DB as D1Database | undefined;
-
-    if (!d1) {
-      return NextResponse.json(
-        { error: 'D1 binding not found' },
-        { status: 500 }
-      );
-    }
-
-    const db = getDatabase(d1);
 
     const userCount = await db.select().from(users);
     const boardCount = await db.select().from(boards);

@@ -1,146 +1,146 @@
 {
-  "timestamp": "2025-11-02T22:33:11.692Z",
-  "note": "Bundle sizes use raw (uncompressed) as primary, compressed in parentheses",
+  "timestamp": "2025-11-05T00:43:52.424Z",
+  "note": "Bundle sizes use compressed (transferred) as primary metric",
   "boardPage": [
     {
-      "framework": "Marko",
+      "framework": "kanban-marko",
       "jsUncompressed": 90916,
-      "jsTransferred": 29443,
-      "compressionRatio": 68,
-      "requests": 0
-    },
-    {
-      "framework": "Qwik",
-      "jsUncompressed": 117597,
-      "jsTransferred": 59774,
-      "compressionRatio": 49,
-      "requests": 0
-    },
-    {
-      "framework": "SvelteKit",
-      "jsUncompressed": 128192,
-      "jsTransferred": 55428,
-      "compressionRatio": 57,
-      "requests": 0
-    },
-    {
-      "framework": "Astro",
-      "jsUncompressed": 130406,
-      "jsTransferred": 35084,
-      "compressionRatio": 73,
-      "requests": 0
-    },
-    {
-      "framework": "SolidStart",
-      "jsUncompressed": 131692,
-      "jsTransferred": 42493,
-      "compressionRatio": 68,
-      "requests": 0
-    },
-    {
-      "framework": "TanStack Start + Solid",
-      "jsUncompressed": 187023,
-      "jsTransferred": 61866,
+      "jsTransferred": 29801,
       "compressionRatio": 67,
       "requests": 0
     },
     {
-      "framework": "Nuxt",
-      "jsUncompressed": 230275,
-      "jsTransferred": 76503,
-      "compressionRatio": 67,
-      "requests": 0
-    },
-    {
-      "framework": "TanStack Start",
-      "jsUncompressed": 382609,
-      "jsTransferred": 121052,
-      "compressionRatio": 68,
-      "requests": 0
-    },
-    {
-      "framework": "Analog",
-      "jsUncompressed": 385377,
-      "jsTransferred": 106361,
+      "framework": "kanban-htmx",
+      "jsUncompressed": 130810,
+      "jsTransferred": 36040,
       "compressionRatio": 72,
       "requests": 0
     },
     {
-      "framework": "Next.js",
-      "jsUncompressed": 577251,
-      "jsTransferred": 180333,
+      "framework": "kanban-solidstart",
+      "jsUncompressed": 131321,
+      "jsTransferred": 49303,
+      "compressionRatio": 62,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-sveltekit",
+      "jsUncompressed": 124022,
+      "jsTransferred": 57291,
+      "compressionRatio": 54,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-qwikcity",
+      "jsUncompressed": 117597,
+      "jsTransferred": 60829,
+      "compressionRatio": 48,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-tanstack-solid",
+      "jsUncompressed": 187621,
+      "jsTransferred": 63529,
+      "compressionRatio": 66,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-nuxt",
+      "jsUncompressed": 237266,
+      "jsTransferred": 91608,
+      "compressionRatio": 61,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-tanstack",
+      "jsUncompressed": 382609,
+      "jsTransferred": 122878,
+      "compressionRatio": 68,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-analog",
+      "jsUncompressed": 397106,
+      "jsTransferred": 123749,
       "compressionRatio": 69,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-nextjs",
+      "jsUncompressed": 563115,
+      "jsTransferred": 177447,
+      "compressionRatio": 68,
       "requests": 0
     }
   ],
   "homePage": [
     {
-      "framework": "Marko",
+      "framework": "kanban-marko",
       "jsUncompressed": 12649,
-      "jsTransferred": 6977,
-      "compressionRatio": 45,
+      "jsTransferred": 7207,
+      "compressionRatio": 43,
       "requests": 0
     },
     {
-      "framework": "SolidStart",
-      "jsUncompressed": 85899,
-      "jsTransferred": 30562,
-      "compressionRatio": 64,
-      "requests": 0
-    },
-    {
-      "framework": "Qwik",
-      "jsUncompressed": 88544,
-      "jsTransferred": 43557,
-      "compressionRatio": 51,
-      "requests": 0
-    },
-    {
-      "framework": "Astro",
-      "jsUncompressed": 88935,
-      "jsTransferred": 21995,
+      "framework": "kanban-htmx",
+      "jsUncompressed": 89339,
+      "jsTransferred": 22731,
       "compressionRatio": 75,
       "requests": 0
     },
     {
-      "framework": "SvelteKit",
-      "jsUncompressed": 105914,
-      "jsTransferred": 48931,
-      "compressionRatio": 54,
+      "framework": "kanban-solidstart",
+      "jsUncompressed": 85624,
+      "jsTransferred": 35303,
+      "compressionRatio": 59,
       "requests": 0
     },
     {
-      "framework": "TanStack Start + Solid",
-      "jsUncompressed": 153019,
-      "jsTransferred": 52036,
-      "compressionRatio": 66,
+      "framework": "kanban-qwikcity",
+      "jsUncompressed": 88544,
+      "jsTransferred": 44267,
+      "compressionRatio": 50,
       "requests": 0
     },
     {
-      "framework": "Nuxt",
-      "jsUncompressed": 230275,
-      "jsTransferred": 76503,
-      "compressionRatio": 67,
+      "framework": "kanban-sveltekit",
+      "jsUncompressed": 101744,
+      "jsTransferred": 50423,
+      "compressionRatio": 50,
       "requests": 0
     },
     {
-      "framework": "TanStack Start",
-      "jsUncompressed": 316822,
-      "jsTransferred": 100698,
+      "framework": "kanban-tanstack-solid",
+      "jsUncompressed": 150297,
+      "jsTransferred": 52136,
+      "compressionRatio": 65,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-nuxt",
+      "jsUncompressed": 237266,
+      "jsTransferred": 91589,
+      "compressionRatio": 61,
+      "requests": 0
+    },
+    {
+      "framework": "kanban-analog",
+      "jsUncompressed": 296269,
+      "jsTransferred": 96019,
       "compressionRatio": 68,
       "requests": 0
     },
     {
-      "framework": "Analog",
-      "jsUncompressed": 385377,
-      "jsTransferred": 106361,
-      "compressionRatio": 72,
+      "framework": "kanban-tanstack",
+      "jsUncompressed": 316822,
+      "jsTransferred": 101816,
+      "compressionRatio": 68,
       "requests": 0
     },
     {
-      "framework": "Next.js",
-      "jsUncompressed": 497757,
-      "jsTransferred": 154539,
+      "framework": "kanban-nextjs",
+      "jsUncompressed": 478186,
+      "jsTransferred": 148199,
       "compressionRatio": 69,
       "requests": 0
     }

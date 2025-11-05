@@ -1,10 +1,4 @@
-# Bundle Size Measurement Methodology
-
-**Audience**: Blog readers, external researchers, and anyone wanting to understand or critique our measurement approach.
-
-**Purpose**: This document explains and defends our methodology choices, addresses potential criticisms, and provides high-level reproducibility instructions. For operational details on running the measurement scripts, see [_loren/PERFORMANCE_METRICS_GUIDE.md](_loren/PERFORMANCE_METRICS_GUIDE.md).
-
-## Overview
+# Overview
 
 All frameworks implement identical functionality (a Kanban board app) with identical features, database, and UI framework (Tailwind CSS + DaisyUI). **All frameworks achieve excellent Lighthouse performance scores (100) with First Contentful Paint in the 35-71ms range, demonstrating instant initial page load.** With performance being essentially identical, this evaluation focuses primarily on **JavaScript bundle sizes**, which range from 28.8 kB to 176.3 kB compressed—a 6.1x difference that impacts mobile users through data usage, parse time, and battery drain.
 
@@ -22,6 +16,7 @@ All frameworks implement identical functionality (a Kanban board app) with ident
 ### Why 10 Runs?
 
 For Lighthouse performance scores, 10 runs provide:
+
 - Sufficient statistical power for outlier detection
 - Reliable IQR (Interquartile Range) calculation
 - More stable median values
@@ -45,6 +40,7 @@ We use the **Interquartile Range (IQR) method** to identify and remove statistic
 ### Server Warmup
 
 Before measurements, we perform **warmup requests**:
+
 - Each page is requested twice via curl
 - 500ms delay between warmup requests
 - 2-second stabilization delay after warmup
@@ -59,21 +55,50 @@ For Lighthouse performance scores, the median is more robust to outliers than th
 ### Expected Variance
 
 Based on our measurements with 10 runs and outlier removal:
+
 - **Bundle sizes**: ±1-2% (primarily from build timestamps in artifacts)
 - **Performance scores**: ±1-2 points (Lighthouse score variance)
 - **Core Web Vitals** (FCP, LCP, etc.): ±3-5% (network and CPU scheduling variance, significantly reduced with warmup and outlier removal)
 
+## Measurement Workflow
+
+### Individual Test Runs
+
+Each measurement run follows this workflow:
+
+1. **Measure a single website** using `measure-single.ts`:
+   - Accepts a production URL (e.g., `https://kanban-tanstack-solid.pages.dev`)
+   - Framework name is automatically inferred from the URL
+   - Runs multiple test iterations (default: 10 runs per page)
+   - Saves results to `metrics/{framework-name}.json`
+
+2. **Aggregate results** using `aggregate-measurements.ts`:
+   - Reads all individual JSON reports from metrics folder
+   - Generates consolidated `final-measurements.md` and `final-measurements.json`
+   - Creates comparison tables across all measured frameworks
+
+3. **Generate charts** using `generate-charts.ts`:
+   - Reads `final-measurements.json`
+   - Creates `bundle-size-comparison.svg` chart
+
+**No batch testing**: Tests are run individually per website to allow:
+
+- Incremental updates as deployments are ready
+- Focused analysis of individual frameworks
+- Flexibility to re-measure specific frameworks without affecting others
+
 ## What We Measure
 
-### Primary Focus: Bundle Sizes
+### Primary Focus: Bundle Sizes & Web Vitals
 
-We track bundle sizes meticulously with two complementary measurements:
+We track three key categories:
 
 ### Bundle Size: Two Numbers That Matter
 
 We report **both compressed and raw bundle sizes** for complete transparency:
 
 #### Compressed Size (Network Transfer)
+
 - **What it is**: Bytes actually downloaded over the network
 - **Why it matters**: This is what affects your users' load times
 - **How measured**: Chrome DevTools Protocol captures actual transfer size
@@ -81,6 +106,7 @@ We report **both compressed and raw bundle sizes** for complete transparency:
 - **Compression type**: Detected automatically (usually gzip for local servers, brotli for production CDNs)
 
 #### Raw Size (Code Volume)
+
 - **What it is**: Uncompressed bundle size (actual JavaScript code)
 - **Why it matters**:
   - Shows framework overhead before compression
@@ -89,9 +115,11 @@ We report **both compressed and raw bundle sizes** for complete transparency:
 - **How measured**: `resourceSize` from Lighthouse network audit
 
 #### Compression Ratio
+
 We calculate and report: `(raw - compressed) / raw × 100%`
 
 **Interpreting compression ratios:**
+
 - **40-60%**: Less compressible code (often minified, terse patterns)
 - **60-75%**: Typical compression (standard JavaScript)
 - **75%+**: Highly compressible (verbose code, repetitive patterns)
@@ -99,6 +127,7 @@ We calculate and report: `(raw - compressed) / raw × 100%`
 **Important**: A framework with better compression (higher %) but larger compressed size still sends more bytes to users. **Compressed size is what matters most for performance.**
 
 Example:
+
 - Framework A: 10 kB compressed (20 kB raw, 50% compression)
 - Framework B: 15 kB compressed (90 kB raw, 83% compression)
 - **Winner**: Framework A (users download 5 kB less, despite worse compression ratio)
@@ -110,9 +139,18 @@ Example:
 - **Performance Score**: Lighthouse overall score (0-100) - All frameworks achieve 100
 - **First Contentful Paint (FCP)**: Time to first content render - All frameworks: 35-71ms
 - **Largest Contentful Paint (LCP)**: Time to main content render
-- **Total Blocking Time (TBT)**: Main thread blocking time - All frameworks: 0ms at 1x CPU
-- **Cumulative Layout Shift (CLS)**: Visual stability metric - All frameworks: ≈0
+- **Total Blocking Time (TBT)**: Main thread blocking time
+- **Cumulative Layout Shift (CLS)**: Visual stability metric
 - **Speed Index**: Visual completion speed
+
+### Web Vitals Tracking
+
+Core Web Vitals are measured and tracked for each deployment:
+
+- **LCP (Largest Contentful Paint)**: Primary loading metric
+- **FCP (First Contentful Paint)**: Initial render metric
+- **CLS (Cumulative Layout Shift)**: Visual stability
+- **TBT (Total Blocking Time)**: Interactivity metric
 
 ## Test Environment
 
@@ -129,12 +167,14 @@ Example:
 **Important**: We use **1x CPU** (no slowdown).
 
 **Rationale:**
+
 - Isolates bundle size impact from CPU performance
 - Focuses on what developers control (bundle/network)
 - Ensures fair comparison across frameworks with different runtime characteristics
 - Reduces measurement variance
 
 **Trade-off:**
+
 - Results may be more optimistic than real-world mobile devices with slower CPUs
 - Real mobile devices (especially mid/low-end) have slower CPUs and will show larger differences
 
@@ -151,12 +191,14 @@ Example:
 **We measure first-load bundle sizes** (cache cleared between runs).
 
 **Why:**
+
 - Represents first-time visitor experience
 - Worst-case scenario for bundle size impact
 - More sensitive to bundle size differences
 - Eliminates cache as a confounding variable
 
 **Trade-off:**
+
 - Real users often benefit from cached resources
 - Subsequent page loads will be faster than measured
 - This comparison favors frameworks with smaller initial bundles
@@ -174,24 +216,30 @@ Example:
 
 ❌ Code splitting effectiveness for large apps
 ❌ Runtime performance after initial load (all frameworks feel instant)
-❌ Real-world CDN latency (localhost measurement)
 ❌ Progressive enhancement strategies
 ❌ Warm-cache / repeat visit performance
-❌ Interactivity differences (all frameworks achieve instant TTI)
+❌ Different geographic CDN edge locations (tested from single location)
 
-### Localhost vs Production
+### Production Deployment Testing
 
-These measurements run against `localhost` servers:
+These measurements run against production deployments on Cloudflare Pages:
+
+**URL Structure:** `https://{folder-name}.pages.dev`
+
+- Example: `https://kanban-tanstack-solid.pages.dev`
 
 **Advantages:**
-- Eliminates network variance
-- Fair comparison across frameworks
-- Reproducible results
 
-**Disadvantages:**
-- No CDN latency
-- No geographic distribution effects
-- Popular frameworks may benefit from better CDN availability in production
+- Real-world CDN performance
+- Actual compression (Brotli from Cloudflare)
+- Geographic distribution effects included
+- Tests actual production bundle delivery
+
+**Considerations:**
+
+- CDN latency included in measurements
+- Network variance managed through multiple runs and outlier removal
+- All frameworks deployed to same CDN provider for fair comparison
 
 ### Build Variance
 
@@ -232,6 +280,7 @@ With 10 runs and IQR outlier removal, differences are meaningful when:
 - Performance score difference > 5 points
 
 Example: Framework A = 100 kB ±3 kB, Framework B = 120 kB ±4 kB
+
 - Difference: 20 kB
 - Combined σ: 5 kB
 - 20 kB > 2×5 kB, so difference is likely real
@@ -245,31 +294,70 @@ To reproduce these measurements:
 git clone https://github.com/lorenstewart/kanban-comparison
 cd kanban-comparison
 
-# 2. Build all frameworks
-# (see individual framework READMEs)
+# 2. Build and deploy a framework to Cloudflare Pages
+# (see individual framework READMEs for build instructions)
+# Each deployment gets a URL like: https://kanban-{framework}.pages.dev
 
-# 3. Run measurements
-tsx scripts/measure-final.ts --runs 10
+# 3. Measure a single deployment
+tsx scripts/measure-single.ts --url https://kanban-tanstack-solid.pages.dev --runs 10
 
-# 4. View results
+# 4. Repeat step 3 for each framework you want to measure
+tsx scripts/measure-single.ts --url https://kanban-nextjs.pages.dev --runs 10
+tsx scripts/measure-single.ts --url https://kanban-nuxt.pages.dev --runs 10
+# ... etc
+
+# 5. Aggregate all measurements into final report
+tsx scripts/aggregate-measurements.ts
+
+# 6. Generate comparison chart
+tsx scripts/generate-charts.ts
+
+# 7. View results
 cat metrics/final-measurements.md
+# Individual JSON reports: metrics/{framework-name}.json
+# Comparison chart: metrics/bundle-size-comparison.svg
 ```
 
 **Requirements:**
+
 - Node.js 20+
 - Chrome/Chromium
+- Cloudflare Pages deployments (URL format: `https://{folder-name}.pages.dev`)
 - Same network conditions (or accept different absolute values)
 
 **Expected variance:**
+
 - Bundle sizes should be within ±5% of published values
 - Performance scores should be within ±5 points of published values
 - Relative rankings should be consistent
+
+### Output Format
+
+The measurement workflow produces these outputs:
+
+1. **Individual JSON reports** (`metrics/{framework-name}.json`):
+   - Detailed metrics for each framework
+   - Includes metadata: URL, timestamp, test configuration
+   - Statistical summaries: median, mean, stddev, min, max
+
+2. **Aggregated measurements** (`metrics/final-measurements.json`):
+   - Combined data from all frameworks
+   - Used as source for chart generation
+
+3. **Markdown report** (`metrics/final-measurements.md`):
+   - Human-readable comparison tables
+   - Bundle sizes, web vitals, framework details
+
+4. **Comparison chart** (`metrics/bundle-size-comparison.svg`):
+   - Visual comparison of compressed vs raw bundle sizes
+   - Sorted by compressed size (smallest first)
 
 ## Questions & Criticisms
 
 ### "No CPU throttling makes results unrealistic"
 
 **Response**: We're measuring bundle size impact, not CPU performance. Using 1x CPU:
+
 - Isolates the metric we care about (bundle size)
 - Reduces measurement variance
 - Ensures fair comparison across frameworks with different runtime costs
@@ -279,23 +367,25 @@ You can modify the scripts to add CPU throttling if you want to measure that asp
 ### "First-load only doesn't reflect real usage"
 
 **Response**: We're measuring worst-case (first visit) bundle sizes:
+
 - Most sensitive to bundle size differences
 - Relevant for SEO, first impressions, and bounce rates
 - Warm-cache performance favors frameworks with aggressive caching, which isn't the focus here
 - Bundle size differences matter on every deployment (cache busting)
 
-### "Localhost doesn't reflect production"
+### "Testing on production CDN introduces variance"
 
 **Response**: True, but:
-- Eliminates network variance for reproducible measurements
-- Fair comparison (no framework benefits from better CDN distribution)
-- Focus is on bundle size, which is framework-controlled
 
-In production with CDN, all frameworks would be faster, but relative differences would be similar.
+- Reflects real-world conditions users experience
+- Multiple runs with outlier removal manages variance
+- All frameworks use same CDN provider (Cloudflare Pages) for fairness
+- Production testing captures actual compression (Brotli) and edge network performance
 
 ### "Sample size of 10 seems arbitrary"
 
 **Response**: We chose 10 runs based on statistical best practices:
+
 - Minimum 7 runs required for reliable IQR outlier detection
 - 10 runs provides 40% margin above minimum for robust statistics
 - Variance is low with warmup and outlier removal (±1-2% for bundle sizes)
@@ -305,6 +395,7 @@ In production with CDN, all frameworks would be faster, but relative differences
 ### "What about tree-shaking/code-splitting?"
 
 **Response**: All frameworks use their default/recommended build configurations:
+
 - Tree-shaking: enabled where framework supports it
 - Code splitting: some frameworks split by route, others don't
 - We measure what frameworks actually deliver, not theoretical minimums
@@ -313,7 +404,8 @@ This reflects the out-of-box developer experience.
 
 ## Related Documentation
 
-**For Running Measurements**: See [_loren/PERFORMANCE_METRICS_GUIDE.md](_loren/PERFORMANCE_METRICS_GUIDE.md) for:
+**For Running Measurements**: See [\_loren/PERFORMANCE_METRICS_GUIDE.md](_loren/PERFORMANCE_METRICS_GUIDE.md) for:
+
 - Step-by-step script execution instructions
 - Which scripts to use when
 - Troubleshooting common issues
@@ -325,19 +417,32 @@ This reflects the out-of-box developer experience.
 
 ## Changelog
 
-### Current Version
-- Primary focus on bundle sizes (all frameworks achieve similar Lighthouse scores)
-- Multiple runs with statistical measures (median ± std dev)
-- 10 runs per page default for better statistical power
-- IQR outlier removal for robust statistics
-- Server warmup requests before measurements
-- Cache clearing between runs (first-load measurements)
-- Chrome/Lighthouse version tracking
-- Compression type detection
-- Raw + compressed bundle sizes tracked
+### Current Version (2024)
+
+- **URL-based measurements**: Direct URL input instead of framework name lookup
+- **Cloudflare Pages deployments**: Production testing at `https://{folder-name}.pages.dev`
+- **Modular workflow**:
+  - `measure-single.ts`: Measure one deployment, save JSON report
+  - `aggregate-measurements.ts`: Combine reports into final documents
+  - `generate-charts.ts`: Create visualization from aggregated data
+- **No batch testing**: Individual measurements allow incremental updates
+- **Primary metrics**: Bundle sizes (compressed + raw) and web vitals
+- **Statistical rigor**: 10 runs per page, IQR outlier removal, median ± std dev
+- **Server warmup**: Stabilize server/database before measurements
+- **Cache clearing**: First-load measurements (cold-cache)
+- **Automatic framework detection**: Infer name from URL structure
+- **Comprehensive tracking**: Chrome/Lighthouse version, compression type, network conditions
+
+### Removed in This Version
+
+- Batch testing scripts (measure-all-lighthouse.ts, measure-final.ts)
+- Framework hardcoded configurations (now URL-based)
+- Localhost testing (production CDN only)
 
 ### Future Improvements
+
 - Add warm-cache measurements
 - Test with CPU throttling variants (4x, 6x)
 - Measure interaction/runtime performance (though all frameworks feel instant)
 - Test on actual mobile devices (not just emulation)
+- Multi-page route testing beyond home and board pages

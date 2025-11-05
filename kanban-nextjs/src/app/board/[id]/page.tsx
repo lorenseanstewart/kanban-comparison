@@ -1,7 +1,6 @@
 import { getBoard, getTags, getUsers } from "@/lib/api";
 import { BoardPageClient } from "./BoardPageClient";
 
-export const runtime = 'edge';
 
 export default async function BoardPage({
   params,

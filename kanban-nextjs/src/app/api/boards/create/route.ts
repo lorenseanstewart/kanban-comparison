@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/db';
-import { boards, lists } from '../../../../../drizzle/schema';
+import { db } from '@/lib/db';
+import { boards, lists } from "@/drizzle/schema";
 import { revalidatePath } from 'next/cache';
 import * as v from 'valibot';
 import { BoardSchema } from '@/lib/validation';
 
-export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
-    // @ts-ignore
-    const d1 = process.env.DB as D1Database | undefined;
-    if (!d1) {
-      return NextResponse.json(
-        { error: 'D1 binding not found' },
-        { status: 500 }
-      );
-    }
-
-    const db = getDatabase(d1);
     const body = await request.json() as { title: string; description?: string };
     const { title, description } = body;
 

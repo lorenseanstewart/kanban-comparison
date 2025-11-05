@@ -5,10 +5,13 @@
  *
  * Measures JS bundle sizes for a single framework's home and board pages.
  * Runs multiple measurements and calculates statistics for reliability.
- * Outputs results in JSON format for easy parsing.
+ * Outputs results in JSON format and saves to metrics folder.
  *
- * Usage: tsx scripts/measure-single.ts <framework-name> [--runs N]
- * Example: tsx scripts/measure-single.ts "Next.js" --runs 3
+ * Usage: tsx scripts/measure-single.ts --url <url> [--name <framework-name>] [--runs N]
+ * Example: tsx scripts/measure-single.ts --url https://kanban-tanstack-solid.pages.dev --runs 10
+ *
+ * The framework name is inferred from the URL (e.g., kanban-tanstack-solid)
+ * but can be overridden with --name flag.
  */
 
 import { execSync } from 'child_process';
@@ -383,42 +386,26 @@ async function measurePageBundle(url: string, runNumber: number, totalRuns: numb
   }
 }
 
-async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number, networkCondition: NetworkCondition, cpuThrottling: CpuThrottling): Promise<AggregatedStats[]> {
-  console.error(`\n📦 Measuring ${framework.name} (${numRuns} runs per page)...`);
-
-  // Check for CDN URL in environment variables
-  const cdnUrl = process.env[framework.envVar];
-  const baseUrl = cdnUrl || `http://localhost:${framework.port}`;
-  const isCdn = !!cdnUrl;
+async function measureFramework(frameworkName: string, baseUrl: string, numRuns: number, networkCondition: NetworkCondition, cpuThrottling: CpuThrottling): Promise<AggregatedStats[]> {
+  console.error(`\n📦 Measuring ${frameworkName} (${numRuns} runs per page)...`);
+  console.error(`   🌐 URL: ${baseUrl}`);
 
   let cleanup: (() => void) | undefined;
-
-  // Only start server if not using CDN
-  if (isCdn) {
-    console.error(`   🌐 Using CDN URL: ${baseUrl}`);
-  } else {
-    console.error(`   🏠 Using localhost (no CDN URL found in env var: ${framework.envVar})`);
-    cleanup = await startServer(framework);
-  }
 
   const allResults: AggregatedStats[] = [];
 
   try {
+    // Standard routes for all frameworks
     const pages: Array<{ name: 'home' | 'board'; url: string }> = [
-      { name: 'home', url: `${baseUrl}${framework.homeUrl}` },
-      { name: 'board', url: `${baseUrl}${framework.boardUrl}` }
+      { name: 'home', url: `${baseUrl}/` },
+      { name: 'board', url: `${baseUrl}/board/b05927a0-76d2-42d5-8ad3-a1b93c39698c` }
     ];
 
     // Warmup: request each page twice to stabilize server/database performance
-    // Skip warmup for CDN since it's already "warm"
-    if (!isCdn) {
-      await warmupServer([
-        ...pages.map(p => p.url),
-        ...pages.map(p => p.url) // Request each page twice
-      ]);
-    } else {
-      console.error(`   ⏭️  Skipping warmup for CDN deployment`);
-    }
+    await warmupServer([
+      ...pages.map(p => p.url),
+      ...pages.map(p => p.url) // Request each page twice
+    ]);
 
     for (const page of pages) {
       console.error(`   Measuring ${page.name} page (${numRuns} runs)...`);
@@ -466,7 +453,7 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
       console.error(`   ✅ ${page.name}: ${(jsTransferredStats.median / 1024).toFixed(1)} kB compressed (${(jsUncompressedStats.median / 1024).toFixed(1)} kB raw, ${compressionRatio}% reduction) | Score: ${performanceScoreStats.median} (±${performanceScoreStats.stddev.toFixed(1)}) | Script eval: ${scriptEvaluationStats.median}ms`);
 
       allResults.push({
-        framework: framework.name,
+        framework: frameworkName,
         page: page.name,
         jsTransferred: jsTransferredStats,
         jsUncompressed: jsUncompressedStats,
@@ -497,16 +484,49 @@ async function measureFramework(framework: typeof FRAMEWORKS[0], numRuns: number
   return allResults;
 }
 
+/**
+ * Extract framework name from URL
+ * e.g., https://kanban-tanstack-solid.pages.dev -> kanban-tanstack-solid
+ */
+function extractFrameworkName(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+
+    // Extract subdomain from pages.dev URLs
+    if (hostname.endsWith('.pages.dev')) {
+      return hostname.replace('.pages.dev', '');
+    }
+
+    // For localhost URLs, try to extract from the URL
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'localhost';
+    }
+
+    // Fallback to hostname
+    return hostname;
+  } catch (error) {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+}
+
 async function main() {
   // Parse CLI arguments
   const args = process.argv.slice(2);
+  let url: string | undefined;
   let frameworkName: string | undefined;
-  let numRuns = 5; // Default to 5 runs
+  let numRuns = 10; // Default to 10 runs
   let networkCondition: NetworkCondition = '4g'; // Default to 4G
   let cpuThrottling: CpuThrottling = '1x'; // Default to no CPU throttling
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--runs' && i + 1 < args.length) {
+    if (args[i] === '--url' && i + 1 < args.length) {
+      url = args[i + 1];
+      i++; // Skip next arg
+    } else if (args[i] === '--name' && i + 1 < args.length) {
+      frameworkName = args[i + 1];
+      i++; // Skip next arg
+    } else if (args[i] === '--runs' && i + 1 < args.length) {
       numRuns = parseInt(args[i + 1], 10);
       if (isNaN(numRuns) || numRuns < 1) {
         console.error('❌ Error: --runs must be a positive number');
@@ -531,30 +551,27 @@ async function main() {
       }
       cpuThrottling = cpu;
       i++; // Skip next arg
-    } else if (!frameworkName) {
-      frameworkName = args[i];
     }
   }
 
-  if (!frameworkName) {
-    console.error('❌ Error: Framework name required');
-    console.error('\nUsage: tsx scripts/measure-single.ts <framework-name> [--runs N] [--network CONDITION] [--cpu THROTTLING]');
-    console.error('\nAvailable frameworks:');
-    FRAMEWORKS.forEach(f => console.error(`  - "${f.name}"`));
+  if (!url) {
+    console.error('❌ Error: URL required');
+    console.error('\nUsage: tsx scripts/measure-single.ts --url <url> [--name <framework-name>] [--runs N] [--network CONDITION] [--cpu THROTTLING]');
+    console.error('\nExamples:');
+    console.error('  tsx scripts/measure-single.ts --url https://kanban-tanstack-solid.pages.dev --runs 10');
+    console.error('  tsx scripts/measure-single.ts --url https://kanban-nextjs.pages.dev --name "Next.js" --runs 5');
     console.error('\nOptions:');
-    console.error('  --runs N              Number of measurement runs per page (default: 5)');
+    console.error('  --url URL             URL to measure (required)');
+    console.error('  --name NAME           Framework name (inferred from URL if not provided)');
+    console.error('  --runs N              Number of measurement runs per page (default: 10)');
     console.error('  --network CONDITION   Network condition: 4g, 3g, slow-3g (default: 4g)');
     console.error('  --cpu THROTTLING      CPU throttling: 1x, 4x, 6x (default: 1x)');
     process.exit(1);
   }
 
-  const framework = FRAMEWORKS.find(f => f.name === frameworkName);
-
-  if (!framework) {
-    console.error(`❌ Error: Framework "${frameworkName}" not found`);
-    console.error('\nAvailable frameworks:');
-    FRAMEWORKS.forEach(f => console.error(`  - "${f.name}"`));
-    process.exit(1);
+  // Infer framework name from URL if not provided
+  if (!frameworkName) {
+    frameworkName = extractFrameworkName(url);
   }
 
   // Display measurement configuration
@@ -562,7 +579,8 @@ async function main() {
   const networkConfig = NETWORK_CONDITIONS[networkCondition];
   const cpuConfig = CPU_THROTTLING[cpuThrottling];
   console.error(`\n🔍 Measurement Configuration`);
-  console.error(`   Framework: ${framework.name}`);
+  console.error(`   Framework: ${frameworkName}`);
+  console.error(`   URL: ${url}`);
   console.error(`   Runs per page: ${numRuns}`);
   console.error(`   Network: ${networkConfig.name} (${(networkConfig.downloadThroughput * 8 / 1024 / 1024).toFixed(1)} Mbps, ${networkConfig.rttMs}ms RTT)`);
   console.error(`   CPU: ${cpuConfig.name}`);
@@ -570,12 +588,36 @@ async function main() {
   console.error(`   Cache: Cleared between runs (cold-load measurement)`);
 
   try {
-    const results = await measureFramework(framework, numRuns, networkCondition, cpuThrottling);
+    const results = await measureFramework(frameworkName, url, numRuns, networkCondition, cpuThrottling);
+
+    // Save individual JSON report to metrics folder
+    const metricsDir = join(process.cwd(), 'metrics');
+    if (!existsSync(metricsDir)) {
+      mkdirSync(metricsDir, { recursive: true });
+    }
+
+    const reportPath = join(metricsDir, `${frameworkName}.json`);
+    const reportData = {
+      metadata: {
+        frameworkName,
+        url,
+        timestamp: new Date().toISOString(),
+        runsPerPage: numRuns,
+        measurementType: 'cold-load',
+        networkCondition: networkConfig.name,
+        cpuThrottling: cpuConfig.name,
+        chromeVersion,
+      },
+      results
+    };
+
+    writeFileSync(reportPath, JSON.stringify(reportData, null, 2));
+    console.error(`\n✅ Report saved to: ${reportPath}`);
 
     // Output JSON to stdout for programmatic consumption
     console.log(JSON.stringify(results, null, 2));
   } catch (error) {
-    console.error(`\n❌ Failed to measure ${framework.name}:`, error);
+    console.error(`\n❌ Failed to measure ${frameworkName}:`, error);
     process.exit(1);
   }
 }

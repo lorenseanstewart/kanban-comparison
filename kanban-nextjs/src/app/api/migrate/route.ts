@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/db';
+import { db } from '@/lib/db';
 
-export const runtime = 'edge';
 
 // Apply database schema migrations
 export async function POST() {

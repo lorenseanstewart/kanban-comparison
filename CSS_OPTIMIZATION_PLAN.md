@@ -798,11 +798,45 @@ export default {
 - Faster builds
 - CSS-first configuration
 
+## Platform Migration: Cloudflare → Vercel (Nov 4-5, 2025)
+
+**Critical Update**: The project has migrated from Cloudflare Pages (D1 SQLite) to Vercel (Neon Postgres) to ensure fair framework comparison and better platform support. This migration impacts the CSS optimization strategy.
+
+### Migration Context
+
+**Why Vercel?**
+1. Better Next.js support (native platform)
+2. Unified PostgreSQL database across all frameworks (fairer comparison than SQLite)
+3. Better middleware support for CSS optimization
+4. Industry-standard serverless platform
+
+**Database Migration**:
+- **Before**: Cloudflare D1 (SQLite) per framework
+- **After**: Single Neon Postgres database shared across all frameworks
+- **Schema**: Converted from SQLite to PostgreSQL (timestamps, boolean types)
+- **Benefits**: Consistent database performance, easier maintenance
+
+### CSS Optimization Strategy Update
+
+**Original Plan** (Cloudflare Pages):
+- Vite frameworks: Use `build.inlineStylesheets: 'always'`
+- Next.js: Use Cloudflare middleware + HTMLRewriter for async CSS
+
+**Updated Plan** (Vercel):
+- Vite frameworks: Same approach (works on Vercel)
+- Next.js: Use `experimental.optimizeCss` (Vercel-native, no middleware needed)
+- Alternative: Vercel Edge Middleware for runtime CSS transformation
+
+**Key Differences**:
+1. **No HTMLRewriter**: Vercel doesn't support Cloudflare's HTMLRewriter API
+2. **Better Turbopack support**: Vercel's native platform handles Next.js CSS better
+3. **Environment variables**: Automatic injection in Vercel (simpler than Cloudflare)
+
 ## Implementation Progress
 
-### ✅ Completed: Next.js Tailwind v4 Migration (Nov 4, 2025)
+### ✅ Completed: Next.js Migration to Vercel (Nov 4-5, 2025)
 
-**What was done:**
+**Phase 1: Tailwind v4 Migration**
 1. Migrated Next.js from Tailwind v3 to v4
 2. Updated package.json: `tailwindcss: "^4"` with `@tailwindcss/postcss: "^4"`
 3. Updated postcss.config.mjs: Changed from `tailwindcss: {}` to `'@tailwindcss/postcss': {}`
@@ -814,39 +848,131 @@ export default {
    ```
 6. Added `// @ts-ignore` for DaisyUI config in tailwind.config.ts
 7. Build successful with DaisyUI working
-8. Deployed to Cloudflare Pages: https://kanban-nextjs.pages.dev
 
-**Next steps:**
-- Run performance measurements to compare before/after
-- If successful, migrate SolidStart and Qwik City to v4
-- Then implement CSS inlining across all frameworks
+**Phase 2: Database & Platform Migration**
+1. Created shared Neon Postgres database in Vercel
+2. Converted SQLite schema to PostgreSQL schema
+3. Updated Drizzle ORM configuration for PostgreSQL
+4. Migrated database connection to use `pg` driver
+5. Fixed environment variable handling for Vercel serverless
+6. Removed all Cloudflare dependencies
+7. Successfully deployed to Vercel: https://kanban-nextjs-ochre.vercel.app
+
+**Phase 3: Performance Measurement**
+1. Ran 10-run measurement suite on Vercel deployment
+2. Collected baseline metrics with Tailwind v4 (no CSS optimization yet)
+
+### 📊 Baseline Performance (Vercel + Tailwind v4, No CSS Optimization)
+
+**Measured: Nov 5, 2025**
+
+| Metric | Home Page | Board Page |
+|--------|-----------|------------|
+| JS Transferred | 156.3 kB | 177.3 kB |
+| JS Uncompressed | 498.0 kB | 563.7 kB |
+| Compression Ratio | 69% | 69% |
+| Performance Score | 96/100 | 96/100 |
+| **FCP** | **2280ms** ⚠️ | **2286ms** ⚠️ |
+| **LCP** | **2280ms** ⚠️ | **2286ms** ⚠️ |
+| TBT | 0ms ✅ | 0ms ✅ |
+| CLS | 0 ✅ | 0 ✅ |
+| Speed Index | 2260ms | 2269ms |
+| Main Thread Work | 111ms | 123ms |
+
+**Key Findings:**
+1. **FCP/LCP are identical** (~2.28s) - Strong indicator of render-blocking CSS
+2. **TBT = 0ms** - JavaScript is NOT the bottleneck
+3. **Low main thread work** - JavaScript execution is fast
+4. **Problem identified**: CSS files are blocking initial render
+
+**Comparison: Cloudflare (D1) vs Vercel (Neon)**
+
+| Metric | Cloudflare Pages | Vercel | Delta |
+|--------|-----------------|--------|-------|
+| Home - Compressed | 148.0 kB | 156.3 kB | +8.3 kB (+5.6%) |
+| Board - Compressed | 177.7 kB | 177.3 kB | -0.4 kB (-0.2%) |
+| Home - FCP | 2179ms | 2280ms | +101ms slower |
+| Board - FCP | 2164ms | 2286ms | +122ms slower |
+| Performance Score | 96-97 | 96 | -1 point |
+
+**Analysis**: Small performance regression on Vercel, but still maintaining excellent scores. CSS optimization will improve both platforms.
 
 ### 🔄 In Progress
 
-**Currently:** Waiting for Next.js deployment validation and performance measurements
+**Current Task**: Implement CSS optimization for Next.js on Vercel
+
+**Target**: Reduce FCP from 2280ms → ~1500ms (700-800ms improvement)
+
+**Optimizations Applied** (Nov 5, 2025):
+1. **Tailwind Config Optimizations**:
+   - Restricted content paths to only scanned directories (removed unused `/pages/`)
+   - Explicitly configured DaisyUI to only include 'pastel' theme (reduces CSS bloat)
+   - Added explicit DaisyUI config to prevent unused theme generation
+
+2. **Font Loading Optimization**:
+   - Changed `font-display: 'swap'` → `font-display: 'optional'`
+   - Fonts render immediately with fallback, don't block FCP
+   - Enabled `adjustFontFallback` for better fallback matching
+
+3. **CSS Import Consolidation**:
+   - Moved charts.css import from layout.tsx to globals.css
+   - Single CSS entry point for better bundling
+
+**Tailwind Config Changes**:
+```typescript
+// Before
+content: [
+  './src/pages/**/*.{js,ts,jsx,tsx,mdx}', // ← Unused pages dir
+  './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+  './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+],
+daisyui: {
+  themes: ['pastel'], // But includes ALL themes in CSS
+  logs: false,
+}
+
+// After
+content: [
+  './src/app/**/*.{js,ts,jsx,tsx}',      // ← Only app dir
+  './src/components/**/*.{js,ts,jsx,tsx}', // No .mdx scanning
+],
+daisyui: {
+  themes: ['pastel'], // Only include this theme
+  logs: false,
+  styled: true,
+  base: true,
+  utils: true,
+  prefix: '',
+  darkTheme: 'dark', // Explicit config prevents unused themes
+}
+```
+
+**Expected Impact**: Minor CSS size reduction (~5-10%), font loading won't block render
 
 ### ⏸️ Pending
 
-**Phase 1** (if Next.js v4 validation successful):
-- [ ] Migrate SolidStart to Tailwind v4
-- [ ] Migrate Qwik City to Tailwind v4
+**Phase 1**: Next.js CSS Optimization (Vercel)
+- [ ] Enable `experimental.optimizeCss` in next.config.ts
+- [ ] Test if Critters inlines 100% of CSS
+- [ ] If not, implement custom webpack config for full inlining
+- [ ] Deploy and measure performance
+- [ ] Verify FCP improves by 700-800ms
 
-**Phase 2**: CSS Inlining (9 frameworks)
-- [ ] Marko
-- [ ] HTMX
-- [ ] SolidStart
-- [ ] SvelteKit
-- [ ] Qwik City
-- [ ] TanStack Solid
-- [ ] TanStack React
-- [ ] Analog
-- [ ] Next.js
+**Phase 2**: Migrate Remaining Frameworks to Vercel
+- [ ] Update all 9 frameworks to use Neon Postgres
+- [ ] Deploy each framework to Vercel
+- [ ] Verify database connectivity
 
-**Phase 3**: Full Re-measurement & Documentation
-- [ ] Run measurement suite (all 10 frameworks)
+**Phase 3**: CSS Optimization for All Frameworks
+- [ ] Implement CSS inlining for Vite-based frameworks (Marko, HTMX, TanStack, etc.)
+- [ ] Implement CSS inlining for framework-specific builds (SolidStart, SvelteKit)
+- [ ] Tailwind v4 migration for SolidStart and Qwik City
+
+**Phase 4**: Full Re-measurement & Documentation
+- [ ] Run measurement suite (all 10 frameworks on Vercel)
 - [ ] Aggregate results and generate charts
-- [ ] Update METHODOLOGY.md
-- [ ] Document findings
+- [ ] Update METHODOLOGY.md with Vercel migration details
+- [ ] Document CSS optimization findings
 
 ## Questions & Answers
 

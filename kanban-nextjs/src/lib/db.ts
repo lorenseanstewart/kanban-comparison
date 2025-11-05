@@ -1,35 +1,49 @@
-/// <reference types="@cloudflare/workers-types" />
-
-import { drizzle } from 'drizzle-orm/d1';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from "@/drizzle/schema";
 
 /**
- * Get database instance from D1 binding
+ * Database connection using Neon + node-postgres
  *
- * For local development: Use wrangler pages dev with --d1 flag
- * For production: D1 binding automatically provided by Cloudflare Pages
+ * Follows Neon's recommended pattern:
+ * - Pool is created at module load but doesn't connect immediately
+ * - Actual connections are created on first query (at runtime)
+ * - Single instance in production, cached in development (prevents hot reload issues)
+ *
+ * This allows builds to succeed even without env vars - connections happen at runtime.
  */
-export function getDatabase(d1Binding: D1Database) {
-  return drizzle(d1Binding);
+
+declare global {
+  // eslint-disable-next-line no-var
+  var db: ReturnType<typeof drizzle> | undefined;
 }
 
-/**
- * Default export for use in Server Components and API routes
- * Requires D1 binding from environment (process.env.DB)
- */
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
-  get(_target, prop) {
-    // @ts-ignore - Cloudflare Pages provides DB binding
-    const d1 = process.env.DB as D1Database | undefined;
+// Get connection string - will be undefined during build, defined at runtime
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
-    if (!d1) {
-      throw new Error(
-        'D1 binding not found. ' +
-        'Local dev: Use `npm run dev` which runs wrangler with --d1 flag. ' +
-        'Production: Ensure DB is bound in Cloudflare Pages settings.'
-      );
-    }
+let db: ReturnType<typeof drizzle>;
 
-    const instance = getDatabase(d1);
-    return (instance as any)[prop];
+if (process.env.NODE_ENV === 'production') {
+  // In production, connection string MUST be available at runtime
+  // It's okay if it's undefined during build (Next.js won't execute this during build)
+  const pool = new Pool({
+    connectionString,
+    max: 1, // Serverless: single connection per function instance
+  });
+
+  db = drizzle(pool, { schema });
+} else {
+  // Development: reuse connection across hot reloads
+  if (!global.db) {
+    const pool = new Pool({
+      connectionString,
+      max: 10, // Local dev: can handle more connections
+    });
+
+    global.db = drizzle(pool, { schema });
   }
-});
+
+  db = global.db;
+}
+
+export { db };

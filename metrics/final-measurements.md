@@ -1,62 +1,117 @@
-# Framework Bundle Size Comparison
+# Framework Performance Comparison
 
-*Measured: 2025-11-02T22:33:11.691Z*
+*Generated: 2025-11-05T00:43:52.410Z*
 
 ## Methodology
 
+- **Frameworks measured**: 10
 - **Runs per page**: 10
-- **Measurement type**: Cold-load (cache cleared between runs)
+- **Measurement type**: cold-load (cache cleared between runs)
 - **Device**: Mobile (Pixel 5 emulation)
-- **Network**: 4G throttling (10 Mbps down, 40ms RTT)
-- **CPU**: 1x (no throttling, to isolate bundle size impact)
+- **Network**: 4G
+- **CPU**: No throttling
 - **Lighthouse version**: 12.8.2
-- **Compression**: gzip
+
+---
+
+# Bundle Size Comparison
 
 ## Board Page Performance
 
-Sorted by raw bundle size (smallest first):
+Sorted by compressed bundle size (smallest first):
 
-| Framework | Raw (kB) | Compressed (kB) | Ratio | Perf Score | FCP (ms) | LCP (ms) |
-|-----------|----------|----------------|-------|------------|----------|----------|
-| Marko | 88.8 ±0.0 | 28.8 ±0.0 | 68% | 100 ±0.0 | 42 ±3 | 42 ±3 |
-| Qwik | 114.8 ±0.0 | 58.4 ±0.0 | 49% | 100 ±0.0 | 68 ±3 | 68 ±3 |
-| SvelteKit | 125.2 ±0.0 | 54.1 ±0.0 | 57% | 100 ±0.0 | 39 ±2 | 39 ±2 |
-| Astro | 127.3 ±0.0 | 34.3 ±0.0 | 73% | 100 ±0.0 | 58 ±2 | 58 ±2 |
-| SolidStart | 128.6 ±0.0 | 41.5 ±0.0 | 68% | 100 ±0.0 | 41 ±17 | 41 ±17 |
-| TanStack Start + Solid | 182.6 ±0.0 | 60.4 ±0.0 | 67% | 100 ±0.0 | 39 ±6 | 39 ±6 |
-| Nuxt | 224.9 ±0.0 | 74.7 ±0.0 | 67% | 100 ±0.0 | 38 ±2 | 38 ±2 |
-| TanStack Start | 373.6 ±0.0 | 118.2 ±0.0 | 68% | 100 ±0.0 | 40 ±5 | 40 ±5 |
-| Analog | 376.3 ±0.0 | 103.9 ±0.0 | 72% | 100 ±0.0 | 53 ±4 | 53 ±4 |
-| Next.js | 563.7 ±0.0 | 176.1 ±0.0 | 69% | 100 ±0.0 | 37 ±2 | 343 ±5 |
+| Framework | Compressed (kB) | Raw (kB) | Compression | Perf Score | FCP (ms) | LCP (ms) |
+|-----------|----------------|----------|-------------|------------|----------|----------|
+| kanban-marko | 29.1 ±0.0 | 88.8 ±0.0 | 67% | 95 ±0.0 | 2357 ±37 | 2357 ±37 |
+| kanban-htmx | 35.2 ±0.1 | 127.7 ±0.0 | 72% | 98 ±2.6 | 1648 ±910 | 1648 ±910 |
+| kanban-solidstart | 48.1 ±0.0 | 128.2 ±0.0 | 62% | 97 ±1.7 | 2154 ±897 | 2154 ±897 |
+| kanban-sveltekit | 55.9 ±0.0 | 121.1 ±0.0 | 54% | 100 ±2.6 | 580 ±862 | 580 ±862 |
+| kanban-qwikcity | 59.4 ±0.0 | 114.8 ±0.0 | 48% | 100 ±0.0 | 579 ±59 | 579 ±59 |
+| kanban-tanstack-solid | 62.0 ±0.1 | 183.2 ±0.0 | 66% | 100 ±0.0 | 651 ±89 | 651 ±89 |
+| kanban-nuxt | 89.5 ±0.1 | 231.7 ±0.0 | 61% | 100 ±0.0 | 495 ±427 | 495 ±427 |
+| kanban-tanstack | 120.0 ±0.1 | 373.6 ±0.0 | 68% | 100 ±0.0 | 531 ±48 | 531 ±48 |
+| kanban-analog | 120.8 ±0.0 | 387.8 ±0.0 | 69% | 98 ±2.6 | 1598 ±929 | 1598 ±929 |
+| kanban-nextjs | 173.3 ±0.1 | 549.9 ±0.0 | 68% | 97 ±0.5 | 2176 ±57 | 2176 ±57 |
 
 **Explanation:**
-- **Raw**: Uncompressed bundle size (actual code volume, more consistent for comparison)
-- **Compressed**: Bytes transferred over network (what users download)
-- **Ratio**: Percentage saved by compression (higher is better compression)
+- **Compressed**: Bytes transferred over network (what users actually download)
+- **Raw**: Uncompressed bundle size (actual code volume after decompression)
+- **Compression**: Percentage saved by compression (higher = better compression)
 - Values show median ±std dev from 10 measurement runs
 - Compression type: gzip
 
 ## Home Page Performance
 
-Sorted by raw bundle size (smallest first):
+Sorted by compressed bundle size (smallest first):
 
-| Framework | Raw (kB) | Compressed (kB) | Ratio | Perf Score | FCP (ms) | LCP (ms) |
-|-----------|----------|----------------|-------|------------|----------|----------|
-| Marko | 12.4 ±0.0 | 6.8 ±0.0 | 45% | 100 ±0.0 | 36 ±1 | 36 ±1 |
-| SolidStart | 83.9 ±0.0 | 29.8 ±0.0 | 64% | 100 ±0.0 | 38 ±3 | 38 ±3 |
-| Qwik | 86.5 ±0.0 | 42.5 ±0.0 | 51% | 100 ±0.0 | 45 ±2 | 45 ±2 |
-| Astro | 86.9 ±0.0 | 21.5 ±0.0 | 75% | 100 ±0.0 | 44 ±3 | 44 ±3 |
-| SvelteKit | 103.4 ±0.0 | 47.8 ±0.0 | 54% | 100 ±0.0 | 40 ±2 | 40 ±2 |
-| TanStack Start + Solid | 149.4 ±0.0 | 50.8 ±0.0 | 66% | 100 ±0.0 | 40 ±3 | 40 ±3 |
-| Nuxt | 224.9 ±0.0 | 74.7 ±0.0 | 67% | 100 ±0.0 | 34 ±1 | 34 ±1 |
-| TanStack Start | 309.4 ±0.0 | 98.3 ±0.0 | 68% | 100 ±0.0 | 37 ±3 | 37 ±3 |
-| Analog | 376.3 ±0.0 | 103.9 ±0.0 | 72% | 100 ±0.0 | 42 ±2 | 42 ±2 |
-| Next.js | 486.1 ±0.0 | 150.9 ±0.0 | 69% | 100 ±0.0 | 37 ±4 | 37 ±4 |
+| Framework | Compressed (kB) | Raw (kB) | Compression | Perf Score | FCP (ms) | LCP (ms) |
+|-----------|----------------|----------|-------------|------------|----------|----------|
+| kanban-marko | 7.0 ±0.0 | 12.4 ±0.0 | 43% | 96 ±0.0 | 2198 ±25 | 2198 ±25 |
+| kanban-htmx | 22.2 ±0.0 | 87.2 ±0.0 | 75% | 96 ±0.0 | 2214 ±25 | 2214 ±25 |
+| kanban-solidstart | 34.5 ±0.1 | 83.6 ±0.0 | 59% | 97 ±1.8 | 2148 ±896 | 2148 ±896 |
+| kanban-qwikcity | 43.2 ±0.0 | 86.5 ±0.0 | 50% | 96 ±0.0 | 2248 ±53 | 2248 ±53 |
+| kanban-sveltekit | 49.2 ±0.0 | 99.4 ±0.0 | 50% | 96 ±0.0 | 2226 ±11 | 2226 ±11 |
+| kanban-tanstack-solid | 50.9 ±0.1 | 146.8 ±0.0 | 65% | 96 ±0.0 | 2233 ±50 | 2233 ±50 |
+| kanban-nuxt | 89.4 ±0.1 | 231.7 ±0.0 | 61% | 100 ±0.0 | 1211 ±50 | 1211 ±50 |
+| kanban-analog | 93.8 ±0.0 | 289.3 ±0.0 | 68% | 96 ±0.0 | 2205 ±60 | 2205 ±60 |
+| kanban-tanstack | 99.4 ±0.0 | 309.4 ±0.0 | 68% | 96 ±0.0 | 2224 ±51 | 2224 ±51 |
+| kanban-nextjs | 144.7 ±0.1 | 467.0 ±0.0 | 69% | 97 ±1.7 | 2157 ±752 | 2157 ±720 |
 
 **Explanation:**
-- **Raw**: Uncompressed bundle size (actual code volume, more consistent for comparison)
-- **Compressed**: Bytes transferred over network (what users download)
-- **Ratio**: Percentage saved by compression (higher is better compression)
+- **Compressed**: Bytes transferred over network (what users actually download)
+- **Raw**: Uncompressed bundle size (actual code volume after decompression)
+- **Compression**: Percentage saved by compression (higher = better compression)
 - Values show median ±std dev from 10 measurement runs
 - Compression type: gzip
+
+---
+
+# Web Vitals
+
+### Board Page - Core Web Vitals
+
+| Framework | FCP (ms) | LCP (ms) | TBT (ms) | CLS | Speed Index |
+|-----------|----------|----------|----------|-----|-------------|
+| kanban-nuxt | 495 ±427 | 495 ±427 | 0 ±0 | 0.000 ±0.000 | 506 ±418 |
+| kanban-qwikcity | 579 ±59 | 579 ±59 | 0 ±0 | 0.000 ±0.000 | 590 ±58 |
+| kanban-sveltekit | 580 ±862 | 580 ±862 | 0 ±0 | 0.000 ±0.000 | 609 ±838 |
+| kanban-tanstack-solid | 651 ±89 | 651 ±89 | 0 ±0 | 0.013 ±0.000 | 670 ±88 |
+| kanban-tanstack | 531 ±48 | 531 ±48 | 0 ±0 | 0.000 ±0.000 | 542 ±50 |
+| kanban-analog | 1598 ±929 | 1598 ±929 | 0 ±0 | 0.000 ±0.000 | 1443 ±826 |
+| kanban-htmx | 1648 ±910 | 1648 ±910 | 0 ±0 | 0.000 ±0.000 | 1646 ±896 |
+| kanban-nextjs | 2176 ±57 | 2176 ±57 | 0 ±0 | 0.000 ±0.000 | 2180 ±51 |
+| kanban-solidstart | 2154 ±897 | 2154 ±897 | 0 ±0 | 0.000 ±0.000 | 2160 ±895 |
+| kanban-marko | 2357 ±37 | 2357 ±37 | 0 ±0 | 0.000 ±0.000 | 2342 ±38 |
+
+### Home Page - Core Web Vitals
+
+| Framework | FCP (ms) | LCP (ms) | TBT (ms) | CLS | Speed Index |
+|-----------|----------|----------|----------|-----|-------------|
+| kanban-nuxt | 1211 ±50 | 1211 ±50 | 0 ±0 | 0.000 ±0.000 | 1209 ±50 |
+| kanban-nextjs | 2157 ±752 | 2157 ±720 | 0 ±0 | 0.000 ±0.000 | 2147 ±739 |
+| kanban-solidstart | 2148 ±896 | 2148 ±896 | 0 ±0 | 0.000 ±0.000 | 2138 ±879 |
+| kanban-analog | 2205 ±60 | 2205 ±60 | 0 ±0 | 0.000 ±0.000 | 2008 ±50 |
+| kanban-htmx | 2214 ±25 | 2214 ±25 | 0 ±0 | 0.000 ±0.000 | 2206 ±25 |
+| kanban-marko | 2198 ±25 | 2198 ±25 | 0 ±0 | 0.000 ±0.000 | 2193 ±24 |
+| kanban-qwikcity | 2248 ±53 | 2248 ±53 | 0 ±0 | 0.000 ±0.000 | 2228 ±53 |
+| kanban-sveltekit | 2226 ±11 | 2226 ±11 | 0 ±0 | 0.000 ±0.000 | 2205 ±11 |
+| kanban-tanstack-solid | 2233 ±50 | 2233 ±50 | 0 ±0 | 0.000 ±0.000 | 2212 ±49 |
+| kanban-tanstack | 2224 ±51 | 2224 ±51 | 0 ±0 | 0.000 ±0.000 | 2206 ±49 |
+
+---
+
+## Framework Details
+
+| Framework | URL | Last Measured |
+|-----------|-----|---------------|
+| kanban-analog | https://kanban-analog.pages.dev | 11/4/2025, 3:46:06 PM |
+| kanban-htmx | https://kanban-htmx.pages.dev | 11/4/2025, 4:43:24 PM |
+| kanban-marko | https://kanban-marko.pages.dev | 11/4/2025, 4:34:23 PM |
+| kanban-nextjs | https://kanban-nextjs.pages.dev | 11/4/2025, 3:29:46 PM |
+| kanban-nuxt | https://kanban-nuxt.pages.dev | 11/4/2025, 3:37:38 PM |
+| kanban-qwikcity | https://kanban-qwikcity.pages.dev | 11/4/2025, 4:10:12 PM |
+| kanban-solidstart | https://kanban-solidstart.pages.dev | 11/4/2025, 3:54:06 PM |
+| kanban-sveltekit | https://kanban-sveltekit.pages.dev | 11/4/2025, 4:02:09 PM |
+| kanban-tanstack-solid | https://kanban-tanstack-solid.pages.dev | 11/4/2025, 4:26:12 PM |
+| kanban-tanstack | https://kanban-tanstack.pages.dev | 11/4/2025, 4:18:12 PM |
 

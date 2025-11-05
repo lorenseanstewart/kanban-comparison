@@ -1,5 +1,5 @@
 import { db } from '../lib/db';
-import { users, boards, lists, cards, tags, cardTags, comments } from '../../drizzle/schema';
+import { users, boards, lists, cards, tags, cardTags, comments } from "@/drizzle/schema";
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
 
