@@ -32,20 +32,48 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Hide content until CSS loads to prevent FOUC */}
+        <style dangerouslySetInnerHTML={{__html: `
+          body { visibility: hidden; }
+          .css-loaded { visibility: visible; }
+        `}} />
+
         <Script id="async-css" strategy="beforeInteractive">
           {`
             // Make CSS non-blocking by converting link tags to load asynchronously
             // This script runs before CSS is processed, preventing render blocking
             (function() {
+              var cssLoaded = 0;
+              var cssTotal = 0;
               var links = document.getElementsByTagName('link');
+
+              // Count stylesheet links
+              for (var i = 0; i < links.length; i++) {
+                if (links[i].rel === 'stylesheet' && !links[i].media) {
+                  cssTotal++;
+                }
+              }
+
+              // Transform links and track loading
               for (var i = 0; i < links.length; i++) {
                 var link = links[i];
                 if (link.rel === 'stylesheet' && !link.media) {
-                  // Use media="print" trick for async CSS loading
-                  link.media = 'print';
-                  link.onload = function() { this.media = 'all'; };
+                  link.media = 'print';  // Low priority, non-blocking
+                  link.onload = function() {
+                    this.media = 'all';
+                    cssLoaded++;
+                    // Once all CSS is loaded, show content
+                    if (cssLoaded === cssTotal) {
+                      document.body.classList.add('css-loaded');
+                    }
+                  };
                 }
               }
+
+              // Fallback: show content after 3 seconds even if CSS hasn't loaded
+              setTimeout(function() {
+                document.body.classList.add('css-loaded');
+              }, 3000);
             })();
           `}
         </Script>

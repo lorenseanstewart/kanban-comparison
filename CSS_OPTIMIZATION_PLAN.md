@@ -981,7 +981,23 @@ daisyui: {
 - When CSS finishes loading, `onload` fires and changes `media` to `all` (styles apply)
 - Result: Page renders immediately with unstyled content (FOUC), then styles apply
 
-**Expected Impact**: Should reduce FCP/LCP from 2280ms → ~500-800ms (eliminates CSS blocking)
+**Trade-off Fix**: To prevent FOUC (Flash of Unstyled Content), added inline style:
+```tsx
+<style dangerouslySetInnerHTML={{__html: `
+  body { visibility: hidden; }
+  .css-loaded { visibility: visible; }
+`}} />
+```
+
+The script now:
+- Counts total stylesheets
+- Tracks when each CSS file loads
+- Adds `.css-loaded` class when all CSS is ready
+- Has 3-second fallback timeout for safety
+
+**Result**: No FOUC + non-blocking CSS loading
+
+**Expected Impact**: Should reduce FCP/LCP from 2280ms → ~500-800ms (eliminates CSS blocking) without visual flash
 
 ### ⏸️ Pending
 
