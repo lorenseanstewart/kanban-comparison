@@ -949,6 +949,40 @@ daisyui: {
 
 **Expected Impact**: Minor CSS size reduction (~5-10%), font loading won't block render
 
+4. **Async CSS Loading via beforeInteractive Script**:
+   - Added Script component that runs before CSS is processed
+   - Dynamically modifies all `<link rel="stylesheet">` tags
+   - Applies `media="print"` trick to make CSS non-blocking
+   - Once loaded, switches to `media="all"` via onload handler
+
+**Implementation**:
+```tsx
+// src/app/layout.tsx
+<Script id="async-css" strategy="beforeInteractive">
+  {`
+    (function() {
+      var links = document.getElementsByTagName('link');
+      for (var i = 0; i < links.length; i++) {
+        var link = links[i];
+        if (link.rel === 'stylesheet' && !link.media) {
+          link.media = 'print';  // Low priority, non-blocking
+          link.onload = function() { this.media = 'all'; };  // Apply once loaded
+        }
+      }
+    })();
+  `}
+</Script>
+```
+
+**How It Works**:
+- Script runs `beforeInteractive` - executes before React hydrates
+- Finds all stylesheet link tags in the document
+- Changes `media` attribute to `print` (browser loads with low priority, doesn't block render)
+- When CSS finishes loading, `onload` fires and changes `media` to `all` (styles apply)
+- Result: Page renders immediately with unstyled content (FOUC), then styles apply
+
+**Expected Impact**: Should reduce FCP/LCP from 2280ms → ~500-800ms (eliminates CSS blocking)
+
 ### ⏸️ Pending
 
 **Phase 1**: Next.js CSS Optimization (Vercel)

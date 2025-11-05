@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "frameworkName": "kanban-nuxt",
-    "url": "https://kanban-nuxt.pages.dev",
-    "timestamp": "2025-11-04T23:37:38.326Z",
+    "frameworkName": "Next.js-optimized",
+    "url": "https://kanban-nextjs-ochre.vercel.app",
+    "timestamp": "2025-11-05T03:34:59.195Z",
     "runsPerPage": 10,
     "measurementType": "cold-load",
     "networkCondition": "4G",
@@ -11,47 +11,47 @@
   },
   "results": [
     {
-      "framework": "kanban-nuxt",
+      "framework": "Next.js-optimized",
       "page": "home",
       "jsTransferred": {
-        "mean": 91573,
-        "median": 91589,
-        "stddev": 53.4,
-        "min": 91473,
-        "max": 91634,
+        "mean": 156344,
+        "median": 156344,
+        "stddev": 8.6,
+        "min": 156266,
+        "max": 156361,
         "runs": 10
       },
       "jsUncompressed": {
-        "mean": 237266,
-        "median": 237266,
+        "mean": 497992,
+        "median": 497992,
         "stddev": 0,
-        "min": 237266,
-        "max": 237266,
+        "min": 497992,
+        "max": 497992,
         "runs": 10
       },
-      "compressionRatio": 61,
+      "compressionRatio": 69,
       "performanceScore": {
-        "mean": 100,
-        "median": 100,
+        "mean": 96,
+        "median": 96,
         "stddev": 0,
-        "min": 96,
-        "max": 100,
+        "min": 95,
+        "max": 96,
         "runs": 10
       },
       "fcp": {
-        "mean": 1233,
-        "median": 1211,
-        "stddev": 49.8,
-        "min": 195,
-        "max": 2178,
+        "mean": 2277,
+        "median": 2279,
+        "stddev": 9.8,
+        "min": 2265,
+        "max": 2328,
         "runs": 10
       },
       "lcp": {
-        "mean": 1233,
-        "median": 1211,
-        "stddev": 49.8,
-        "min": 195,
-        "max": 2178,
+        "mean": 2277,
+        "median": 2279,
+        "stddev": 9.8,
+        "min": 2265,
+        "max": 2328,
         "runs": 10
       },
       "tbt": {
@@ -71,11 +71,11 @@
         "runs": 10
       },
       "si": {
-        "mean": 1232,
-        "median": 1209,
-        "stddev": 49.5,
-        "min": 205,
-        "max": 2168,
+        "mean": 2257,
+        "median": 2259,
+        "stddev": 9.9,
+        "min": 2245,
+        "max": 2307,
         "runs": 10
       },
       "scriptEvaluation": {
@@ -87,61 +87,61 @@
         "runs": 10
       },
       "mainThreadWork": {
-        "mean": 56,
-        "median": 56,
-        "stddev": 2.7,
-        "min": 52,
-        "max": 62,
+        "mean": 111,
+        "median": 112,
+        "stddev": 3.8,
+        "min": 104,
+        "max": 138,
         "runs": 10
       },
       "compressionType": "gzip",
       "chromeVersion": "12.8.2",
       "networkCondition": "4G",
       "cpuThrottling": "No throttling",
-      "measurementTimestamp": "2025-11-04T23:33:51.294Z"
+      "measurementTimestamp": "2025-11-05T03:30:59.208Z"
     },
     {
-      "framework": "kanban-nuxt",
+      "framework": "Next.js-optimized",
       "page": "board",
       "jsTransferred": {
-        "mean": 91582,
-        "median": 91608,
-        "stddev": 79.3,
-        "min": 91465,
-        "max": 91703,
+        "mean": 177288,
+        "median": 177294,
+        "stddev": 18.9,
+        "min": 177259,
+        "max": 177359,
         "runs": 10
       },
       "jsUncompressed": {
-        "mean": 237266,
-        "median": 237266,
+        "mean": 563737,
+        "median": 563737,
         "stddev": 0,
-        "min": 237266,
-        "max": 237266,
+        "min": 563737,
+        "max": 563737,
         "runs": 10
       },
-      "compressionRatio": 61,
+      "compressionRatio": 69,
       "performanceScore": {
-        "mean": 100,
-        "median": 100,
+        "mean": 96,
+        "median": 96,
         "stddev": 0,
-        "min": 100,
-        "max": 100,
+        "min": 96,
+        "max": 96,
         "runs": 10
       },
       "fcp": {
-        "mean": 786,
-        "median": 495,
-        "stddev": 426.7,
-        "min": 441,
-        "max": 1442,
+        "mean": 2282,
+        "median": 2285,
+        "stddev": 15.8,
+        "min": 2258,
+        "max": 2311,
         "runs": 10
       },
       "lcp": {
-        "mean": 786,
-        "median": 495,
-        "stddev": 426.7,
-        "min": 441,
-        "max": 1442,
+        "mean": 2282,
+        "median": 2285,
+        "stddev": 15.8,
+        "min": 2258,
+        "max": 2311,
         "runs": 10
       },
       "tbt": {
@@ -161,34 +161,34 @@
         "runs": 10
       },
       "si": {
-        "mean": 790,
-        "median": 506,
-        "stddev": 418.4,
-        "min": 443,
-        "max": 1433,
+        "mean": 2268,
+        "median": 2270,
+        "stddev": 15.4,
+        "min": 2244,
+        "max": 2296,
         "runs": 10
       },
       "scriptEvaluation": {
-        "mean": 19,
+        "mean": 0,
         "median": 0,
-        "stddev": 22.7,
+        "stddev": 0,
         "min": 0,
-        "max": 48,
+        "max": 0,
         "runs": 10
       },
       "mainThreadWork": {
-        "mean": 116,
-        "median": 114,
-        "stddev": 4.9,
-        "min": 110,
-        "max": 124,
+        "mean": 119,
+        "median": 120,
+        "stddev": 4.2,
+        "min": 111,
+        "max": 126,
         "runs": 10
       },
       "compressionType": "gzip",
       "chromeVersion": "12.8.2",
       "networkCondition": "4G",
       "cpuThrottling": "No throttling",
-      "measurementTimestamp": "2025-11-04T23:37:38.326Z"
+      "measurementTimestamp": "2025-11-05T03:34:59.194Z"
     }
   ]
 }

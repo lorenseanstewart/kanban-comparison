@@ -31,6 +31,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script id="async-css" strategy="beforeInteractive">
+          {`
+            // Make CSS non-blocking by converting link tags to load asynchronously
+            // This script runs before CSS is processed, preventing render blocking
+            (function() {
+              var links = document.getElementsByTagName('link');
+              for (var i = 0; i < links.length; i++) {
+                var link = links[i];
+                if (link.rel === 'stylesheet' && !link.media) {
+                  // Use media="print" trick for async CSS loading
+                  link.media = 'print';
+                  link.onload = function() { this.media = 'all'; };
+                }
+              }
+            })();
+          `}
+        </Script>
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
