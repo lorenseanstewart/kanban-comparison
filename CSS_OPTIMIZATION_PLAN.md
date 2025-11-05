@@ -981,21 +981,88 @@ daisyui: {
 - When CSS finishes loading, `onload` fires and changes `media` to `all` (styles apply)
 - Result: Page renders immediately with unstyled content (FOUC), then styles apply
 
-**Trade-off Fix**: To prevent FOUC (Flash of Unstyled Content), added inline style:
+**FOUC Prevention Enhancement** (Critical Addition):
+
+Without prevention, async CSS causes Flash of Unstyled Content. Solution: inline critical CSS to hide content until styles load.
+
+**Complete Implementation**:
 ```tsx
-<style dangerouslySetInnerHTML={{__html: `
-  body { visibility: hidden; }
-  .css-loaded { visibility: visible; }
-`}} />
+// src/app/layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        {/* Step 1: Inline critical CSS to hide content */}
+        <style dangerouslySetInnerHTML={{__html: `
+          body { visibility: hidden; }
+          .css-loaded { visibility: visible; }
+        `}} />
+
+        {/* Step 2: Async CSS loading with tracking */}
+        <Script id="async-css" strategy="beforeInteractive">
+          {`
+            (function() {
+              var cssLoaded = 0;
+              var cssTotal = 0;
+              var links = document.getElementsByTagName('link');
+
+              // Count stylesheet links
+              for (var i = 0; i < links.length; i++) {
+                if (links[i].rel === 'stylesheet' && !links[i].media) {
+                  cssTotal++;
+                }
+              }
+
+              // Transform links and track loading
+              for (var i = 0; i < links.length; i++) {
+                var link = links[i];
+                if (link.rel === 'stylesheet' && !link.media) {
+                  link.media = 'print';  // Low priority, non-blocking
+                  link.onload = function() {
+                    this.media = 'all';
+                    cssLoaded++;
+                    // Once all CSS is loaded, show content
+                    if (cssLoaded === cssTotal) {
+                      document.body.classList.add('css-loaded');
+                    }
+                  };
+                }
+              }
+
+              // Fallback: show content after 3 seconds even if CSS hasn't loaded
+              setTimeout(function() {
+                document.body.classList.add('css-loaded');
+              }, 3000);
+            })();
+          `}
+        </Script>
+      </head>
+      <body className={...}>
+        {children}
+      </body>
+    </html>
+  );
+}
 ```
 
-The script now:
-- Counts total stylesheets
-- Tracks when each CSS file loads
-- Adds `.css-loaded` class when all CSS is ready
-- Has 3-second fallback timeout for safety
+**How It Works**:
+1. **Initial State**: Body is hidden via inline `<style>` (< 100 bytes, no HTTP request)
+2. **Script Runs**: `beforeInteractive` strategy executes before React hydration
+3. **CSS Transform**: All `<link rel="stylesheet">` tags get `media="print"` (non-blocking)
+4. **Load Tracking**: Script counts stylesheets and tracks `onload` events
+5. **Reveal Content**: Once all CSS loaded, adds `.css-loaded` class → `visibility: visible`
+6. **Safety Net**: 3-second timeout ensures content shows even if CSS fails
 
-**Result**: No FOUC + non-blocking CSS loading
+**Why This Works**:
+- Inline `<style>` is parsed instantly (no network request)
+- CSS files load asynchronously (don't block FCP)
+- Content stays hidden until fully styled (no FOUC)
+- Minimal overhead (~200 bytes inline CSS + ~600 bytes script)
+
+**Performance Impact**:
+- **Before**: FCP blocked until 132KB CSS downloads (~2280ms on 4G)
+- **After**: FCP happens immediately, content shows when CSS ready (~500-800ms)
+- **Trade-off**: Blank screen initially, but styled content appears much faster
 
 **Expected Impact**: Should reduce FCP/LCP from 2280ms → ~500-800ms (eliminates CSS blocking) without visual flash
 

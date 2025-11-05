@@ -222,24 +222,25 @@ Core Web Vitals are measured and tracked for each deployment:
 
 ### Production Deployment Testing
 
-These measurements run against production deployments on Cloudflare Pages:
+These measurements run against production deployments on Vercel:
 
-**URL Structure:** `https://{folder-name}.pages.dev`
+**URL Structure:** `https://{project-name}.vercel.app`
 
-- Example: `https://kanban-tanstack-solid.pages.dev`
+- Example: `https://kanban-nextjs-ochre.vercel.app`
 
 **Advantages:**
 
 - Real-world CDN performance
-- Actual compression (Brotli from Cloudflare)
+- Actual compression (Brotli from Vercel)
 - Geographic distribution effects included
 - Tests actual production bundle delivery
+- Serverless function performance
 
 **Considerations:**
 
 - CDN latency included in measurements
 - Network variance managed through multiple runs and outlier removal
-- All frameworks deployed to same CDN provider for fair comparison
+- All frameworks deployed to same platform for fair comparison
 
 ### Build Variance
 
@@ -250,7 +251,7 @@ Framework build outputs include timestamps and hashes that change between builds
 To ensure apples-to-apples comparisons:
 
 1. ✅ **Identical functionality**: All apps implement the same features
-2. ✅ **Same database**: All use the same SQLite database with identical seed data
+2. ✅ **Same database**: All use the same Neon Postgres database with identical seed data
 3. ✅ **Same UI framework**: All use Tailwind CSS + DaisyUI
 4. ✅ **Production builds**: All measured with optimizations enabled
 5. ✅ **Same routes**: All test the same URLs with identical data
@@ -294,16 +295,16 @@ To reproduce these measurements:
 git clone https://github.com/lorenstewart/kanban-comparison
 cd kanban-comparison
 
-# 2. Build and deploy a framework to Cloudflare Pages
+# 2. Build and deploy a framework to Vercel
 # (see individual framework READMEs for build instructions)
-# Each deployment gets a URL like: https://kanban-{framework}.pages.dev
+# Each deployment gets a URL like: https://kanban-{framework}.vercel.app
 
 # 3. Measure a single deployment
-tsx scripts/measure-single.ts --url https://kanban-tanstack-solid.pages.dev --runs 10
+tsx scripts/measure-single.ts --url https://kanban-nextjs-ochre.vercel.app --runs 10
 
 # 4. Repeat step 3 for each framework you want to measure
-tsx scripts/measure-single.ts --url https://kanban-nextjs.pages.dev --runs 10
-tsx scripts/measure-single.ts --url https://kanban-nuxt.pages.dev --runs 10
+tsx scripts/measure-single.ts --url https://kanban-tanstack-solid.vercel.app --runs 10
+tsx scripts/measure-single.ts --url https://kanban-nuxt.vercel.app --runs 10
 # ... etc
 
 # 5. Aggregate all measurements into final report
@@ -322,7 +323,7 @@ cat metrics/final-measurements.md
 
 - Node.js 20+
 - Chrome/Chromium
-- Cloudflare Pages deployments (URL format: `https://{folder-name}.pages.dev`)
+- Vercel deployments (URL format: `https://{project-name}.vercel.app`)
 - Same network conditions (or accept different absolute values)
 
 **Expected variance:**
@@ -379,7 +380,7 @@ You can modify the scripts to add CPU throttling if you want to measure that asp
 
 - Reflects real-world conditions users experience
 - Multiple runs with outlier removal manages variance
-- All frameworks use same CDN provider (Cloudflare Pages) for fairness
+- All frameworks use same platform (Vercel) for fairness
 - Production testing captures actual compression (Brotli) and edge network performance
 
 ### "Sample size of 10 seems arbitrary"
@@ -415,34 +416,20 @@ This reflects the out-of-box developer experience.
 
 ---
 
-## Changelog
+## Measurement System
 
-### Current Version (2024)
+This project uses a modular measurement workflow designed for production testing:
 
-- **URL-based measurements**: Direct URL input instead of framework name lookup
-- **Cloudflare Pages deployments**: Production testing at `https://{folder-name}.pages.dev`
+- **URL-based measurements**: Direct URL input to measure any production deployment
+- **Vercel deployments**: Production testing at `https://{project-name}.vercel.app`
 - **Modular workflow**:
   - `measure-single.ts`: Measure one deployment, save JSON report
   - `aggregate-measurements.ts`: Combine reports into final documents
   - `generate-charts.ts`: Create visualization from aggregated data
-- **No batch testing**: Individual measurements allow incremental updates
+- **Individual measurements**: Allows incremental updates as frameworks are deployed
 - **Primary metrics**: Bundle sizes (compressed + raw) and web vitals
 - **Statistical rigor**: 10 runs per page, IQR outlier removal, median ± std dev
 - **Server warmup**: Stabilize server/database before measurements
 - **Cache clearing**: First-load measurements (cold-cache)
 - **Automatic framework detection**: Infer name from URL structure
 - **Comprehensive tracking**: Chrome/Lighthouse version, compression type, network conditions
-
-### Removed in This Version
-
-- Batch testing scripts (measure-all-lighthouse.ts, measure-final.ts)
-- Framework hardcoded configurations (now URL-based)
-- Localhost testing (production CDN only)
-
-### Future Improvements
-
-- Add warm-cache measurements
-- Test with CPU throttling variants (4x, 6x)
-- Measure interaction/runtime performance (though all frameworks feel instant)
-- Test on actual mobile devices (not just emulation)
-- Multi-page route testing beyond home and board pages
