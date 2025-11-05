@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+    optimizeCss: true, // Inline critical CSS using critters
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',

@@ -24,6 +24,7 @@
     "babel-plugin-react-compiler": "^19.1.0-rc.3",
     "browserslist-config-baseline": "^0.5.0",
     "charts.css": "^1.2.0",
+    "critters": "^0.0.23",
     "daisyui": "^5.1.25",
     "drizzle-orm": "^0.44.5",
     "next": "16.0.0-beta.0",
