@@ -42,11 +42,10 @@ export default defineNuxtConfig({
   ],
 
   nitro: {
-    preset: 'cloudflare-pages',
+    preset: 'vercel',
     prerender: {
       crawlLinks: false,
       routes: [],
-      autoSubfolderIndex: false, // Required for Cloudflare Pages
     },
     compressPublicAssets: true,
     experimental: {

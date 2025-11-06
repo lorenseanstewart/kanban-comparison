@@ -14,8 +14,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined
-    const db = useDatabase(d1)
+    const db = useDatabase()
     const body = await readBody(event)
 
     const result = v.safeParse(CommentSchema, { ...body, cardId })

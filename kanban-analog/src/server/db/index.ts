@@ -1,24 +1,20 @@
-/// <reference types="@cloudflare/workers-types" />
-import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
-import { drizzle as drizzleSqlite } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from '../../../drizzle/schema';
 
-// Singleton for better-sqlite3 in development
-let sqliteDb: ReturnType<typeof drizzleSqlite<typeof schema>> | null = null;
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-export function getDatabase(d1Binding?: D1Database) {
-  // Production: use D1
-  if (d1Binding) {
-    return drizzleD1(d1Binding, { schema });
+export function getDatabase() {
+  if (!db) {
+    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+    const pool = new Pool({
+      connectionString,
+      max: process.env.NODE_ENV === 'production' ? 1 : 10,
+    });
+
+    db = drizzle(pool, { schema });
   }
 
-  // Development: use better-sqlite3
-  if (!sqliteDb) {
-    // Use relative path from project root (process.cwd())
-    const sqlite = new Database('./local.db');
-    sqliteDb = drizzleSqlite(sqlite, { schema });
-  }
-
-  return sqliteDb;
+  return db;
 }

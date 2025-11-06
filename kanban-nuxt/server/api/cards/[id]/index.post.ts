@@ -15,8 +15,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined
-    const db = useDatabase(d1)
+    const db = useDatabase()
     const rawBody = await readRawBody(event, 'utf-8')
     const body = rawBody ? JSON.parse(rawBody) : null
 

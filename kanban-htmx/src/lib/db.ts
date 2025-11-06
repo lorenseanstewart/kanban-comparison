@@ -1,24 +1,20 @@
-/// <reference types="@cloudflare/workers-types" />
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from '../../drizzle/schema'
 
-/**
- * Get database instance with D1 or better-sqlite3
- *
- * Uses dynamic imports to prevent better-sqlite3 from being bundled in Cloudflare Workers.
- * In production, d1Binding is always provided, so the local code path is never taken.
- *
- * @param d1Binding - Optional D1 database binding from Cloudflare
- * @returns Drizzle database instance
- */
-export async function getDatabase(d1Binding?: D1Database) {
-  if (d1Binding) {
-    // Production: use D1 from Cloudflare
-    // Dynamic import prevents bundling of better-sqlite3
-    const { getDatabase: getD1Database } = await import('./db.d1.js')
-    return getD1Database(d1Binding)
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null
+
+export function getDatabase() {
+  if (!db) {
+    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
+
+    const pool = new Pool({
+      connectionString,
+      max: process.env.NODE_ENV === 'production' ? 1 : 10,
+    })
+
+    db = drizzle(pool, { schema })
   }
 
-  // Development: use better-sqlite3
-  // This code path is never reached in Cloudflare Workers
-  const { getDatabase: getLocalDatabase } = await import('./db.local.js')
-  return getLocalDatabase()
+  return db
 }

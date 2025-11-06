@@ -1,17 +1,25 @@
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
 
-const sqlite = new Database('./drizzle/db.sqlite');
-const db = drizzle(sqlite);
+dotenv.config({ path: '.env.local' });
+
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
+}
+
+const pool = new Pool({ connectionString });
+const db = drizzle(pool);
 
 console.log('Running migrations...');
 
-migrate(db, { migrationsFolder: './drizzle/migrations' });
+await migrate(db, { migrationsFolder: './drizzle/migrations' });
 
 console.log('Migrations complete');
 
-// Close the database connection
-sqlite.close();
+await pool.end();
 
 console.log('Database connection closed');

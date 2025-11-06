@@ -1,4 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getDatabase } from '$lib/db';

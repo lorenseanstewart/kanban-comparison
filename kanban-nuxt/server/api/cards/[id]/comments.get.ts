@@ -13,8 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined
-    const db = useDatabase(d1)
+    const db = useDatabase()
     const cardComments = await db.select().from(comments).where(eq(comments.cardId, cardId))
 
     const allUsers = await db.select().from(users)

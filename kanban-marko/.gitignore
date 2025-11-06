@@ -7,3 +7,4 @@ dist
 drizzle/db.sqlite
 drizzle/db.sqlite-shm
 drizzle/db.sqlite-wal
+.vercel

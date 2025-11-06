@@ -1,6 +1,5 @@
-/// <reference types="@cloudflare/workers-types" />
 import { error } from '@sveltejs/kit';
-import { query, form, command, getRequestEvent } from '$app/server';
+import { query, form, command } from '$app/server';
 import { getBoard, getUsers, getTags } from '$lib/server/boards';
 import { getDatabase } from '$lib/db';
 import { cards, cardTags, comments, lists } from '$lib/db/schema';
@@ -17,15 +16,13 @@ import {
 
 // Query functions
 export const getBoardData = query(v.string(), async (board_id) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const board = await getBoard(d1, board_id);
+	const board = await getBoard(board_id);
 
 	if (!board) {
 		error(404, 'Board not found');
 	}
 
-	const [users, tags] = await Promise.all([getUsers(d1), getTags(d1)]);
+	const [users, tags] = await Promise.all([getUsers(), getTags()]);
 
 	return {
 		board,
@@ -36,9 +33,7 @@ export const getBoardData = query(v.string(), async (board_id) => {
 
 // Form functions
 export const createCard = form(CardSchema, async (data, invalid) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 
 	// Find the Todo list for this board
 	const todoLists = await db.select().from(lists).where(eq(lists.boardId, data.boardId));
@@ -60,7 +55,7 @@ export const createCard = form(CardSchema, async (data, invalid) => {
 	// Create the card
 	const card_id = crypto.randomUUID();
 
-	// D1 doesn't support transactions - use sequential operations
+	// Use sequential operations
 	await db.insert(cards).values({
 		id: card_id,
 		listId: todoList.id,
@@ -87,11 +82,9 @@ export const createCard = form(CardSchema, async (data, invalid) => {
 });
 
 export const updateCard = form(CardUpdateSchema, async (data, invalid) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 
-	// D1 doesn't support transactions - use sequential operations
+	// Use sequential operations
 	await db.update(cards)
 		.set({
 			title: data.title,
@@ -118,9 +111,7 @@ export const updateCard = form(CardUpdateSchema, async (data, invalid) => {
 });
 
 export const addComment = form(CommentSchema, async (data, invalid) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 	const commentId = crypto.randomUUID();
 
 	await db.insert(comments).values({
@@ -138,20 +129,16 @@ export const addComment = form(CommentSchema, async (data, invalid) => {
 
 // Command functions for more granular control
 export const updateCardList = command(CardListUpdateSchema, async (data) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 	await db.update(cards).set({ listId: data.newListId }).where(eq(cards.id, data.cardId));
 
 	// Refreshing the board query happens below in updateCardPositions
 });
 
 export const updateCardPositions = command(CardPositionUpdateSchema, async (data) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 
-	// D1 doesn't support transactions - use sequential operations
+	// Use sequential operations
 	for (let index = 0; index < data.cardIds.length; index++) {
 		await db.update(cards).set({ position: index }).where(eq(cards.id, data.cardIds[index]));
 	}
@@ -161,9 +148,7 @@ export const updateCardPositions = command(CardPositionUpdateSchema, async (data
 });
 
 export const deleteCard = command(DeleteCardSchema, async (data) => {
-	const event = getRequestEvent();
-	const d1 = event.platform?.env?.DB as D1Database;
-	const db = getDatabase(d1);
+	const db = getDatabase();
 	await db.delete(cards).where(eq(cards.id, data.cardId));
 
 	// Refresh the board query

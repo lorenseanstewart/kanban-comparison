@@ -1,13 +1,20 @@
-/// <reference types="@cloudflare/workers-types" />
-import { drizzle } from 'drizzle-orm/d1';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '../../../drizzle/schema';
 
-/**
- * Factory function to create a Drizzle database instance from a D1 binding.
- * This pattern is required for Cloudflare D1 deployment.
- *
- * @param d1Binding - The D1Database binding from platform.env.DB
- * @returns Drizzle database instance configured for D1
- */
-export function getDatabase(d1Binding: D1Database) {
-	return drizzle(d1Binding);
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
+export function getDatabase() {
+	if (!db) {
+		const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+		const pool = new Pool({
+			connectionString,
+			max: process.env.NODE_ENV === 'production' ? 1 : 10,
+		});
+
+		db = drizzle(pool, { schema });
+	}
+
+	return db;
 }

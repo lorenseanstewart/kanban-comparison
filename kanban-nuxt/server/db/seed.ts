@@ -1,9 +1,18 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
 import { boards, lists, cards, users, tags, cardTags, comments } from '../../drizzle/schema';
 
-const sqlite = new Database('./drizzle/db.sqlite');
-const db = drizzle(sqlite);
+dotenv.config({ path: '.env.local' });
+
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL or POSTGRES_URL environment variable is required');
+}
+
+const pool = new Pool({ connectionString });
+const db = drizzle(pool);
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
 
@@ -153,24 +162,27 @@ async function seed() {
   console.log('Seeding database...');
 
   // Clear existing data in correct order (respecting foreign keys)
-  db.delete(cardTags).run();
-  db.delete(comments).run();
-  db.delete(cards).run();
-  db.delete(lists).run();
-  db.delete(boards).run();
-  db.delete(tags).run();
-  db.delete(users).run();
+  await db.delete(cardTags);
+  await db.delete(comments);
+  await db.delete(cards);
+  await db.delete(lists);
+  await db.delete(boards);
+  await db.delete(tags);
+  await db.delete(users);
 
   // Insert new data
-  db.insert(users).values(usersData).run();
-  db.insert(boards).values(boardsData).run();
-  db.insert(lists).values(listsData).run();
-  db.insert(tags).values(tagsData).run();
-  db.insert(cards).values(cardsData).run();
-  db.insert(cardTags).values(cardTagsData).run();
-  db.insert(comments).values(commentsData).run();
+  await db.insert(users).values(usersData);
+  await db.insert(boards).values(boardsData);
+  await db.insert(lists).values(listsData);
+  await db.insert(tags).values(tagsData);
+  await db.insert(cards).values(cardsData);
+  await db.insert(cardTags).values(cardTagsData);
+  await db.insert(comments).values(commentsData);
 
   console.log('Database seeded successfully!');
+
+  await pool.end();
+  console.log('Database connection closed');
 }
 
 seed().catch(console.error);

@@ -13,8 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined
-    const db = useDatabase(d1)
+    const db = useDatabase()
     const [boardRecord] = await db.select().from(boards).where(eq(boards.id, boardId))
 
     if (!boardRecord) {

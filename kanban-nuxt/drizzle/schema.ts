@@ -1,52 +1,52 @@
-import { sqliteTable, text, integer, primaryKey, index } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, varchar, timestamp, integer, boolean, primaryKey, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const users = sqliteTable('users', {
+export const users = pgTable('users', {
   id: text('id').primaryKey(),
-  name: text('name').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
 });
 
-export const boards = sqliteTable('boards', {
+export const boards = pgTable('boards', {
   id: text('id').primaryKey(),
-  title: text('title').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const lists = sqliteTable('lists', {
+export const lists = pgTable('lists', {
   id: text('id').primaryKey(),
   boardId: text('board_id').notNull().references(() => boards.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   position: integer('position').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   boardIdIdx: index('lists_board_id_idx').on(table.boardId),
   positionIdx: index('lists_position_idx').on(table.position),
 }));
 
-export const cards = sqliteTable('cards', {
+export const cards = pgTable('cards', {
   id: text('id').primaryKey(),
   listId: text('list_id').notNull().references(() => lists.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
   assigneeId: text('assignee_id').references(() => users.id, { onDelete: 'set null' }),
   position: integer('position').notNull(),
-  completed: integer('completed', { mode: 'boolean' }).default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  completed: boolean('completed').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   listIdIdx: index('cards_list_id_idx').on(table.listId),
   positionIdx: index('cards_position_idx').on(table.position),
   assigneeIdx: index('cards_assignee_id_idx').on(table.assigneeId),
 }));
 
-export const tags = sqliteTable('tags', {
+export const tags = pgTable('tags', {
   id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  color: text('color').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  name: varchar('name', { length: 100 }).notNull(),
+  color: varchar('color', { length: 50 }).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-export const cardTags = sqliteTable('card_tags', {
+export const cardTags = pgTable('card_tags', {
   cardId: text('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
   tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
 }, (table) => ({
@@ -55,12 +55,12 @@ export const cardTags = sqliteTable('card_tags', {
   tagIdIdx: index('card_tags_tag_id_idx').on(table.tagId),
 }));
 
-export const comments = sqliteTable('comments', {
+export const comments = pgTable('comments', {
   id: text('id').primaryKey(),
   cardId: text('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'set null' }),
   text: text('text').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => ({
   cardIdIdx: index('comments_card_id_idx').on(table.cardId),
   userIdIdx: index('comments_user_id_idx').on(table.userId),

@@ -19,7 +19,6 @@
     "valibot": "^1.1.0"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.7.10",
     "@marko/run": "^0.8.0",
     "cssnano": "^7.1.1",
     "drizzle-kit": "^0.31.5",
