@@ -8,6 +8,14 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => ({
   build: {
     target: ['es2020'],
+    cssCodeSplit: false, // Bundle all CSS into one file for inlining
+    cssMinify: true, // Minify CSS
+    assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
+    rollupOptions: {
+      output: {
+        manualChunks: undefined, // Prevent unnecessary chunking
+      },
+    },
   },
   css: {
     transformer: 'postcss', // Use PostCSS instead of lightningcss for better DaisyUI compatibility
@@ -22,13 +30,9 @@ export default defineConfig(({ mode }) => ({
         routes: async () => [],
       },
       nitro: {
-        preset: 'cloudflare-pages',
+        preset: 'vercel',
         minify: false,
         compressPublicAssets: true,
-        routeRules: {
-          '/': { ssr: true },
-          '/board/**': { ssr: true },
-        },
       },
       vite: {
         experimental: {

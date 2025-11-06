@@ -11,16 +11,10 @@ export const load = async ({ params, event }: PageServerLoad) => {
     throw new Error('Board ID is required');
   }
 
-  // Try different paths for D1 binding (dev vs production)
-  const d1 = (event.context.cloudflare?.env?.DB ||
-               event.context.DB ||
-               (event.context as any).env?.DB) as D1Database | undefined;
-
-  // getDatabase will use better-sqlite3 if d1 is undefined (local dev)
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   // Get board
-  const board = await db
+  const boardResults = await db
     .select({
       id: boards.id,
       title: boards.title,
@@ -28,7 +22,9 @@ export const load = async ({ params, event }: PageServerLoad) => {
     })
     .from(boards)
     .where(eq(boards.id, id))
-    .get();
+    .limit(1);
+
+  const board = boardResults[0];
 
   if (!board) {
     throw new Error('Board not found');

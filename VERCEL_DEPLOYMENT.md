@@ -1,6 +1,21 @@
 # Vercel Deployment Guide
 
-This guide covers deploying all kanban apps to Vercel using a shared Neon Postgres database.
+This comprehensive guide covers migrating from Cloudflare Pages (D1 SQLite) to Vercel (Neon Postgres) and deploying all kanban apps to Vercel using a shared database.
+
+## Why Migrate to Vercel?
+
+### Advantages Over Cloudflare Pages
+1. **Native Next.js support** - CSS optimization works out-of-box
+2. **Better framework adapters** - Official Vercel adapters for most frameworks
+3. **Shared Postgres database** - All apps can share the same database via Neon
+4. **Edge functions** - Middleware support across all frameworks
+5. **Fair comparison** - All frameworks on same hosting platform
+
+### Key Changes
+- **Database**: Cloudflare D1 (SQLite) → Neon Postgres
+- **ORM**: Drizzle ORM (updated for Postgres)
+- **Adapters**: Framework-specific Vercel adapters
+- **Deployment**: Vercel CLI or GitHub integration
 
 ## Prerequisites
 
@@ -8,6 +23,35 @@ This guide covers deploying all kanban apps to Vercel using a shared Neon Postgr
 2. **Neon Account**: Sign up at https://neon.tech
 3. **GitHub/GitLab/Bitbucket**: Repository hosted on one of these platforms
 4. **Node.js**: v20.x or higher installed locally
+
+## Migration Checklist (From Cloudflare to Vercel)
+
+For each framework that was previously on Cloudflare Pages:
+
+### SvelteKit Migration Steps
+- [x] Install Vercel adapter: `npm install -D @sveltejs/adapter-vercel`
+- [x] Remove Cloudflare dependencies: `@cloudflare/workers-types`, `@sveltejs/adapter-cloudflare`, `wrangler`
+- [x] Update `svelte.config.js` to use Vercel adapter
+- [x] Update database connection to use `pg` instead of D1
+- [x] Add `dotenv` configuration in `hooks.server.ts`
+- [x] Update SSL configuration for Postgres
+- [x] Update package.json scripts to match standard patterns
+- [x] Test local development with Neon database
+- [x] Verify build process completes successfully
+
+### Database Schema Changes (SQLite → Postgres)
+When migrating from D1 (SQLite) to Neon (Postgres), the schema stays mostly the same because:
+- Text IDs are compatible
+- Drizzle ORM abstracts query differences
+- Timestamp handling is handled by Drizzle
+
+**Key consideration**: Ensure SSL is configured correctly for Postgres connections:
+```typescript
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false }
+});
+```
 
 ## Part 1: Set Up Neon Postgres Database
 
@@ -102,15 +146,35 @@ vercel
 
 ### 2.3 Deploy kanban-sveltekit
 
+**Prerequisites (already completed in migration):**
+- ✅ Installed `@sveltejs/adapter-vercel`
+- ✅ Updated `svelte.config.js` to use Vercel adapter with Node.js 22 runtime
+- ✅ Removed Cloudflare-specific dependencies
+- ✅ Configured database connection with SSL support
+- ✅ Added `hooks.server.ts` to load environment variables via dotenv
+
+**Deployment:**
+
+Via Vercel CLI:
 ```bash
 cd kanban-sveltekit
 vercel
-
-# Or via dashboard:
-# - Root Directory: kanban-sveltekit
-# - Framework: SvelteKit
-# - Environment Variable: DATABASE_URL = <neon-connection-string>
 ```
+
+Via Vercel Dashboard:
+1. Go to https://vercel.com/new
+2. Import your Git repository
+3. Select the `kanban-sveltekit` directory as the root
+4. Framework Preset: SvelteKit (auto-detected)
+5. Add environment variables:
+   - Name: `DATABASE_URL`
+   - Value: Your Neon connection string (pooled)
+   - OR
+   - Name: `POSTGRES_URL`
+   - Value: Your Neon connection string (pooled)
+6. Click **"Deploy"**
+
+**Note**: The app uses either `POSTGRES_URL` or `DATABASE_URL` environment variable. Vercel will automatically provide these when you connect Neon to your project.
 
 ### 2.4 Deploy kanban-htmx (Astro)
 
@@ -244,6 +308,54 @@ await migrate(db, { migrationsFolder: 'drizzle/migrations' });
 - Database connection not initialized
 - Check that DATABASE_URL is available at runtime
 - Verify connection pooling is configured correctly
+
+**Error**: Nuxt app shows no data (Next.js app has data)
+
+**Solution**:
+- This occurs when API routes still have leftover Cloudflare D1 parameters
+- Check all API routes for `useDatabase(d1)` and change to `useDatabase()`
+- The `useDatabase()` function doesn't accept parameters when using Postgres
+
+Example fix:
+```typescript
+// Before (Cloudflare D1)
+const db = useDatabase(d1)
+
+// After (Postgres)
+const db = useDatabase()
+```
+
+Find and replace all occurrences:
+```bash
+cd kanban-nuxt
+find server/api -type f -name "*.ts" -exec sed -i '' 's/useDatabase(d1)/useDatabase()/g' {} +
+```
+
+**Error**: SvelteKit app shows no data or database query errors
+
+**Solution**:
+- This occurs when using SQLite-specific query methods like `.get()` or `.all()`
+- Postgres with Drizzle doesn't support these methods
+- Replace `.get()` with `.limit(1)` and access the first element of the result array
+
+Example fix:
+```typescript
+// Before (SQLite)
+const board = await db
+  .select({ id: boards.id, title: boards.title })
+  .from(boards)
+  .where(eq(boards.id, boardId))
+  .get();
+
+// After (Postgres)
+const boardResults = await db
+  .select({ id: boards.id, title: boards.title })
+  .from(boards)
+  .where(eq(boards.id, boardId))
+  .limit(1);
+
+const board = boardResults[0];
+```
 
 ## Part 6: Performance Optimization
 

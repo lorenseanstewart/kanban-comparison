@@ -4,16 +4,7 @@ import { users, boards, lists, cards, tags, cardTags, comments } from '../../../
 
 export default defineEventHandler(async (event) => {
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
-
-    if (!d1) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'D1 binding not found',
-      });
-    }
-
-    const db = getDatabase(d1);
+    const db = getDatabase();
 
     const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
 

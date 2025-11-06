@@ -3,12 +3,10 @@ import { getDatabase } from '../../../../db/index';
 import { comments } from '../../../../../../drizzle/schema';
 import * as v from 'valibot';
 import { CommentSchema } from '../../../../../lib/validation';
-import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
-    const db = getDatabase(d1);
+    const db = getDatabase();
 
     const cardId = event.context.params?.id;
     if (!cardId) {

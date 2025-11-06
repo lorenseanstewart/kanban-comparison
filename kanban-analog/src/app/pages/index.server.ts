@@ -4,13 +4,7 @@ import { boards } from '../../../drizzle/schema';
 import { asc } from 'drizzle-orm';
 
 export const load = async ({ event }: PageServerLoad) => {
-  // Try different paths for D1 binding (dev vs production)
-  const d1 = (event.context.cloudflare?.env?.DB ||
-               event.context.DB ||
-               (event.context as any).env?.DB) as D1Database | undefined;
-
-  // getDatabase will use better-sqlite3 if d1 is undefined (local dev)
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   const rows = await db
     .select({

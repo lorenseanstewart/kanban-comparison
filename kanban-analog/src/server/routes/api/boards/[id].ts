@@ -3,19 +3,9 @@ import { getDatabase } from '../../../db/index';
 import { boards, lists, cards, tags, cardTags, comments } from '../../../../../drizzle/schema';
 import { eq, inArray, asc } from 'drizzle-orm';
 import type { Tag, Comment } from '../../../../../drizzle/schema';
-import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
-  const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
-
-  if (!d1) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'D1 binding not found',
-    });
-  }
-
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   const id = event.context.params?.id;
 
@@ -26,7 +16,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const board = await db
+  const boardResults = await db
     .select({
       id: boards.id,
       title: boards.title,
@@ -34,7 +24,9 @@ export default defineEventHandler(async (event) => {
     })
     .from(boards)
     .where(eq(boards.id, id))
-    .get();
+    .limit(1);
+
+  const board = boardResults[0];
 
   if (!board) {
     throw createError({

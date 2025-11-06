@@ -1,0 +1,3 @@
+import 'dotenv/config';
+
+export {};

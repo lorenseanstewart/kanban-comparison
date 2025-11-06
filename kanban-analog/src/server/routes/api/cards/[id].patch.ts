@@ -4,12 +4,10 @@ import { cards, cardTags } from '../../../../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import * as v from 'valibot';
 import { CardUpdateSchema } from '../../../../lib/validation';
-import type { D1Database } from '@cloudflare/workers-types';
 
 export default defineEventHandler(async (event) => {
   try {
-    const d1 = event.context.cloudflare?.env?.DB as D1Database | undefined;
-    const db = getDatabase(d1);
+    const db = getDatabase();
 
     const cardId = event.context.params?.id;
     if (!cardId) {
