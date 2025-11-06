@@ -5,8 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
 	plugins: [sveltekit(), tailwindcss()],
 	build: {
-		cssCodeSplit: true,
+		cssCodeSplit: false, // Bundle all CSS into one file for inlining
 		cssMinify: true,
+		assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
 		rollupOptions: {
 			output: {
 				manualChunks: undefined,

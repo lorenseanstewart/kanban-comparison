@@ -1,0 +1,194 @@
+{
+  "metadata": {
+    "frameworkName": "kanban-nuxt.vercel.app",
+    "url": "https://kanban-nuxt.vercel.app/",
+    "timestamp": "2025-11-06T02:29:40.561Z",
+    "runsPerPage": 10,
+    "measurementType": "cold-load",
+    "networkCondition": "4G",
+    "cpuThrottling": "No throttling",
+    "chromeVersion": "12.8.2"
+  },
+  "results": [
+    {
+      "framework": "kanban-nuxt.vercel.app",
+      "page": "home",
+      "jsTransferred": {
+        "mean": 91291,
+        "median": 91316,
+        "stddev": 54.7,
+        "min": 91213,
+        "max": 91363,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 236425,
+        "median": 236425,
+        "stddev": 0,
+        "min": 236425,
+        "max": 236425,
+        "runs": 10
+      },
+      "compressionRatio": 61,
+      "performanceScore": {
+        "mean": 100,
+        "median": 100,
+        "stddev": 0,
+        "min": 100,
+        "max": 100,
+        "runs": 10
+      },
+      "fcp": {
+        "mean": 798,
+        "median": 799,
+        "stddev": 22.9,
+        "min": 771,
+        "max": 1531,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 798,
+        "median": 799,
+        "stddev": 22.9,
+        "min": 771,
+        "max": 1531,
+        "runs": 10
+      },
+      "tbt": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "si": {
+        "mean": 837,
+        "median": 831,
+        "stddev": 53.9,
+        "min": 770,
+        "max": 1549,
+        "runs": 10
+      },
+      "scriptEvaluation": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 31,
+        "runs": 10
+      },
+      "mainThreadWork": {
+        "mean": 53,
+        "median": 52,
+        "stddev": 2.3,
+        "min": 50,
+        "max": 98,
+        "runs": 10
+      },
+      "compressionType": "gzip",
+      "chromeVersion": "12.8.2",
+      "networkCondition": "4G",
+      "cpuThrottling": "No throttling",
+      "measurementTimestamp": "2025-11-06T02:25:46.032Z"
+    },
+    {
+      "framework": "kanban-nuxt.vercel.app",
+      "page": "board",
+      "jsTransferred": {
+        "mean": 91282,
+        "median": 91288,
+        "stddev": 42.5,
+        "min": 91192,
+        "max": 91351,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 236425,
+        "median": 236425,
+        "stddev": 0,
+        "min": 236425,
+        "max": 236425,
+        "runs": 10
+      },
+      "compressionRatio": 61,
+      "performanceScore": {
+        "mean": 100,
+        "median": 100,
+        "stddev": 0,
+        "min": 100,
+        "max": 100,
+        "runs": 10
+      },
+      "fcp": {
+        "mean": 1205,
+        "median": 1207,
+        "stddev": 25.9,
+        "min": 1168,
+        "max": 1328,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 1205,
+        "median": 1207,
+        "stddev": 25.9,
+        "min": 1168,
+        "max": 1328,
+        "runs": 10
+      },
+      "tbt": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "si": {
+        "mean": 1247,
+        "median": 1247,
+        "stddev": 42,
+        "min": 1179,
+        "max": 1386,
+        "runs": 10
+      },
+      "scriptEvaluation": {
+        "mean": 41,
+        "median": 57,
+        "stddev": 27,
+        "min": 0,
+        "max": 65,
+        "runs": 10
+      },
+      "mainThreadWork": {
+        "mean": 133,
+        "median": 145,
+        "stddev": 22.2,
+        "min": 96,
+        "max": 154,
+        "runs": 10
+      },
+      "compressionType": "gzip",
+      "chromeVersion": "12.8.2",
+      "networkCondition": "4G",
+      "cpuThrottling": "No throttling",
+      "measurementTimestamp": "2025-11-06T02:29:40.561Z"
+    }
+  ]
+}
