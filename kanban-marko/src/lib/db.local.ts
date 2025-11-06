@@ -10,7 +10,9 @@ let sqliteDb: ReturnType<typeof drizzle<typeof schema>> | null = null
  */
 export function getDatabase() {
   if (!sqliteDb) {
-    const sqlite = new Database('./drizzle/db.sqlite')
+    // Use environment variable for database path, default to local path
+    const dbPath = process.env.DB_PATH || './drizzle/db.sqlite'
+    const sqlite = new Database(dbPath)
 
     // Enable WAL mode for better concurrency
     sqlite.pragma('journal_mode = WAL')

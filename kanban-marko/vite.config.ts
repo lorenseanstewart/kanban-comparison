@@ -12,4 +12,8 @@ export default defineConfig({
     external: ["better-sqlite3", "drizzle-orm/better-sqlite3"],
     noExternal: [],
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
 });

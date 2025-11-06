@@ -1,4 +1,4 @@
-import "../styles.css";
+import styles from "../styles.css?inline";
 
 <!doctype html>
 <html lang="en">
@@ -8,6 +8,7 @@ import "../styles.css";
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kanban Board - Marko">
     <title>${$global.meta.pageTitle || "Kanban Board"}</title>
+    <html-style>${styles}</html-style>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-8">
     <div class="container mx-auto max-w-7xl">

@@ -1,4 +1,4 @@
-import { db } from '../lib/db';
+import { getDatabase } from '../lib/db';
 import { users, boards, lists, cards, tags, cardTags, comments } from '../../drizzle/schema';
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
@@ -139,7 +139,8 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-const seed = () => {
+const seed = async () => {
+  const db = await getDatabase();
   db.transaction((tx) => {
     tx.delete(cardTags).run();
     tx.delete(comments).run();
@@ -159,7 +160,7 @@ const seed = () => {
 };
 
 try {
-  seed();
+  await seed();
   console.log('Database seeded');
   process.exit(0);
 } catch (error) {

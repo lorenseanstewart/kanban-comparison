@@ -16,7 +16,7 @@ export const POST = async (context: { request: Request }) => {
     const result = await createBoard({
       title,
       description: description || null
-    });
+    }, d1);
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 200 : 400,

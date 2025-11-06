@@ -1,0 +1,194 @@
+{
+  "metadata": {
+    "frameworkName": "kanban-marko",
+    "url": "https://kanban-marko.pages.dev",
+    "timestamp": "2025-11-06T01:55:30.724Z",
+    "runsPerPage": 10,
+    "measurementType": "cold-load",
+    "networkCondition": "4G",
+    "cpuThrottling": "No throttling",
+    "chromeVersion": "12.8.2"
+  },
+  "results": [
+    {
+      "framework": "kanban-marko",
+      "page": "home",
+      "jsTransferred": {
+        "mean": 7205,
+        "median": 7204,
+        "stddev": 4.5,
+        "min": 7199,
+        "max": 7215,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 12649,
+        "median": 12649,
+        "stddev": 0,
+        "min": 12649,
+        "max": 12649,
+        "runs": 10
+      },
+      "compressionRatio": 43,
+      "performanceScore": {
+        "mean": 100,
+        "median": 100,
+        "stddev": 0,
+        "min": 96,
+        "max": 100,
+        "runs": 10
+      },
+      "fcp": {
+        "mean": 1182,
+        "median": 1181,
+        "stddev": 6.3,
+        "min": 174,
+        "max": 2213,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 1182,
+        "median": 1181,
+        "stddev": 6.3,
+        "min": 174,
+        "max": 2213,
+        "runs": 10
+      },
+      "tbt": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "si": {
+        "mean": 1186,
+        "median": 1189,
+        "stddev": 7.4,
+        "min": 192,
+        "max": 2204,
+        "runs": 10
+      },
+      "scriptEvaluation": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "mainThreadWork": {
+        "mean": 27,
+        "median": 27,
+        "stddev": 1.2,
+        "min": 26,
+        "max": 29,
+        "runs": 10
+      },
+      "compressionType": "gzip",
+      "chromeVersion": "12.8.2",
+      "networkCondition": "4G",
+      "cpuThrottling": "No throttling",
+      "measurementTimestamp": "2025-11-06T01:51:34.496Z"
+    },
+    {
+      "framework": "kanban-marko",
+      "page": "board",
+      "jsTransferred": {
+        "mean": 29801,
+        "median": 29797,
+        "stddev": 32.9,
+        "min": 29766,
+        "max": 30046,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 90916,
+        "median": 90916,
+        "stddev": 0,
+        "min": 90916,
+        "max": 90916,
+        "runs": 10
+      },
+      "compressionRatio": 67,
+      "performanceScore": {
+        "mean": 100,
+        "median": 100,
+        "stddev": 0,
+        "min": 95,
+        "max": 100,
+        "runs": 10
+      },
+      "fcp": {
+        "mean": 1371,
+        "median": 1367,
+        "stddev": 21.5,
+        "min": 779,
+        "max": 2356,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 1371,
+        "median": 1367,
+        "stddev": 21.5,
+        "min": 779,
+        "max": 2356,
+        "runs": 10
+      },
+      "tbt": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "si": {
+        "mean": 1365,
+        "median": 1361,
+        "stddev": 21.3,
+        "min": 790,
+        "max": 2341,
+        "runs": 10
+      },
+      "scriptEvaluation": {
+        "mean": 28,
+        "median": 24,
+        "stddev": 28.1,
+        "min": 0,
+        "max": 62,
+        "runs": 10
+      },
+      "mainThreadWork": {
+        "mean": 106,
+        "median": 101,
+        "stddev": 24.9,
+        "min": 75,
+        "max": 146,
+        "runs": 10
+      },
+      "compressionType": "gzip",
+      "chromeVersion": "12.8.2",
+      "networkCondition": "4G",
+      "cpuThrottling": "No throttling",
+      "measurementTimestamp": "2025-11-06T01:55:30.724Z"
+    }
+  ]
+}
