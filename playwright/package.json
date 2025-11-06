@@ -1,0 +1,17 @@
+{
+  "name": "kanban-playwright-measurement",
+  "version": "1.0.0",
+  "description": "Playwright-based performance measurement for Kanban frameworks",
+  "type": "module",
+  "scripts": {
+    "measure": "tsx measure.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

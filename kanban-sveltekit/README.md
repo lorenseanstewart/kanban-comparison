@@ -1,268 +1,188 @@
-# Kanban SvelteKit
+# Kanban Board - SvelteKit Implementation
 
-Kanban board built with SvelteKit 5, remote functions, and Cloudflare D1.
-
-## Features
-
-- SvelteKit 5 with experimental remote functions (`query`, `form`, `command`)
-- Cloudflare D1 for serverless SQL database
-- Drizzle ORM for type-safe database queries
-- TailwindCSS 4 + DaisyUI for styling
-- Deployed to Cloudflare Pages
-
-## Prerequisites
-
-- Node.js 20+
-- npm or pnpm
-- Cloudflare account (for deployment)
-- Wrangler CLI (installed as dev dependency)
-
-## Setup
-
-```bash
-npm install
-```
-
-## Local Development
-
-This project is configured to run with Cloudflare's Wrangler for local development.
-
-### 1. Create Local D1 Database
-
-First, create a local D1 database:
-
-```bash
-npx wrangler d1 create kanban-db
-```
-
-This will output a database ID. Update the `database_id` in `wrangler.toml` with this value.
-
-### 2. Build the Application
-
-```bash
-npm run build
-```
-
-### 3. Start Dev Server
-
-In one terminal, start the Wrangler dev server:
-
-```bash
-npm run dev
-```
-
-This runs the app at [http://localhost:8788](http://localhost:8788) using Wrangler Pages with D1 binding.
-
-### 4. Initialize Database
-
-In another terminal, run the setup script to apply migrations and seed data:
-
-```bash
-npm run setup
-```
-
-This script will:
-- Wait for the dev server to start
-- Apply the database schema via `/api/migrate` endpoint
-- Seed the database with sample data via `/api/seed` endpoint
-
-You can now visit [http://localhost:8788](http://localhost:8788) to see the app!
-
-## Database Management
-
-### Schema Changes
-
-If you modify the schema in `drizzle/schema.ts`:
-
-1. Generate new migration:
-   ```bash
-   npm run db:generate
-   ```
-
-2. Update `/api/migrate/+server.ts` with the new schema SQL
-
-3. Restart dev server and run setup again
-
-### Reset Database
-
-To reset your local database, just run the setup script again:
-
-```bash
-npm run setup
-```
-
-The seed endpoint clears all existing data before inserting fresh data.
-
-## Deployment to Cloudflare Pages
-
-### 1. Create Production D1 Database
-
-```bash
-npx wrangler d1 create kanban-db --env production
-```
-
-### 2. Connect Repository to Cloudflare Pages
-
-1. Push your code to GitHub
-2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
-3. Click "Create a project" → "Connect to Git"
-4. Select your repository
-5. Configure build settings:
-   - **Framework preset**: SvelteKit
-   - **Build command**: `npm run build`
-   - **Build output directory**: `.svelte-kit/cloudflare`
-
-### 3. Add D1 Binding
-
-In your Cloudflare Pages project settings:
-
-1. Go to **Settings** → **Functions** → **D1 database bindings**
-2. Add a binding:
-   - **Variable name**: `DB`
-   - **D1 database**: Select your `kanban-db` database
-
-### 4. Deploy
-
-Trigger a deployment. Once deployed, initialize your production database:
-
-```bash
-# Get your production URL
-curl -X POST https://your-app.pages.dev/api/migrate
-curl -X POST https://your-app.pages.dev/api/seed
-```
-
-Your app is now live!
-
-## API Endpoints
-
-- `POST /api/migrate` - Apply database schema
-- `POST /api/seed` - Seed database with sample data
+A full-featured Kanban board application built with SvelteKit 5, featuring drag-and-drop, real-time updates, and Neon Postgres persistence.
 
 ## Tech Stack
 
 - **Framework**: SvelteKit 5
-- **Database**: Cloudflare D1 (SQLite)
-- **ORM**: Drizzle ORM
-- **Styling**: TailwindCSS 4 + DaisyUI
+- **Database**: Neon Postgres (serverless PostgreSQL) with Drizzle ORM
+- **Deployment**: Vercel (serverless functions)
+- **Styling**: Tailwind CSS 4 + DaisyUI
+- **Drag & Drop**: @formkit/drag-and-drop
+- **Animations**: @formkit/auto-animate
+- **Charts**: charts.css
 - **Validation**: Valibot
-- **Deployment**: Cloudflare Pages
-- **Local Dev**: Wrangler
+
+## Local Development
+
+### First Time Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+echo "POSTGRES_URL=your-neon-connection-string" > .env
+
+# Set up database (run migrations and seed)
+npm run db:push
+npm run seed
+
+# Start development server
+npm run dev
+```
+
+Visit [http://localhost:5173](http://localhost:5173)
+
+> **Note**: You'll need a Neon Postgres database connection string. Get one at https://neon.tech
+
+### Subsequent Runs
+
+```bash
+npm run dev
+```
+
+## Production Deployment
+
+**Production URL**: TBD (will be available after first deployment)
+
+### Deploy to Vercel
+
+1. **Set up Neon Postgres** (if not already done):
+   - Create a database at https://console.neon.tech
+   - Copy the connection string
+
+2. **Configure environment variables in Vercel**:
+   - `POSTGRES_URL` or `DATABASE_URL` = your Neon connection string
+
+3. **Deploy**:
+
+```bash
+vercel --prod
+```
+
+The database migrations and seed data should already be set up from the first app deployment. All apps in this comparison share the same Neon Postgres database.
+
+## Available Scripts
+
+### Development
+- `npm run dev` - Start development server
+- `npm run build` - Build production bundle
+- `npm run preview` - Preview production build
+
+### Database
+- `npm run db:generate` - Generate new migration from schema changes
+- `npm run db:push` - Push schema changes to Postgres
+- `npm run seed` - Seed database with sample data
+
+## Database Setup
+
+The app uses Neon Postgres for both development and production.
+
+### Schema Changes
+
+1. Modify schema in `drizzle/schema.ts`
+2. Generate migration: `npm run db:generate`
+3. Push to database: `npm run db:push`
 
 ## Project Structure
 
 ```
-kanban-sveltekit/
-├── src/
-│   ├── lib/
-│   │   ├── db/
-│   │   │   ├── index.ts          # D1 database factory
-│   │   │   └── schema.ts         # Database schema export
-│   │   ├── server/
-│   │   │   └── boards.ts         # Server-side queries
-│   │   ├── board.remote.ts       # Remote functions for board operations
-│   │   └── boards.remote.ts      # Remote functions for boards list
-│   ├── routes/
-│   │   ├── api/
-│   │   │   ├── migrate/+server.ts  # Schema migration endpoint
-│   │   │   └── seed/+server.ts     # Database seed endpoint
-│   │   └── ...                     # Page routes
-│   └── app.d.ts                    # Platform types
-├── drizzle/
-│   ├── migrations/                 # SQL migrations
-│   └── schema.ts                   # Drizzle schema definitions
-├── scripts/
-│   └── seed-dev.sh                 # Local setup script
-├── wrangler.toml                   # Cloudflare configuration
-└── package.json
-
+src/
+├── lib/
+│   ├── server/
+│   │   └── boards.ts      # Server-side database queries
+│   ├── components/         # Svelte components
+│   └── types.ts            # TypeScript types
+├── routes/
+│   ├── +page.svelte        # Home page (boards list)
+│   └── board/
+│       └── [id]/+page.svelte  # Board detail page
+drizzle/
+├── schema.ts               # Database schema
+└── migrations/             # Migration files
 ```
 
-## Key Differences from Traditional SvelteKit
+## Features
 
-### 1. Database Access Pattern
+- ✅ Create and manage multiple boards
+- ✅ Four fixed lists per board (Todo, In-Progress, QA, Done)
+- ✅ Create, edit, and delete cards
+- ✅ Drag-and-drop cards within and between lists
+- ✅ Assign users to cards
+- ✅ Add tags to cards with color coding
+- ✅ Add comments to cards
+- ✅ Mark cards as complete
+- ✅ Real-time optimistic UI updates
+- ✅ Responsive design with DaisyUI theme
+- ✅ Board overview charts
+- ✅ SvelteKit 5 with runes ($state, $derived, $effect)
+- ✅ Server-side rendering with +page.server.ts
+- ✅ Form actions for mutations
+- ✅ Error handling with loading states
+- ✅ Server ID reconciliation for optimistic updates
 
-Instead of importing a singleton database instance, all functions accept a D1 binding:
+## Key Implementation Details
 
-```typescript
-// ❌ Old pattern (doesn't work with D1)
-import { db } from '$lib/db';
-export async function getBoards() {
-  return db.select().from(boards);
-}
+### Database Access Pattern
 
-// ✅ New pattern (works with D1)
-export async function getBoards(d1: D1Database) {
-  const db = getDatabase(d1);
-  return db.select().from(boards);
-}
-```
-
-### 2. Remote Functions Access Platform
-
-Remote functions (query, form, command) receive the event object to access D1:
-
-```typescript
-export const getBoards = query(async (event) => {
-  const d1 = event.platform?.env?.DB as D1Database;
-  return await getBoardsFromServer(d1);
-});
-```
-
-### 3. No Transactions
-
-D1 doesn't support `db.transaction()`. Use sequential operations instead:
+Server functions receive the database connection from hooks:
 
 ```typescript
-// ❌ Doesn't work with D1
-db.transaction((tx) => {
-  tx.insert(cards).values({...});
-  tx.insert(cardTags).values([...]);
-});
-
-// ✅ Works with D1
-await db.insert(cards).values({...});
-await db.insert(cardTags).values([...]);
-```
-
-### 4. Parameter Limits
-
-D1 has a 448 parameter limit for prepared statements. Batch large inserts:
-
-```typescript
-const BATCH_SIZE = 10;
-for (let i = 0; i < items.length; i += BATCH_SIZE) {
-  const batch = items.slice(i, i + BATCH_SIZE);
-  await db.insert(table).values(batch);
+// In +page.server.ts
+export async function load({ locals }) {
+  const boards = await getBoards(locals.db);
+  return { boards };
 }
 ```
 
-## Troubleshooting
+### Form Actions
 
-### Dev server not starting
+SvelteKit form actions handle mutations:
 
-Make sure you've built the app first:
-```bash
-npm run build
-npm run dev
-```
-
-### Database errors
-
-Reset your database:
-```bash
-npm run setup
-```
-
-### Type errors with D1Database
-
-Make sure you have `@cloudflare/workers-types` installed and the reference in your files:
 ```typescript
-/// <reference types="@cloudflare/workers-types" />
+export const actions = {
+  createCard: async ({ request, locals }) => {
+    const formData = await request.formData();
+    const data = parseFormData(formData);
+    await createCard(locals.db, data);
+    return { success: true };
+  }
+};
 ```
 
-## Resources
+### Optimistic UI Updates
 
-- [SvelteKit Docs](https://svelte.dev/docs/kit)
-- [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/)
-- [Drizzle ORM Docs](https://orm.drizzle.team/)
-- [Cloudflare Pages Deployment Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-svelte-kit-site/)
+Client-side state management with Svelte runes provides instant feedback:
+
+```svelte
+<script>
+  let boards = $state([]);
+
+  async function addBoard(data) {
+    // Optimistic update
+    const tempId = crypto.randomUUID();
+    boards = [...boards, { id: tempId, ...data }];
+
+    // Server request
+    const result = await fetch('/api/boards', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+
+    // Replace temp ID with real ID
+    const newBoard = await result.json();
+    boards = boards.map(b => b.id === tempId ? newBoard : b);
+  }
+</script>
+```
+
+## Learn More
+
+- [SvelteKit Documentation](https://kit.svelte.dev/)
+- [Svelte 5 Documentation](https://svelte.dev/docs/svelte/overview)
+- [Drizzle ORM Documentation](https://orm.drizzle.team/)
+
+## License
+
+MIT

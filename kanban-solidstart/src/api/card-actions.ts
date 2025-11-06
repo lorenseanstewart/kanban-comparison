@@ -3,7 +3,7 @@ import { eq, max } from "drizzle-orm";
 import * as v from "valibot";
 import { cards, cardTags, comments, lists } from "../../drizzle/schema";
 import { CardSchema, CardUpdateSchema, CommentSchema } from "../lib/validation";
-import { getDatabase, getD1Binding } from "./db";
+import { getDatabase } from "./db";
 
 export type CardActionResponse =
   | { success: true; data?: { id?: string; listId?: string; commentId?: string } }
@@ -44,8 +44,8 @@ export const updateCardAction = action(
 
     const { cardId, title, description, assigneeId, tagIds } = validation.output;
 
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    
+    const db = getDatabase();
 
     await db
       .update(cards)
@@ -79,8 +79,8 @@ export const addCommentAction = action(
     const { cardId, userId, text } = validation.output;
     const commentId = crypto.randomUUID();
 
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    
+    const db = getDatabase();
 
     await db.insert(comments).values({
       id: commentId,
@@ -108,8 +108,8 @@ export const createCardAction = action(
       return { success: false, error: firstIssue.message } as const;
     }
 
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    
+    const db = getDatabase();
 
     const todoList = await db
       .select()
@@ -166,8 +166,8 @@ export const deleteCardAction = action(
     }
 
     try {
-      const d1 = getD1Binding();
-      const db = getDatabase(d1);
+      
+      const db = getDatabase();
 
       await db.delete(cards).where(eq(cards.id, cardId));
       return json({ success: true } as const, {

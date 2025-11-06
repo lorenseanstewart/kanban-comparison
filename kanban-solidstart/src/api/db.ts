@@ -1,36 +1,36 @@
-/// <reference types="@cloudflare/workers-types" />
+"use server";
 
-import { drizzle } from 'drizzle-orm/d1';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '../../drizzle/schema';
 
-/**
- * Factory function to create a Drizzle database instance from a D1 binding.
- * This is the only export - no proxy singleton pattern.
- *
- * @param d1Binding - The D1Database binding from Cloudflare
- * @returns Drizzle database instance
- */
-export function getDatabase(d1Binding: D1Database) {
-  return drizzle(d1Binding);
-}
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 /**
- * Helper to get D1 binding from process.env.
- * SolidStart with nodejs_compat flag provides DB via process.env.
- *
- * @throws Error if D1 binding is not found
- * @returns D1Database binding
+ * Get database instance (singleton pattern for connection pooling)
  */
-export function getD1Binding(): D1Database {
-  // @ts-ignore - Cloudflare Pages provides DB binding via process.env
-  const d1 = process.env.DB as D1Database | undefined;
+export function getDatabase() {
+  if (!db) {
+    const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
-  if (!d1) {
-    throw new Error(
-      'D1 binding not found. ' +
-      'Local dev: Use `npm run dev` which runs wrangler with --d1 flag. ' +
-      'Production: Ensure DB is bound in Cloudflare Pages settings.'
-    );
+    if (!connectionString) {
+      throw new Error(
+        'Database connection string not found. ' +
+        'Please set POSTGRES_URL or DATABASE_URL environment variable.'
+      );
+    }
+
+    const pool = new Pool({
+      connectionString,
+      max: process.env.NODE_ENV === 'production' ? 1 : 10,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
+
+    db = drizzle(pool, { schema });
   }
 
-  return d1;
+  return db;
 }

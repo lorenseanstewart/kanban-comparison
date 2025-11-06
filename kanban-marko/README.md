@@ -150,6 +150,17 @@ npm run build:cloudflare
 npx wrangler pages deploy dist --project-name=kanban-marko
 ```
 
+### View Deployment Logs
+
+For Cloudflare Pages deployments, logs are available through:
+
+1. **Cloudflare Dashboard**: Visit the [Cloudflare Dashboard](https://dash.cloudflare.com/) → Pages → kanban-marko → Deployments
+2. **Real-time Logs** (requires Workers/Functions): If using Pages Functions, use:
+   ```bash
+   npx wrangler pages deployment tail --project-name=kanban-marko
+   ```
+   Note: Static deployments don't support live tailing. Add `console.log()` statements and view them in the dashboard.
+
 ### How It Works
 
 The Cloudflare build process:

@@ -8,7 +8,7 @@ export default function App() {
   return (
     <Router
       root={props => (
-        <div data-theme="pastel" class="min-h-screen bg-base-300 text-base-content">
+        <div data-theme="dark" class="min-h-screen bg-base-300 text-base-content">
           <Suspense>{props.children}</Suspense>
         </div>
       )}

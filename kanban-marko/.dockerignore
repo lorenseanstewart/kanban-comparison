@@ -1,8 +1,0 @@
-node_modules
-.git
-.marko-run
-.vercel
-dist
-*.log
-.env
-README.md

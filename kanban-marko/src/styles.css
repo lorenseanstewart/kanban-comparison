@@ -1,5 +1,4 @@
+@import "tailwindcss";
 @import "charts.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@plugin "daisyui";

@@ -1,5 +1,5 @@
 import { eq, inArray, asc } from "drizzle-orm";
-import { getDatabase, getD1Binding } from "./db";
+import { getDatabase } from "./db";
 import {
   boards,
   lists,
@@ -50,8 +50,7 @@ export type BoardComment = BoardCard["comments"][number] & { cardId: string };
 
 export async function getBoards(): Promise<BoardSummary[]> {
   "use server";
-  const d1 = getD1Binding();
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   const rows = await db
     .select({
@@ -66,8 +65,7 @@ export async function getBoards(): Promise<BoardSummary[]> {
 
 export async function getBoard(boardId: string): Promise<BoardDetails | null> {
   "use server";
-  const d1 = getD1Binding();
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   const boardResults = await db
     .select({
@@ -202,8 +200,7 @@ export async function getBoard(boardId: string): Promise<BoardDetails | null> {
 
 export async function getUsers() {
   "use server";
-  const d1 = getD1Binding();
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   return db
     .select({ id: users.id, name: users.name })
@@ -213,8 +210,7 @@ export async function getUsers() {
 
 export async function getTags() {
   "use server";
-  const d1 = getD1Binding();
-  const db = getDatabase(d1);
+  const db = getDatabase();
 
   return db
     .select({ id: tags.id, name: tags.name, color: tags.color })

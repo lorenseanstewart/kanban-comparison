@@ -1,8 +1,7 @@
+@import "tailwindcss";
 @import "charts.css/dist/charts.min.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@plugin "daisyui";
 
 /* Drag and Drop Styles */
 [draggable="true"] {

@@ -1,32 +1,24 @@
 import { defineConfig } from "astro/config";
-// import node from "@astrojs/node";
-// Cloudflare Pages adapter (for deployment)
-import cloudflare from "@astrojs/cloudflare";
+import vercel from "@astrojs/vercel/serverless";
 import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  // For Cloudflare Pages deployment
-  adapter: cloudflare({
-    mode: "directory",
-  }),
-  // For local development with node adapter, uncomment below and comment out cloudflare:
-  // import node from "@astrojs/node";
-  // adapter: node({ mode: "middleware" }),
+  adapter: vercel(),
   vite: {
     plugins: [tailwindcss()],
     build: {
-      cssCodeSplit: true,
-      cssMinify: true,
+      cssCodeSplit: false, // Bundle all CSS into one file
+      cssMinify: true, // Minify CSS
+      assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
       rollupOptions: {
         output: {
-          manualChunks: undefined,
+          manualChunks: undefined, // Prevent unnecessary chunking
         },
       },
     },
     ssr: {
-      external: ["better-sqlite3", "drizzle-orm/better-sqlite3"],
       noExternal: [],
     },
   },

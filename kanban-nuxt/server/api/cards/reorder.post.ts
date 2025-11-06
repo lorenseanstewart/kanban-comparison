@@ -21,14 +21,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update positions for all cards in the order they appear in cardIds
-    db.transaction((tx) => {
-      cardIds.forEach((cardId, index) => {
-        tx.update(cards)
-          .set({ position: index })
-          .where(eq(cards.id, cardId))
-          .run()
-      })
-    })
+    for (let index = 0; index < cardIds.length; index++) {
+      await db
+        .update(cards)
+        .set({ position: index })
+        .where(eq(cards.id, cardIds[index]))
+    }
 
     return { success: true }
   } catch (error: any) {

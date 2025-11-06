@@ -1,7 +1,7 @@
 import { action, json } from "@solidjs/router";
 import { eq } from "drizzle-orm";
 import { cards } from "../../drizzle/schema";
-import { getDatabase, getD1Binding } from "./db";
+import { getDatabase } from "./db";
 
 const normalizeListId = (listId: string) => (listId.startsWith("list-") ? listId : listId.replace(/^card-/, ""));
 
@@ -10,8 +10,8 @@ export const updateCardListAction = action(async (cardId: string, targetId: stri
   const normalizedTarget = normalizeListId(targetId);
 
   try {
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    
+    const db = getDatabase();
 
     await db.update(cards).set({ listId: normalizedTarget }).where(eq(cards.id, cardId));
 
@@ -25,8 +25,8 @@ export const updateCardListAction = action(async (cardId: string, targetId: stri
 export const updateCardPositionsAction = action(async (cardIds: string[]) => {
   "use server";
   try {
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    
+    const db = getDatabase();
 
     for (let index = 0; index < cardIds.length; index++) {
       await db.update(cards).set({ position: index }).where(eq(cards.id, cardIds[index]));

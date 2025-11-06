@@ -1,12 +1,12 @@
 # Kanban Board - Nuxt Implementation
 
-A full-featured Kanban board application built with Nuxt 3, featuring drag-and-drop, real-time updates, and SQLite/D1 persistence.
+A full-featured Kanban board application built with Nuxt 3, featuring drag-and-drop, real-time updates, and Neon Postgres persistence.
 
 ## Tech Stack
 
 - **Framework**: Nuxt 3 with Vue 3 Composition API
-- **Database**: SQLite (local) / Cloudflare D1 (production) with Drizzle ORM
-- **Deployment**: Cloudflare Pages
+- **Database**: Neon Postgres (serverless PostgreSQL) with Drizzle ORM
+- **Deployment**: Vercel (serverless functions)
 - **Styling**: Tailwind CSS + DaisyUI
 - **Drag & Drop**: @formkit/drag-and-drop
 - **Animations**: @formkit/auto-animate
@@ -15,21 +15,26 @@ A full-featured Kanban board application built with Nuxt 3, featuring drag-and-d
 
 ## Local Development
 
-The app uses a dual-database setup:
-- **Development**: Better-SQLite3 with `drizzle/db.sqlite`
-- **Production**: Cloudflare D1
-
 ### First Time Setup
 
 ```bash
+# Install dependencies
 npm install
-npm run setup  # Resets, migrates, and seeds the SQLite database
+
+# Set up environment variables
+echo "POSTGRES_URL=your-neon-connection-string" > .env
+
+# Set up database (run migrations and seed)
+npm run db:push
+npm run seed
+
+# Start development server
 npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
 
-> **Note**: Migration files are included in the repo, so you don't need to generate them.
+> **Note**: You'll need a Neon Postgres database connection string. Get one at https://neon.tech
 
 ### Subsequent Runs
 
@@ -39,125 +44,46 @@ npm run dev
 
 ## Production Deployment
 
-**Production URL**: https://kanban-nuxt.pages.dev/
+**Production URL**: TBD (will be available after first deployment)
 
-### First-time Setup
+### Deploy to Vercel
 
-1. **Install dependencies**:
+1. **Set up Neon Postgres** (if not already done):
+   - Create a database at https://console.neon.tech
+   - Copy the connection string
 
-```bash
-npm install
-```
+2. **Configure environment variables in Vercel**:
+   - `POSTGRES_URL` or `DATABASE_URL` = your Neon connection string
 
-2. **Migrate production D1 database** (one time only):
-
-```bash
-npm run db:migrate:d1
-```
-
-This runs:
-```bash
-wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql
-```
-
-3. **Seed production database** (optional):
+3. **Deploy**:
 
 ```bash
-npm run seed:d1
+vercel --prod
 ```
 
-This runs:
-```bash
-wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql
-```
-
-4. **Deploy to Cloudflare Pages**:
-
-```bash
-npm run pages:deploy
-```
-
-The D1 database binding is configured in `wrangler.toml` and should automatically work once deployed.
-
-### Subsequent Deployments
-
-Just build and deploy:
-
-```bash
-npm run pages:deploy
-```
-
-### Database Setup Commands
-
-**Migrate production D1 database:**
-```bash
-wrangler d1 execute kanban-db --remote --file=./drizzle/migrations/0000_calm_captain_britain.sql
-```
-
-**Seed production D1 database:**
-```bash
-wrangler d1 execute kanban-db --remote --file=./scripts/seed-d1.sql
-```
-
-**Verify deployment:**
-```bash
-curl https://kanban-nuxt.pages.dev/api
-```
-
-**View production logs:**
-```bash
-npx wrangler pages deployment tail --project-name=kanban-nuxt --format=pretty
-```
+The database migrations and seed data should already be set up from the first app deployment. All apps in this comparison share the same Neon Postgres database.
 
 ## Available Scripts
 
 ### Development
 - `npm run dev` - Start development server
-- `npm run build` - Build production bundle (Node.js)
-- `npm run build:cf` - Build for Cloudflare Pages
+- `npm run build` - Build production bundle
 - `npm run preview` - Preview production build
-- `npm run pages:deploy` - Build and deploy to Cloudflare Pages
 
-### Database (Local SQLite)
-- `npm run setup` - Initialize database (reset + migrate + seed)
-- `npm run db:reset` - Delete database files
+### Database
 - `npm run db:generate` - Generate new migration from schema changes
-- `npm run db:migrate` - Apply pending migrations to local SQLite
-- `npm run db:push` - Push schema changes directly (dev only)
-- `npm run seed` - Seed local SQLite database with sample data
-
-### Database (Cloudflare D1)
-- `npm run db:migrate:d1` - Apply migrations to production D1 database
-- `npm run db:migrate:d1:local` - Apply migrations to local D1 database
-- `npm run seed:d1` - Seed production D1 database with sample data
-- `npm run seed:d1:local` - Seed local D1 database with sample data
-- `npm run setup:d1` - Set up local D1 database (migrate + seed)
+- `npm run db:push` - Push schema changes to Postgres
+- `npm run seed` - Seed database with sample data
 
 ## Database Setup
 
-The app uses a dual-database setup:
-- **Local Development**: Better-SQLite3 at `drizzle/db.sqlite`
-- **Production**: Cloudflare D1
-
-### Local Database (SQLite)
-
-```bash
-npm run setup  # This automatically resets, migrates, and seeds
-```
-
-### Production Database (D1)
-
-```bash
-npm run db:migrate:d1  # Apply schema to production
-npm run seed:d1        # Seed production data (optional)
-```
+The app uses Neon Postgres for both development and production.
 
 ### Schema Changes
 
 1. Modify schema in `drizzle/schema.ts`
 2. Generate migration: `npm run db:generate`
-3. Apply to local: `npm run db:migrate`
-4. Apply to D1 production: `npm run db:migrate:d1`
+3. Push to database: `npm run db:push`
 
 ## Project Structure
 

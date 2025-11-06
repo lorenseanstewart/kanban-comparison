@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxt/fonts'],
+  modules: ['@nuxt/fonts'],
 
   css: ['~/assets/css/main.css', 'charts.css'],
 
@@ -18,10 +18,10 @@ export default defineNuxtConfig({
     },
   },
 
-  tailwindcss: {
-    configPath: '~/tailwind.config.js',
-    exposeConfig: false,
-    viewer: false,
+  postcss: {
+    plugins: {
+      '@tailwindcss/postcss': {},
+    },
   },
 
   app: {

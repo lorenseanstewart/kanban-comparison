@@ -1,13 +1,11 @@
-/// <reference types="@cloudflare/workers-types" />
-import { getD1Binding, getDatabase } from "~/api/db";
+import { getDatabase } from "~/api/db";
 import { comments } from "../../../../drizzle/schema";
 import * as v from "valibot";
 import { CommentSchema } from "~/lib/validation";
 
 export async function POST({ request }: { request: Request }) {
   try {
-    const d1 = getD1Binding();
-    const db = getDatabase(d1);
+    const db = getDatabase();
 
     const body = (await request.json()) as { cardId: string; userId: string; text: string };
     const { cardId, userId, text } = body;

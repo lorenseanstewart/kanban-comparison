@@ -1,108 +1,128 @@
-# kanban-analog
+# Kanban Board - Analog Implementation
 
-This project was generated with [Analog](https://analogjs.org), the fullstack meta-framework for Angular.
+A full-featured Kanban board application built with Analog (Angular meta-framework), featuring drag-and-drop, real-time updates, and Neon Postgres persistence.
 
-Deployed on Cloudflare Pages with D1 database.
+## Tech Stack
+
+- **Framework**: Analog (Angular meta-framework)
+- **Database**: Neon Postgres (serverless PostgreSQL) with Drizzle ORM
+- **Deployment**: Vercel (serverless functions)
+- **Styling**: Tailwind CSS + DaisyUI
+- **Drag & Drop**: @formkit/drag-and-drop
+- **Animations**: @formkit/auto-animate
+- **Charts**: charts.css
+- **Validation**: Valibot
 
 ## Local Development
 
-The app uses a dual-database setup:
-- **Development**: Better-SQLite3 with `local.db`
-- **Production**: Cloudflare D1
-
-### Setup
-
-1. Install dependencies:
+### First Time Setup
 
 ```bash
+# Install dependencies
 npm install
+
+# Set up environment variables
+echo "POSTGRES_URL=your-neon-connection-string" > .env
+
+# Set up database (run migrations and seed)
+npm run db:push
+npm run seed
+
+# Start development server
+npm run dev
 ```
 
-2. Set up local database (creates and seeds `local.db`):
+Visit [http://localhost:5173](http://localhost:5173)
 
-```bash
-npm run setup
-```
+> **Note**: You'll need a Neon Postgres database connection string. Get one at https://neon.tech
 
-3. Start dev server:
+### Subsequent Runs
 
 ```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
-
 ## Production Deployment
 
-### First-time Setup
+**Production URL**: TBD (will be available after first deployment)
 
-1. **Create and migrate D1 database** (one time only):
+### Deploy to Vercel
 
-```bash
-npm run db:migrate
-```
+1. **Set up Neon Postgres** (if not already done):
+   - Create a database at https://console.neon.tech
+   - Copy the connection string
 
-2. **Seed production database** (optional):
+2. **Configure environment variables in Vercel**:
+   - `POSTGRES_URL` or `DATABASE_URL` = your Neon connection string
 
-```bash
-npm run seed
-```
-
-3. **Deploy to Cloudflare Pages**:
+3. **Deploy**:
 
 ```bash
-npm run pages:deploy
+vercel --prod
 ```
 
-The D1 database binding is configured in `wrangler.toml` and should automatically work once deployed.
+The database migrations and seed data should already be set up from the first app deployment. All apps in this comparison share the same Neon Postgres database.
 
-**Production URL**: https://kanban-analog.pages.dev
+## Available Scripts
 
-### Subsequent Deployments
+### Development
+- `npm run dev` - Start development server
+- `npm run build` - Build production bundle
+- `npm run preview` - Preview production build
 
-Just build and deploy:
+### Database
+- `npm run db:generate` - Generate new migration from schema changes
+- `npm run db:push` - Push schema changes to Postgres
+- `npm run seed` - Seed database with sample data
 
-```bash
-npm run pages:deploy
-```
+## Database Setup
 
-## Database
-
-This app uses Cloudflare D1 (SQLite on the edge) via Drizzle ORM.
-
-### Available Scripts
-
-- `npm run setup` - Set up local database (migrate + seed)
-- `npm run db:generate` - Generate Drizzle migrations from schema changes
-- `npm run db:migrate:local` - Apply migrations to local D1 database
-- `npm run db:migrate` - Apply migrations to production D1 database
-- `npm run seed:local` - Seed local database with sample data
-- `npm run seed` - Seed production database with sample data
+The app uses Neon Postgres for both development and production.
 
 ### Schema Changes
 
 1. Modify schema in `drizzle/schema.ts`
 2. Generate migration: `npm run db:generate`
-3. Apply locally: `npm run db:migrate:local`
-4. Apply to production: `npm run db:migrate`
+3. Push to database: `npm run db:push`
 
-## Build
+## Project Structure
 
-Build the project for Cloudflare Pages:
-
-```bash
-npm run build
+```
+src/
+├── app/
+│   ├── pages/          # File-based routing
+│   └── components/     # Angular components
+├── server/
+│   ├── routes/         # API endpoints
+│   └── db/             # Database utilities
+drizzle/
+├── schema.ts           # Database schema
+└── migrations/         # Migration files
 ```
 
-Build artifacts are located in `dist/analog/public/`.
+## Features
 
-## Logs
+- ✅ Create and manage multiple boards
+- ✅ Four fixed lists per board (Todo, In-Progress, QA, Done)
+- ✅ Create, edit, and delete cards
+- ✅ Drag-and-drop cards within and between lists
+- ✅ Assign users to cards
+- ✅ Add tags to cards with color coding
+- ✅ Add comments to cards
+- ✅ Mark cards as complete
+- ✅ Real-time optimistic UI updates
+- ✅ Responsive design with DaisyUI theme
+- ✅ Board overview charts
+- ✅ Angular Signals for reactive state
+- ✅ Typed API routes with Nitro
+- ✅ Error handling with loading states
+- ✅ Server ID reconciliation for optimistic updates
 
-View production logs:
+## Learn More
 
-```bash
-npx wrangler pages deployment tail --project-name=kanban-analog --format=pretty
-```
+- [Analog Documentation](https://analogjs.org/)
+- [Angular Documentation](https://angular.dev/)
+- [Drizzle ORM Documentation](https://orm.drizzle.team/)
 
 ## Community
 
@@ -110,3 +130,7 @@ npx wrangler pages deployment tail --project-name=kanban-analog --format=pretty
 - Join the [Discord](https://chat.analogjs.org)
 - Follow us on [Twitter](https://twitter.com/analogjs)
 - Become a [Sponsor](https://github.com/sponsors/brandonroberts)
+
+## License
+
+MIT

@@ -1,6 +1,5 @@
-/// <reference types="@cloudflare/workers-types" />
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { getDatabase } from '~/db/index';
+import { getDatabase } from '~/lib/db';
 import { users, boards, lists, cards, tags, cardTags, comments } from '../../../../drizzle/schema';
 
 const timestamp = (day: number, hour: number, minute = 0) => new Date(Date.UTC(2024, 0, day, hour, minute));
@@ -137,17 +136,11 @@ const commentsData = [
   comment('57ce1ff5-3a51-42de-8ef7-376093a7d95c', 'f4136567-ba8b-4c4a-8128-212e159aa59f', '2cd5fecb-eee6-4cd1-8639-1f634b900a3b', 'KPIs pinned for launch.', 5, 11),
 ];
 
-export const onPost: RequestHandler = async ({ json, platform }) => {
+export const onPost: RequestHandler = async (requestEvent) => {
+  const { json } = requestEvent;
+
   try {
-
-    const d1 = platform.env?.DB as D1Database | undefined;
-
-    if (!d1) {
-      json(500, { error: 'D1 binding not found. Check Cloudflare Pages configuration.' });
-      return;
-    }
-
-    const db = getDatabase(d1);
+    const db = getDatabase(requestEvent);
 
     console.log('[Seed] Starting database seed...');
 
@@ -165,25 +158,9 @@ export const onPost: RequestHandler = async ({ json, platform }) => {
     await db.insert(boards).values(boardsData);
     await db.insert(lists).values(listsData);
     await db.insert(tags).values(tagsData);
-
-    // Insert cards in batches to avoid D1's 448 SQL parameter limit
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < cardsData.length; i += BATCH_SIZE) {
-      const batch = cardsData.slice(i, i + BATCH_SIZE);
-      await db.insert(cards).values(batch);
-    }
-
-    // Insert cardTags in batches
-    for (let i = 0; i < cardTagsData.length; i += BATCH_SIZE) {
-      const batch = cardTagsData.slice(i, i + BATCH_SIZE);
-      await db.insert(cardTags).values(batch);
-    }
-
-    // Insert comments in batches
-    for (let i = 0; i < commentsData.length; i += BATCH_SIZE) {
-      const batch = commentsData.slice(i, i + BATCH_SIZE);
-      await db.insert(comments).values(batch);
-    }
+    await db.insert(cards).values(cardsData);
+    await db.insert(cardTags).values(cardTagsData);
+    await db.insert(comments).values(commentsData);
 
     console.log('[Seed] Database seeded successfully');
 

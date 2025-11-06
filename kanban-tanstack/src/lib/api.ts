@@ -61,15 +61,16 @@ export const getBoards = cache(async (): Promise<BoardSummary[]> => {
 });
 
 export const getBoard = cache(async (boardId: string): Promise<BoardDetails | null> => {
-  const board = await db
+  const boardResult = await db
     .select({
       id: boards.id,
       title: boards.title,
       description: boards.description,
     })
     .from(boards)
-    .where(eq(boards.id, boardId))
-    .get();
+    .where(eq(boards.id, boardId));
+
+  const board = boardResult[0];
 
   if (!board) {
     return null;

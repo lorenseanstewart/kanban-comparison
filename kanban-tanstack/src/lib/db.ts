@@ -1,36 +1,40 @@
-/// <reference types="@cloudflare/workers-types" />
-
-import { drizzle } from 'drizzle-orm/d1';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import * as schema from "../../drizzle/schema";
 
 /**
- * Get database instance from D1 binding
+ * Database connection using Neon HTTP
+ *
+ * Uses Neon's HTTP driver for serverless edge runtime compatibility.
+ * - Works in both Vercel Edge Runtime and Node.js runtime
+ * - No persistent connections (HTTP-based)
+ * - Connection string loaded from env vars at runtime
+ *
+ * This allows builds to succeed even without env vars - connections happen at runtime.
  */
-export function getDatabase(d1Binding: D1Database) {
-	return drizzle(d1Binding);
+
+declare global {
+  // eslint-disable-next-line no-var
+  var db: ReturnType<typeof drizzle> | undefined;
 }
 
-/**
- * Default export for use in Server Functions
- * Requires D1 binding from environment (process.env.DB)
- *
- * This uses a Proxy pattern to lazily access the D1 binding,
- * allowing the database to be imported at the module level while
- * still accessing the runtime environment binding.
- */
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
-	get(_target, prop) {
-		// @ts-ignore - Cloudflare Workers provides DB binding via process.env
-		const d1 = process.env.DB as D1Database | undefined;
+// Get connection string - will be undefined during build, defined at runtime
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
-		if (!d1) {
-			throw new Error(
-				'D1 binding not found. ' +
-					'Local dev: Use `npm run dev` which runs wrangler with --d1 flag. ' +
-					'Production: Ensure DB is bound in Cloudflare Pages/Workers settings.'
-			);
-		}
+let db: ReturnType<typeof drizzle>;
 
-		const instance = getDatabase(d1);
-		return (instance as any)[prop];
-	}
-});
+if (process.env.NODE_ENV === 'production') {
+  // In production, use HTTP driver for edge compatibility
+  const sql = neon(connectionString!);
+  db = drizzle(sql, { schema });
+} else {
+  // Development: reuse connection across hot reloads
+  if (!global.db) {
+    const sql = neon(connectionString!);
+    global.db = drizzle(sql, { schema });
+  }
+
+  db = global.db;
+}
+
+export { db };

@@ -181,7 +181,6 @@ export const updateCard = createServerFn({ method: 'POST' })
   })
   .handler(async ({ data }) => {
     try {
-      // D1 doesn't support transactions - use sequential operations
       // Update card basic fields
       await db
         .update(cards)
@@ -298,7 +297,6 @@ export const createCard = createServerFn({ method: 'POST' })
       // Create the card
       const cardId = crypto.randomUUID()
 
-      // D1 doesn't support transactions - use sequential operations
       await db.insert(cards).values({
         id: cardId,
         listId: todoList.id,

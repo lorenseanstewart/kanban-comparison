@@ -21,12 +21,12 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get the highest position in the target list
-    const maxPositionResult = await db
+    const maxPositionResults = await db
       .select({ maxPos: max(cards.position) })
       .from(cards)
       .where(eq(cards.listId, targetListId))
-      .get()
 
+    const maxPositionResult = maxPositionResults[0]
     const newPosition = (maxPositionResult?.maxPos ?? -1) + 1
 
     // Move the card to the target list with the new position
@@ -34,7 +34,6 @@ export default defineEventHandler(async (event) => {
       .update(cards)
       .set({ listId: targetListId, position: newPosition })
       .where(eq(cards.id, cardId))
-      .run()
 
     return { success: true }
   } catch (error: any) {

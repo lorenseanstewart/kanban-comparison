@@ -10,7 +10,7 @@ import styles from "../styles.css?inline";
     <title>${$global.meta.pageTitle || "Kanban Board"}</title>
     <html-style>${styles}</html-style>
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-8">
+  <body data-theme="dark" class="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-8">
     <div class="container mx-auto max-w-7xl">
       <${input.content}/>
     </div>

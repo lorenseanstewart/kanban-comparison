@@ -41,3 +41,4 @@ lerna-debug.log*
 .yarn/*
 !.yarn/releases
 _worker.js
+.vercel

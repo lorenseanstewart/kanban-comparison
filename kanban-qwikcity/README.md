@@ -1,12 +1,12 @@
 # Kanban Board - Qwik City Implementation ⚡️
 
-A full-featured Kanban board application built with Qwik City, featuring drag-and-drop, real-time updates, and Cloudflare D1 database persistence.
+A full-featured Kanban board application built with Qwik City, featuring drag-and-drop, real-time updates, and PostgreSQL database persistence.
 
 ## Tech Stack
 
 - **Framework**: Qwik City with Vite
-- **Database**: Cloudflare D1 with Drizzle ORM
-- **Hosting**: Cloudflare Pages
+- **Database**: Neon Postgres with Drizzle ORM
+- **Hosting**: Vercel Edge Runtime
 - **Styling**: Tailwind CSS + DaisyUI
 - **Charts**: charts.css
 
@@ -18,27 +18,22 @@ A full-featured Kanban board application built with Qwik City, featuring drag-an
 # Install dependencies
 npm install
 
-# Start the dev server (builds and starts wrangler)
+# Set up environment variables
+# Copy .env file or create one with your Neon Postgres connection string:
+# DATABASE_URL=postgresql://...
+# POSTGRES_URL=postgresql://...
+
+# Apply database schema
+npm run db:push
+
+# Seed with sample data
+curl -X POST http://localhost:3006/api/seed
+
+# Start the dev server
 npm run dev
 ```
 
-The dev server will start on [http://localhost:8788](http://localhost:8788)
-
-**In a second terminal, initialize the database:**
-
-```bash
-npm run setup
-```
-
-Or use curl commands directly:
-
-```bash
-# Apply database schema
-curl -X POST http://localhost:8788/api/migrate
-
-# Seed with sample data
-curl -X POST http://localhost:8788/api/seed
-```
+The dev server will start on [http://localhost:3006](http://localhost:3006)
 
 ### Subsequent Runs
 
@@ -46,88 +41,79 @@ curl -X POST http://localhost:8788/api/seed
 npm run dev
 ```
 
-Visit [http://localhost:8788](http://localhost:8788)
+Visit [http://localhost:3006](http://localhost:3006)
 
 ## Available Scripts
 
 ### Development
-- `npm run dev` - Build and start Cloudflare Pages dev server with D1
-- `npm run build` - Build for production (alias for pages:build)
-- `npm run pages:build` - Build for Cloudflare Pages deployment
-- `npm run pages:deploy` - Deploy to Cloudflare Pages
-- `npm run setup` - Initialize database via API (migrate + seed)
+- `npm run dev` - Start Vite dev server with SSR
+- `npm run build` - Build for production
+- `npm run deploy` - Deploy to Vercel
 - `npm run fmt` - Format code with Prettier
 - `npm run lint` - Lint code with ESLint
 
 ### Database
 - `npm run db:generate` - Generate new migration from schema changes
-- `npm run db:migrate:local` - Apply migrations to local D1
-- `npm run db:migrate` - Apply migrations to production D1
-- `npm run seed:local` - Seed local D1 with sample data
-- `npm run seed` - Seed production D1 with sample data
+- `npm run db:push` - Push schema directly to database (for development)
+- `npm run seed` - Seed database with sample data via API endpoint
 
 ## Database Setup
 
-The app uses **Cloudflare D1** (SQLite on the edge) with Drizzle ORM. The database is configured in `wrangler.toml`.
+The app uses **Neon Postgres** with Drizzle ORM.
 
 ### Local Development
 
-The D1 database runs in-memory during local development. To set it up:
+1. Create a Neon Postgres database at [neon.tech](https://neon.tech)
+2. Copy your connection string
+3. Create a `.env` file in the project root:
 
-1. Start the dev server: `npm run dev`
-2. Run setup script: `npm run setup` (or use curl commands above)
-
-### Seed Database Manually
-
-```bash
-# Apply schema
-curl -X POST http://localhost:8788/api/migrate
-
-# Seed data
-curl -X POST http://localhost:8788/api/seed
+```env
+DATABASE_URL=postgresql://...
+POSTGRES_URL=postgresql://...
 ```
+
+4. Push the schema: `npm run db:push`
+5. Seed the database: `curl -X POST http://localhost:3006/api/seed`
 
 ### Schema Changes
 
 1. Modify schema in `drizzle/schema.ts`
-2. Generate migration: `npm run db:generate`
-3. Update API routes (`src/routes/api/migrate.ts`) with new schema SQL
-4. Restart dev server and run migration endpoint
+2. Push changes: `npm run db:push` (for development)
+3. Or generate migration: `npm run db:generate` (for production)
 
-## Deployment to Cloudflare Pages
+## Deployment to Vercel
 
 ### Prerequisites
 
-1. Cloudflare account
-2. Wrangler CLI authenticated: `npx wrangler login`
-3. D1 database created (already configured in `wrangler.toml`)
+1. Vercel account
+2. Neon Postgres database
 
 ### Deploy
 
 ```bash
-npm run pages:deploy
+# Install Vercel CLI (if not already installed)
+npm i -g vercel
+
+# Deploy
+npm run deploy
 ```
+
+Or connect your GitHub repository to Vercel for automatic deployments.
+
+### Environment Variables
+
+Add these environment variables in your Vercel project settings:
+
+- `DATABASE_URL` - Your Neon Postgres connection string
+- `POSTGRES_URL` - Your Neon Postgres connection string
 
 ### Post-Deployment
 
-After deploying, initialize the production database:
+After deploying, seed the production database:
 
 ```bash
-# Apply schema
-curl -X POST https://your-app.pages.dev/api/migrate
-
-# Seed data (optional)
-curl -X POST https://your-app.pages.dev/api/seed
+curl -X POST https://your-app.vercel.app/api/seed
 ```
-
-### Cloudflare Pages Configuration
-
-1. Go to your Cloudflare Pages project settings
-2. Navigate to **Settings** → **Functions**
-3. Add **D1 database binding**:
-   - Variable name: `DB`
-   - D1 database: Select `kanban-db`
-4. Save and redeploy
 
 ## Features
 
@@ -148,8 +134,8 @@ curl -X POST https://your-app.pages.dev/api/seed
 - [Qwik Documentation](https://qwik.dev/)
 - [Qwik City Routing](https://qwik.dev/qwikcity/routing/overview/)
 - [Drizzle ORM Documentation](https://orm.drizzle.team/)
-- [Cloudflare D1 Documentation](https://developers.cloudflare.com/d1/)
-- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Neon Postgres Documentation](https://neon.tech/docs)
+- [Vercel Documentation](https://vercel.com/docs)
 
 ## License
 

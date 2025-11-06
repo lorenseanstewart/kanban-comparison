@@ -1,19 +1,21 @@
 import { eq, and, gte, lt, lte, sql } from "drizzle-orm";
-import { getDatabase } from "./index";
+import { getDatabase } from "../lib/db";
+import type { RequestEventBase } from '@builder.io/qwik-city';
 import { cards } from "../../drizzle/schema";
 
 /**
  * Update a card's list and position
  */
 export async function updateCardListAndPosition(
-  d1: D1Database,
+  requestEvent: RequestEventBase,
   cardId: string,
   newListId: string,
   newPosition: number,
 ): Promise<void> {
-  const db = getDatabase(d1);
+  const db = getDatabase(requestEvent);
   // Get the current card
-  const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
+  const result = await db.select().from(cards).where(eq(cards.id, cardId));
+  const card = result[0];
 
   if (!card) {
     throw new Error(`Card ${cardId} not found`);
@@ -83,13 +85,14 @@ export async function updateCardListAndPosition(
  * Update only a card's position within its current list
  */
 export async function updateCardPosition(
-  d1: D1Database,
+  requestEvent: RequestEventBase,
   cardId: string,
   newPosition: number,
 ): Promise<void> {
-  const db = getDatabase(d1);
+  const db = getDatabase(requestEvent);
   // Get the current card
-  const card = await db.select().from(cards).where(eq(cards.id, cardId)).get();
+  const result = await db.select().from(cards).where(eq(cards.id, cardId));
+  const card = result[0];
 
   if (!card) {
     throw new Error(`Card ${cardId} not found`);

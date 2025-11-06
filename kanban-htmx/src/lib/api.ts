@@ -1,4 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
 import { eq, inArray, asc, max } from "drizzle-orm";
 import { getDatabase } from "./db";
 import {
@@ -49,8 +48,8 @@ export type UsersList = Array<User>;
 export type TagItem = Pick<Tag, "id" | "name" | "color">;
 export type TagsList = Array<TagItem>;
 
-export async function getBoards(d1?: D1Database): Promise<BoardSummary[]> {
-  const db = await getDatabase(d1);
+export async function getBoards(): Promise<BoardSummary[]> {
+  const db = getDatabase();
   const rows = await db
     .select({
       id: boards.id,
@@ -62,9 +61,9 @@ export async function getBoards(d1?: D1Database): Promise<BoardSummary[]> {
   return rows;
 }
 
-export async function getBoard(boardId: string, d1?: D1Database): Promise<BoardDetails | null> {
-  const db = await getDatabase(d1);
-  const board = await db
+export async function getBoard(boardId: string): Promise<BoardDetails | null> {
+  const db = getDatabase();
+  const boardResults = await db
     .select({
       id: boards.id,
       title: boards.title,
@@ -72,7 +71,9 @@ export async function getBoard(boardId: string, d1?: D1Database): Promise<BoardD
     })
     .from(boards)
     .where(eq(boards.id, boardId))
-    .get();
+    .limit(1);
+
+  const board = boardResults[0];
 
   if (!board) {
     return null;
@@ -193,24 +194,24 @@ export async function getBoard(boardId: string, d1?: D1Database): Promise<BoardD
     };
 }
 
-export async function getUsers(d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function getUsers() {
+  const db = getDatabase();
   return db
     .select({ id: users.id, name: users.name })
     .from(users)
     .orderBy(asc(users.name));
 }
 
-export async function getTags(d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function getTags() {
+  const db = getDatabase();
   return db
     .select({ id: tags.id, name: tags.name, color: tags.color })
     .from(tags)
     .orderBy(asc(tags.name));
 }
 
-export async function createBoard(data: { title: string; description: string | null }, d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function createBoard(data: { title: string; description: string | null }) {
+  const db = getDatabase();
   const boardId = crypto.randomUUID();
 
   await db.insert(boards).values({
@@ -239,8 +240,8 @@ export async function createCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}, d1?: D1Database) {
-  const db = await getDatabase(d1);
+}) {
+  const db = getDatabase();
   // Find the Todo list for this board
   const todoLists = await db
     .select()
@@ -293,8 +294,8 @@ export async function updateCard(data: {
   description: string | null;
   assigneeId: string | null;
   tagIds: string[];
-}, d1?: D1Database) {
-  const db = await getDatabase(d1);
+}) {
+  const db = getDatabase();
 
   // Update card basic fields
   await db
@@ -323,8 +324,8 @@ export async function addComment(data: {
   cardId: string;
   userId: string;
   text: string;
-}, d1?: D1Database) {
-  const db = await getDatabase(d1);
+}) {
+  const db = getDatabase();
   const commentId = crypto.randomUUID();
 
   await db.insert(comments).values({
@@ -337,8 +338,8 @@ export async function addComment(data: {
   return { id: commentId };
 }
 
-export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>, d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function updateCardPositions(updates: Array<{ cardId: string; listId: string; position: number }>) {
+  const db = getDatabase();
   for (const update of updates) {
     await db
       .update(cards)
@@ -347,8 +348,8 @@ export async function updateCardPositions(updates: Array<{ cardId: string; listI
   }
 }
 
-export async function reorderCards(cardIds: string[], d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function reorderCards(cardIds: string[]) {
+  const db = getDatabase();
   for (let index = 0; index < cardIds.length; index++) {
     await db
       .update(cards)
@@ -357,8 +358,8 @@ export async function reorderCards(cardIds: string[], d1?: D1Database) {
   }
 }
 
-export async function moveCard(cardId: string, targetListId: string, d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function moveCard(cardId: string, targetListId: string) {
+  const db = getDatabase();
   // Get the highest position in the target list
   const maxPositionResult = await db
     .select({ maxPos: max(cards.position) })
@@ -373,8 +374,8 @@ export async function moveCard(cardId: string, targetListId: string, d1?: D1Data
     .where(eq(cards.id, cardId));
 }
 
-export async function deleteCard(cardId: string, d1?: D1Database) {
-  const db = await getDatabase(d1);
+export async function deleteCard(cardId: string) {
+  const db = getDatabase();
   if (!cardId) {
     throw new Error("Card ID is required");
   }

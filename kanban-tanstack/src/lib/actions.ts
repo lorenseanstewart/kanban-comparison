@@ -71,7 +71,6 @@ export async function updateCard(formData: FormData) {
       throw new Error(firstIssue.message);
     }
 
-    // D1 doesn't support transactions - use sequential operations
     // Update card basic fields
     await db
       .update(cards)
@@ -181,7 +180,6 @@ export async function createCard(formData: FormData) {
     // Create the card
     const cardId = crypto.randomUUID();
 
-    // D1 doesn't support transactions - use sequential operations
     await db.insert(cards).values({
       id: cardId,
       listId: todoList.id,
