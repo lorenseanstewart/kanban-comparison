@@ -64,14 +64,14 @@ export function Card({ card, allUsers, allTags, onCardUpdate, onCardDelete }: Ca
       <article
         ref={setNodeRef}
         style={style}
-        className="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out"
+        className="card bg-base-100 dark:bg-neutral shadow-lg transition-all duration-300 ease-in-out cursor-grab active:cursor-grabbing"
         {...attributes}
+        {...listeners}
       >
       <div className="card-body gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3
-            className="card-title text-lg text-base-content cursor-grab active:cursor-grabbing flex-1"
-            {...listeners}
+            className="card-title text-lg text-base-content flex-1"
           >
             {card.title}
           </h3>
@@ -84,6 +84,8 @@ export function Card({ card, allUsers, allTags, onCardUpdate, onCardDelete }: Ca
               e.stopPropagation();
               setIsEditModalOpen(true);
             }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="btn btn-ghost btn-xs btn-circle"
           >
             <EditPencil />
@@ -129,6 +131,8 @@ export function Card({ card, allUsers, allTags, onCardUpdate, onCardDelete }: Ca
                 e.stopPropagation();
                 setIsCommentModalOpen(true);
               }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               className="btn btn-ghost btn-xs btn-circle"
             >
               <Plus />
@@ -146,6 +150,8 @@ export function Card({ card, allUsers, allTags, onCardUpdate, onCardDelete }: Ca
                   e.stopPropagation();
                   setIsCommentModalOpen(true);
                 }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 className="btn btn-ghost btn-xs btn-circle"
               >
                 <Plus />
