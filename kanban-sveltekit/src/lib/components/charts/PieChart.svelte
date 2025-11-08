@@ -1,5 +1,5 @@
 <script lang="ts">
-	import 'charts.css';
+	import chartsCss from 'charts.css?inline';
 
 	let {
 		data,
@@ -13,6 +13,10 @@
 
 	let totalValue = $derived(data.reduce((sum, item) => sum + item.value, 0));
 </script>
+
+<svelte:head>
+	{@html `<style>${chartsCss}</style>`}
+</svelte:head>
 
 <div class="card bg-base-100 shadow-lg">
 	<div class="card-body p-4 flex flex-col items-center">

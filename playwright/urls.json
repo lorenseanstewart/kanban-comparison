@@ -1,5 +1,13 @@
 {
   "kanban-nextjs": "https://kanban-nextjs-ochre.vercel.app",
+  "kanban-nextjs-cf": "https://kanban-nextjs-cf.pages.dev",
   "kanban-marko": "https://kanban-marko.pages.dev",
-  "kanban-analog": "https://kanban-analog.vercel.app"
+  "kanban-analog": "https://kanban-analog.vercel.app",
+  "kanban-nuxt": "https://kanban-nuxt.vercel.app",
+  "kanban-htmx": "https://kanban-htmx.vercel.app",
+  "kanban-solidstart": "https://kanban-solidstart.vercel.app",
+  "kanban-sveltekit": "https://kanban-sveltekit.vercel.app",
+  "kanban-qwikcity": "https://kanban-qwikcity.vercel.app",
+  "kanban-tanstack-solid": "https://kanban-tanstack-solid.pages.dev",
+  "kanban-tanstack": "https://kanban-tanstack.pages.dev"
 }

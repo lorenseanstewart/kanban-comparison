@@ -4,16 +4,16 @@ This document outlines the CSS optimization approaches used across all kanban ap
 
 ## Summary Table
 
-| App | Framework | Build Tool | CSS Strategy | Implementation |
-|-----|-----------|------------|--------------|----------------|
-| kanban-marko | Marko | Vite | **Full Inline** | Vite plugin (`transformIndexHtml`) |
-| kanban-qwikcity | Qwik | Vite | **Full Inline** | Qwik native `inlineStylesUpToBytes` |
-| kanban-tanstack | TanStack Start (React) | Vite | **Full Inline** | `?inline` import + `dangerouslySetInnerHTML` |
-| kanban-tanstack-solid | TanStack Start (Solid) | Vite | **Full Inline** | `?inline` import + `innerHTML` |
-| kanban-analog | Analog (Angular) | Vite | **Full Inline** | Vite plugin (`transformIndexHtml`) |
-| kanban-sveltekit | SvelteKit | Vite | **Full Inline** | `?inline` import + `{@html}` |
-| kanban-solidstart | SolidStart | Vinxi/Vite | **Full Inline** | `?inline` import + `innerHTML` |
-| kanban-nextjs | Next.js App Router | Turbopack | **External (Recommended)** | Next.js default optimization |
+| App                   | Framework              | Build Tool | CSS Strategy               | Implementation                               |
+| --------------------- | ---------------------- | ---------- | -------------------------- | -------------------------------------------- |
+| kanban-marko          | Marko                  | Vite       | **Full Inline**            | Vite plugin (`transformIndexHtml`)           |
+| kanban-qwikcity       | Qwik                   | Vite       | **Full Inline**            | Qwik native `inlineStylesUpToBytes`          |
+| kanban-tanstack       | TanStack Start (React) | Vite       | **Full Inline**            | `?inline` import + `dangerouslySetInnerHTML` |
+| kanban-tanstack-solid | TanStack Start (Solid) | Vite       | **Full Inline**            | `?inline` import + `innerHTML`               |
+| kanban-analog         | Analog (Angular)       | Vite       | **Full Inline**            | Vite plugin (`transformIndexHtml`)           |
+| kanban-sveltekit      | SvelteKit              | Vite       | **Full Inline**            | `?inline` import + `{@html}`                 |
+| kanban-solidstart     | SolidStart             | Vinxi/Vite | **Full Inline**            | `?inline` import + `innerHTML`               |
+| kanban-nextjs         | Next.js App Router     | Turbopack  | **External (Recommended)** | Next.js default optimization                 |
 
 ## Implementation Details by Framework
 
@@ -22,6 +22,7 @@ This document outlines the CSS optimization approaches used across all kanban ap
 **Strategy:** Vite Plugin with `transformIndexHtml` Hook
 
 **Implementation:**
+
 ```typescript
 // vite.config.ts
 function inlineCss(): Plugin {
@@ -47,6 +48,7 @@ function inlineCss(): Plugin {
 **Strategy:** Qwik Native `inlineStylesUpToBytes`
 
 **Implementation:**
+
 ```typescript
 // vite.config.ts
 qwikVite({
@@ -54,7 +56,7 @@ qwikVite({
   optimizerOptions: {
     inlineStylesUpToBytes: 120000, // 120KB
   },
-})
+});
 ```
 
 **Why it works:** Qwik's built-in CSS inlining operates at the bundle generation phase, compatible with both SSR and SSG builds. Works seamlessly with Qwik's resumability model.
@@ -68,9 +70,10 @@ qwikVite({
 **Strategy:** Vite `?inline` Import + React `dangerouslySetInnerHTML`
 
 **Implementation:**
+
 ```tsx
 // src/routes/__root.tsx
-import appCssContent from '~/styles/app.css?inline'
+import appCssContent from "~/styles/app.css?inline";
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -81,11 +84,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>{children}</body>
     </html>
-  )
+  );
 }
 ```
 
 **Configuration:**
+
 ```typescript
 // vite.config.ts
 build: {
@@ -103,9 +107,10 @@ build: {
 **Strategy:** Vite `?inline` Import + Solid `innerHTML`
 
 **Implementation:**
+
 ```tsx
 // src/routes/__root.tsx
-import appCssContent from '~/styles/app.css?inline'
+import appCssContent from "~/styles/app.css?inline";
 
 function RootDocument({ children }: { children: JSXElement }) {
   return (
@@ -120,7 +125,7 @@ function RootDocument({ children }: { children: JSXElement }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -143,6 +148,7 @@ function RootDocument({ children }: { children: JSXElement }) {
 **Strategy:** Vite `?inline` Import + Svelte `{@html}`
 
 **Implementation:**
+
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
@@ -160,6 +166,7 @@ function RootDocument({ children }: { children: JSXElement }) {
 ```
 
 **Configuration:**
+
 ```typescript
 // vite.config.ts
 build: {
@@ -177,6 +184,7 @@ build: {
 **Strategy:** Vite `?inline` Import + Solid `innerHTML`
 
 **Implementation:**
+
 ```tsx
 // src/entry-server.tsx
 import "dotenv/config";
@@ -189,8 +197,14 @@ export default createHandler(() => (
       <html lang="en">
         <head>
           <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/favicon.ico" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+          />
+          <link
+            rel="icon"
+            href="/favicon.ico"
+          />
           <style innerHTML={appCssContent} />
         </head>
         <body data-theme="pastel">
@@ -204,11 +218,13 @@ export default createHandler(() => (
 ```
 
 **Why inline CSS goes in entry-server.tsx, not app.tsx:**
+
 - The `document` prop in `StartServer` defines the actual `<html>` structure
 - CSS must be in the `<head>` for proper rendering and hydration
 - Putting `<style>` in `app.tsx` would render it in the `<body>`, causing hydration errors
 
 **Configuration:**
+
 ```typescript
 // app.config.ts
 import { defineConfig } from "@solidjs/start/config";
@@ -244,6 +260,7 @@ export default defineConfig({
 ```
 
 **Important configuration for SolidStart:**
+
 1. **Keep `{assets}` in entry-server.tsx**: Required for hydration scripts and Vite dev tooling. When using `?inline` import, `{assets}` does not include CSS in dev mode.
 2. **Add inline CSS after `{assets}`**: Place `<style innerHTML={appCssContent} />` after `{assets}` to ensure CSS loads after hydration scripts.
 3. **suppressCssOutput plugin**: Removes CSS files from production bundle (`apply: "build"`) as an extra safeguard.
@@ -258,11 +275,13 @@ export default defineConfig({
 **Strategy:** External Stylesheets (Recommended by Next.js)
 
 **Why CSS inlining doesn't work:**
+
 1. **App Router uses streaming SSR:** HTML is generated dynamically at runtime, not during build
 2. **No static HTML files:** Post-build scripts can't process non-existent files
 3. **`optimizeCss: true` (Critters) only works with Pages Router:** App Router's streaming is incompatible with Critters
 
 **What Next.js does instead:**
+
 - Automatic CSS optimization and minification
 - CSS file caching with long cache headers
 - Resource hints (`precedence="next"`) for optimal loading
@@ -270,29 +289,107 @@ export default defineConfig({
 - Automatic code splitting for CSS
 
 **Why this is the recommended approach for Next.js:**
+
 - Better caching strategy (CSS cached separately from HTML)
 - Smaller HTML payload
 - Browser can download CSS and HTML in parallel
 - Next.js team's recommended best practice for App Router
+
+### 9. kanban-htmx (Astro + HTMX)
+
+**Problem:**
+
+- Initial implementation used external CSS file (18 kB transferred, 122 kB uncompressed)
+- External CSS requires separate network request, blocking FCP
+- On 3G networks, this resulted in slower FCP (~896ms) compared to frameworks with inline CSS
+
+**Solution:**
+Inline all CSS using Astro's built-in `inlineStylesheets` option.
+
+**Implementation:**
+
+```javascript
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel/serverless";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  output: "server",
+  adapter: vercel(),
+  build: {
+    inlineStylesheets: "always", // Always inline CSS for better performance
+  },
+  vite: {
+    plugins: [tailwindcss()],
+    build: {
+      cssCodeSplit: false, // Bundle all CSS into one file
+      cssMinify: true, // Minify CSS
+      assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
+      rollupOptions: {
+        output: {
+          manualChunks: undefined, // Prevent unnecessary chunking
+        },
+      },
+    },
+    ssr: {
+      noExternal: [],
+    },
+  },
+});
+```
+
+**Results:**
+
+- CSS is now inlined in the HTML document
+- No separate CSS file to download (0 external CSS requests)
+- Aligns with other frameworks using DaisyUI (which also inline CSS)
+- Expected FCP improvement: 200-400ms on 3G networks
+
+**Trade-offs:**
+
+- **Pro**: Faster FCP - no blocking CSS request
+- **Pro**: CSS arrives with HTML - one less roundtrip
+- **Pro**: Consistent with other framework implementations
+- **Con**: Increases HTML document size by ~18 kB
+- **Con**: CSS can't be cached separately (but compresses well with gzip/brotli)
+- **Con**: Every page load includes all CSS (even on warm cache)
+
+**Verification:**
+
+```bash
+# Check that no CSS files exist in build output
+ls dist/client/_astro/*.css
+# Should return: No such file or directory
+
+# Verify CSS is inlined in HTML
+curl https://kanban-htmx.vercel.app/board | grep '<style'
+# Should show inline <style> tags
+```
 
 ---
 
 ## Key Learnings
 
 ### When Vite Plugins Work
+
 Vite's `transformIndexHtml` hook works for frameworks that:
+
 - Generate static HTML files during build
 - Don't use runtime HTML generation
 - Examples: **Marko**, **Analog**
 
 ### When Vite Plugins Don't Work
+
 The plugin approach fails for frameworks with:
+
 - Pure SSR (runtime HTML generation)
 - No static HTML file output
 - Streaming responses
 - Examples: **TanStack Start**, **SvelteKit (with SSR)**, **Qwik**, **SolidStart**
 
 ### SSR Framework Solutions
+
 For SSR frameworks, use framework-specific approaches:
 
 1. **Framework-native solutions** (Best)
@@ -309,7 +406,9 @@ For SSR frameworks, use framework-specific approaches:
    - Not used in any of our apps
 
 ### CSS Minification
+
 All Vite-based apps use:
+
 ```typescript
 build: {
   cssMinify: true,
@@ -323,18 +422,21 @@ When CSS is imported with `?inline`, Vite automatically minifies it during build
 ## Performance Considerations
 
 ### Advantages of Inlined CSS
+
 - **Eliminates render-blocking requests:** No separate CSS file download
 - **Faster initial render:** CSS available immediately with HTML
 - **Single HTTP request:** Reduces network overhead
 - **Better for small CSS files:** Under ~100KB
 
 ### Disadvantages of Inlined CSS
+
 - **Larger HTML payload:** Every page load includes full CSS
 - **No CSS caching:** CSS re-downloaded with each page
 - **Worse for large CSS files:** Over ~100KB
 - **Can't parallelize:** CSS and HTML load together, not separately
 
 ### When External CSS is Better
+
 - **Large CSS files:** Over 100-150KB
 - **Multi-page apps:** CSS can be cached across pages
 - **Frequently changing HTML, static CSS:** Better cache hit ratio
@@ -345,10 +447,11 @@ When CSS is imported with `?inline`, Vite automatically minifies it during build
 ## Build Configuration Patterns
 
 ### Standard Vite Plugin Pattern
+
 Used by: Marko, Analog
 
 ```typescript
-import { defineConfig, type Plugin, type HtmlTagDescriptor } from 'vite';
+import { defineConfig, type Plugin, type HtmlTagDescriptor } from "vite";
 
 function inlineCss(): Plugin {
   return {
@@ -364,9 +467,10 @@ function inlineCss(): Plugin {
 
       // Collect CSS files
       for (const chunk of Object.values(bundle)) {
-        if (chunk.fileName.endsWith(".css")
-          && chunk.type === "asset"
-          && typeof chunk.source === "string"
+        if (
+          chunk.fileName.endsWith(".css") &&
+          chunk.type === "asset" &&
+          typeof chunk.source === "string"
         ) {
           stylesToInline[chunk.fileName] = chunk.source;
         }
@@ -383,8 +487,10 @@ function inlineCss(): Plugin {
       });
 
       // Remove <link> tags
-      const htmlWithoutLinks = html
-        .replaceAll(/<link\s+rel="stylesheet"(\s.*\s)href="(.*)\.css">/gi, "");
+      const htmlWithoutLinks = html.replaceAll(
+        /<link\s+rel="stylesheet"(\s.*\s)href="(.*)\.css">/gi,
+        ""
+      );
 
       return {
         html: htmlWithoutLinks,
@@ -396,11 +502,12 @@ function inlineCss(): Plugin {
 ```
 
 ### SSR Framework Pattern (Vite `?inline`)
+
 Used by: TanStack Start, SvelteKit, SolidStart
 
 ```typescript
 // 1. Import CSS as string
-import appCss from './app.css?inline'
+import appCss from "./app.css?inline";
 
 // 2. Inject in head via framework-specific mechanism
 // React: dangerouslySetInnerHTML={{ __html: appCss }}
@@ -410,10 +517,10 @@ import appCss from './app.css?inline'
 // 3. Configure Vite
 export default defineConfig({
   build: {
-    cssCodeSplit: false,  // Bundle all CSS into one file
-    cssMinify: true,      // Minify CSS
+    cssCodeSplit: false, // Bundle all CSS into one file
+    cssMinify: true, // Minify CSS
   },
-})
+});
 ```
 
 ---
@@ -432,4 +539,3 @@ To verify CSS is inlined correctly:
 4. **Verify size:**
    - Check `<style>` tag contains minified CSS
    - Compare size to original CSS file
-

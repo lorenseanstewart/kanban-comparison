@@ -26,6 +26,15 @@ interface ScriptEvaluationMetrics {
   averageScriptEvalTime: number;
 }
 
+interface ParseCompileMetrics {
+  jsParseTime: number;
+  jsCompileTime: number;
+  jsExecutionTime: number;
+  cssParseTime: number;
+  styleRecalcTime: number;
+  totalParseCompileTime: number;
+}
+
 interface PageMeasurement {
   jsTransferred: number;
   jsUncompressed: number;
@@ -37,6 +46,7 @@ interface PageMeasurement {
   cssFiles: ResourceMetrics[];
   webVitals: WebVitals;
   scriptEvaluation: ScriptEvaluationMetrics;
+  parseCompile: ParseCompileMetrics;
   resourceCount: number;
   timestamp: string;
 }
@@ -66,14 +76,22 @@ interface AggregatedPageStats {
   cls: StatisticalSummary;
   ttfb: StatisticalSummary;
   scriptEvalTime: StatisticalSummary;
+  jsParseTime: StatisticalSummary;
+  jsCompileTime: StatisticalSummary;
+  jsExecutionTime: StatisticalSummary;
+  cssParseTime: StatisticalSummary;
+  styleRecalcTime: StatisticalSummary;
+  totalParseCompileTime: StatisticalSummary;
   resourceCount: StatisticalSummary;
   timestamp: string;
 }
 
-// Using Chrome DevTools Protocol built-in connection types
-type ConnectionType = "cellular4g" | "none";
+// Using Chrome DevTools Protocol connection types
+type ConnectionType = "cellular2g" | "cellular3g" | "cellular4g" | "none";
 
 const CONNECTION_TYPE_NAMES: Record<ConnectionType, string> = {
+  cellular2g: "2G",
+  cellular3g: "3G",
   cellular4g: "4G",
   none: "No Throttling",
 };
@@ -218,6 +236,7 @@ async function collectResourceMetrics(page: Page): Promise<{
         transferSize: entry.transferSize || 0,
         decodedBodySize: entry.decodedBodySize || 0,
         duration: entry.duration || 0,
+        decodedSize: entry.decodedBodySize || 0,
       };
     });
   });
@@ -281,6 +300,65 @@ async function collectScriptEvaluationMetrics(
   return metrics;
 }
 
+async function collectParseCompileMetrics(
+  page: Page
+): Promise<ParseCompileMetrics> {
+  const cdpSession = await page.context().newCDPSession(page);
+
+  // Collect performance timeline events
+  const performanceMetrics = await page.evaluate(() => {
+    const perfEntries = performance.getEntriesByType('measure') as any[];
+    const resourceEntries = performance.getEntriesByType('resource') as any[];
+
+    let jsParseTime = 0;
+    let jsCompileTime = 0;
+    let jsExecutionTime = 0;
+    let cssParseTime = 0;
+    let styleRecalcTime = 0;
+
+    // Try to extract timing from PerformanceObserver data if available
+    // This is a best-effort approach using available browser APIs
+    perfEntries.forEach((entry: any) => {
+      const name = entry.name.toLowerCase();
+      const duration = entry.duration || 0;
+
+      if (name.includes('parse') && name.includes('script')) {
+        jsParseTime += duration;
+      } else if (name.includes('compile') && name.includes('script')) {
+        jsCompileTime += duration;
+      } else if (name.includes('evaluate') || name.includes('execute')) {
+        jsExecutionTime += duration;
+      } else if (name.includes('parse') && name.includes('css')) {
+        cssParseTime += duration;
+      } else if (name.includes('style') || name.includes('recalc')) {
+        styleRecalcTime += duration;
+      }
+    });
+
+    return {
+      jsParseTime: Math.round(jsParseTime),
+      jsCompileTime: Math.round(jsCompileTime),
+      jsExecutionTime: Math.round(jsExecutionTime),
+      cssParseTime: Math.round(cssParseTime),
+      styleRecalcTime: Math.round(styleRecalcTime),
+    };
+  });
+
+  await cdpSession.detach();
+
+  const totalParseCompileTime =
+    performanceMetrics.jsParseTime +
+    performanceMetrics.jsCompileTime +
+    performanceMetrics.jsExecutionTime +
+    performanceMetrics.cssParseTime +
+    performanceMetrics.styleRecalcTime;
+
+  return {
+    ...performanceMetrics,
+    totalParseCompileTime: Math.round(totalParseCompileTime),
+  };
+}
+
 async function measurePage(
   page: Page,
   url: string,
@@ -302,6 +380,11 @@ async function measurePage(
     connectionType: connectionType,
   });
 
+  // CPU throttling: 4x slowdown simulates mid-to-high-end mobile device
+  await cdpSession.send("Emulation.setCPUThrottlingRate", {
+    rate: 4,
+  });
+
   if (clearCache) {
     await cdpSession.send("Network.clearBrowserCache");
   }
@@ -311,6 +394,7 @@ async function measurePage(
   const webVitals = await collectWebVitals(page);
   const resources = await collectResourceMetrics(page);
   const scriptMetrics = await collectScriptEvaluationMetrics(page);
+  const parseCompileMetrics = await collectParseCompileMetrics(page);
 
   await cdpSession.detach();
 
@@ -325,6 +409,7 @@ async function measurePage(
     cssFiles: resources.cssFiles,
     webVitals,
     scriptEvaluation: scriptMetrics,
+    parseCompile: parseCompileMetrics,
     resourceCount: resources.resourceCount,
     timestamp: new Date().toISOString(),
   };
@@ -356,6 +441,19 @@ async function measureFramework(
     args: ["--disable-blink-features=AutomationControlled"],
   });
 
+  // Mobile device emulation (Pixel 5)
+  // Simulates mid-to-high-end phones: Pixel 5-7, iPhone 12-14, Galaxy S21-S22
+  const mobileDevice = {
+    viewport: {
+      width: 393,
+      height: 851,
+    },
+    userAgent: 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+    deviceScaleFactor: 2.75,
+    isMobile: true,
+    hasTouch: true,
+  };
+
   const allResults: AggregatedPageStats[] = [];
 
   try {
@@ -382,7 +480,7 @@ async function measureFramework(
         const runs: PageMeasurement[] = [];
 
         if (cacheMode.mode === "warm") {
-          const context = await browser.newContext();
+          const context = await browser.newContext(mobileDevice);
           const page = await context.newPage();
 
           try {
@@ -405,7 +503,7 @@ async function measureFramework(
           }
         } else {
           for (let i = 1; i <= numRuns; i++) {
-            const context = await browser.newContext();
+            const context = await browser.newContext(mobileDevice);
             const page = await context.newPage();
 
             try {
@@ -455,6 +553,24 @@ async function measureFramework(
         const scriptEvalStats = calculateStats(
           runs.map((r) => r.scriptEvaluation.totalScriptEvalTime)
         );
+        const jsParseStats = calculateStats(
+          runs.map((r) => r.parseCompile.jsParseTime)
+        );
+        const jsCompileStats = calculateStats(
+          runs.map((r) => r.parseCompile.jsCompileTime)
+        );
+        const jsExecutionStats = calculateStats(
+          runs.map((r) => r.parseCompile.jsExecutionTime)
+        );
+        const cssParseStats = calculateStats(
+          runs.map((r) => r.parseCompile.cssParseTime)
+        );
+        const styleRecalcStats = calculateStats(
+          runs.map((r) => r.parseCompile.styleRecalcTime)
+        );
+        const totalParseCompileStats = calculateStats(
+          runs.map((r) => r.parseCompile.totalParseCompileTime)
+        );
         const resourceCountStats = calculateStats(
           runs.map((r) => r.resourceCount)
         );
@@ -487,6 +603,12 @@ async function measureFramework(
           cls: clsStats,
           ttfb: ttfbStats,
           scriptEvalTime: scriptEvalStats,
+          jsParseTime: jsParseStats,
+          jsCompileTime: jsCompileStats,
+          jsExecutionTime: jsExecutionStats,
+          cssParseTime: cssParseStats,
+          styleRecalcTime: styleRecalcStats,
+          totalParseCompileTime: totalParseCompileStats,
           resourceCount: resourceCountStats,
           timestamp: new Date().toISOString(),
         });
@@ -524,7 +646,7 @@ async function main() {
       const network = args[i + 1] as ConnectionType;
       if (!CONNECTION_TYPE_NAMES[network]) {
         console.error(`❌ Error: Invalid connection type "${network}"`);
-        console.error("Available types: cellular4g, none");
+        console.error("Available types: cellular2g, cellular3g, cellular4g, none");
         process.exit(1);
       }
       connectionType = network;
@@ -553,7 +675,7 @@ async function main() {
       "  --runs N              Number of measurement runs per page (default: 10)"
     );
     console.error(
-      "  --network TYPE        Connection type: cellular4g, none (default: cellular4g)"
+      "  --network TYPE        Connection type: cellular2g, cellular3g, cellular4g, none (default: cellular4g)"
     );
     process.exit(1);
   }
@@ -573,6 +695,8 @@ async function main() {
   console.error(`   URL: ${url}`);
   console.error(`   Runs per page: ${numRuns}`);
   console.error(`   Network: ${connectionName}`);
+  console.error(`   Device: Pixel 5 (mobile emulation)`);
+  console.error(`   CPU: 4x slowdown (Pixel 5-7, iPhone 12-14, Galaxy S21-S22)`);
 
   try {
     const results = await measureFramework(
