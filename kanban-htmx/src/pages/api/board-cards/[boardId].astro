@@ -11,8 +11,6 @@ if (!boardId) {
   return new Response('Board ID required', { status: 400 });
 }
 
-const d1 = Astro.locals?.runtime?.env?.DB;
-
 // Handle POST - create a new card
 if (Astro.request.method === 'POST') {
   try {
@@ -38,7 +36,7 @@ if (Astro.request.method === 'POST') {
     await createCard({
       boardId,
       ...result.output,
-    }, d1);
+    });
   } catch (error) {
     console.error('Failed to create card:', error);
     Astro.response.status = 500;
@@ -47,8 +45,8 @@ if (Astro.request.method === 'POST') {
 }
 
 // Get updated board and users
-const board = await getBoard(boardId, d1);
-const users = await getUsers(d1);
+const board = await getBoard(boardId);
+const users = await getUsers();
 
 if (!board) {
   Astro.response.status = 404;

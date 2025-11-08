@@ -3,8 +3,7 @@ import { getTags } from '../../lib/api';
 
 export const GET: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
-    const tags = await getTags(d1);
+    const tags = await getTags();
     return new Response(JSON.stringify(tags), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

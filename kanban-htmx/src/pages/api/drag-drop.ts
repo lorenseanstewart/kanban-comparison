@@ -3,7 +3,6 @@ import { updateCardPositions } from '../../lib/api';
 
 export const POST: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const data = await context.request.json();
     const updates = data.updates as Array<{ cardId: string; listId: string; position: number }>;
 
@@ -14,7 +13,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    await updateCardPositions(updates, d1);
+    await updateCardPositions(updates);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

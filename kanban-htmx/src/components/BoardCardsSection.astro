@@ -17,6 +17,7 @@ const { board, users } = Astro.props;
   hx-post={`/api/board/${board.id}/reorder`}
   hx-trigger="reorder, cardTransfer"
   hx-swap="outerHTML"
+  hx-indicator="#drag-drop-loading"
   hx-vals="js:{...window.kanban.getDragDropValues(event)}"
 >
   {

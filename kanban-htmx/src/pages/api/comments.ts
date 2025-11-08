@@ -5,7 +5,6 @@ import { CommentSchema } from '../../lib/validation';
 
 export const POST: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const formData = await context.request.formData();
     const cardId = formData.get('cardId') as string;
     const userId = formData.get('userId') as string;
@@ -26,7 +25,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    const comment = await addComment(result.output, d1);
+    const comment = await addComment(result.output);
 
     return new Response(JSON.stringify({ success: true, comment }), {
       status: 201,

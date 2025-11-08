@@ -1,41 +1,75 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
-import * as schema from "../../drizzle/schema";
+/// <reference types="@cloudflare/workers-types" />
+
+import { drizzle } from 'drizzle-orm/d1';
 
 /**
- * Database connection using Neon HTTP
+ * Get database instance with D1 or better-sqlite3
  *
- * Uses Neon's HTTP driver for serverless edge runtime compatibility.
- * - Works in both Vercel Edge Runtime and Node.js runtime
- * - No persistent connections (HTTP-based)
- * - Connection string loaded from env vars at runtime
+ * Uses dynamic imports to prevent better-sqlite3 from being bundled in Cloudflare Workers.
+ * In production, d1Binding is always provided, so the local code path is never taken.
  *
- * This allows builds to succeed even without env vars - connections happen at runtime.
+ * @param d1Binding - Optional D1 database binding from Cloudflare
+ * @returns Drizzle database instance
  */
-
-declare global {
-  // eslint-disable-next-line no-var
-  var db: ReturnType<typeof drizzle> | undefined;
-}
-
-// Get connection string - will be undefined during build, defined at runtime
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-
-let db: ReturnType<typeof drizzle>;
-
-if (process.env.NODE_ENV === 'production') {
-  // In production, use HTTP driver for edge compatibility
-  const sql = neon(connectionString!);
-  db = drizzle(sql, { schema });
-} else {
-  // Development: reuse connection across hot reloads
-  if (!global.db) {
-    const sql = neon(connectionString!);
-    global.db = drizzle(sql, { schema });
+export async function getDatabase(d1Binding?: D1Database) {
+  if (d1Binding) {
+    // Production: use D1 from Cloudflare
+    // Dynamic import prevents bundling of better-sqlite3
+    const { getDatabase: getD1Database } = await import('./db.d1.js')
+    return getD1Database(d1Binding)
   }
 
-  db = global.db;
+  // Development: use better-sqlite3
+  // This code path is never reached in Cloudflare Workers
+  const { getDatabase: getLocalDatabase } = await import('./db.local.js')
+  return getLocalDatabase()
 }
 
-export { db };
+// Import local database for development
+import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3';
+import Database from 'better-sqlite3';
+
+// Create local database instance
+let localDb: ReturnType<typeof drizzleBetterSqlite> | null = null;
+
+try {
+  const sqlite = new Database('./drizzle/db.sqlite');
+  sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('busy_timeout = 5000');
+  localDb = drizzleBetterSqlite(sqlite);
+} catch (error) {
+  // If better-sqlite3 fails, we'll rely on D1 binding
+  console.warn('Local database not available, will use D1 binding');
+}
+
+/**
+ * Default export for use in Server Functions
+ * Requires D1 binding from environment (process.env.DB) or falls back to local DB
+ *
+ * This uses a Proxy pattern to lazily access the D1 binding or local database,
+ * allowing the database to be imported at the module level while
+ * still accessing the runtime environment binding.
+ */
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+  get(_target, prop) {
+    // @ts-ignore - Cloudflare Workers provides DB binding via process.env
+    const d1 = process.env.DB as D1Database | undefined;
+
+    if (d1) {
+      // Cloudflare production: use D1
+      const instance = drizzle(d1);
+      return (instance as any)[prop];
+    }
+
+    // Local development: use pre-initialized better-sqlite3
+    if (localDb) {
+      return (localDb as any)[prop];
+    }
+
+    throw new Error(
+      'D1 binding not found and local database unavailable. ' +
+        'Cloudflare: Ensure DB is bound in Pages/Workers settings. ' +
+        'Local dev: Ensure ./drizzle/db.sqlite exists.'
+    );
+  }
+});

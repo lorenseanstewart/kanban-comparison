@@ -5,7 +5,6 @@ import { CardUpdateSchema } from '../../../lib/validation';
 
 export const PATCH: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const cardId = context.params.id;
     if (!cardId) {
       return new Response(JSON.stringify({ error: 'Card ID is required' }), {
@@ -37,7 +36,7 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    await updateCard(result.output, d1);
+    await updateCard(result.output);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

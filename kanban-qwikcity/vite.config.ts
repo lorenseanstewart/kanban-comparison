@@ -25,6 +25,9 @@ export default defineConfig(({ command, mode }): UserConfig => {
       qwikCity(),
       qwikVite({
         experimental: ["valibot"],
+        optimizerOptions: {
+          inlineStylesUpToBytes: 120000, // 120KB - inlines CSS files up to this size
+        },
       }),
       tsconfigPaths({ root: "." }),
     ],

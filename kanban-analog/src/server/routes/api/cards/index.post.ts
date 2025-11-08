@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     // Create the card
     const cardId = crypto.randomUUID();
 
-    // Insert card (D1 doesn't support transactions, use sequential operations)
+    // Insert card
     await db.insert(cards).values({
       id: cardId,
       listId: todoList.id,

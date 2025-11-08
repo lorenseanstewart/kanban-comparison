@@ -41,6 +41,8 @@ const { board, users, tags } = Astro.props;
       hx-patch=""
       hx-target="#board-cards-section"
       hx-swap="outerHTML"
+      hx-indicator="#edit-card-loading"
+      hx-on::before-request="document.getElementById('edit-card-modal').close()"
       hx-on::after-request="window.kanban.handleEditCardSuccess(event)"
     >
       <input
@@ -135,8 +137,9 @@ const { board, users, tags } = Astro.props;
           hx-delete=""
           hx-target="#board-cards-section"
           hx-swap="outerHTML"
+          hx-indicator="#edit-card-loading"
           hx-confirm="Are you sure you want to delete this card?"
-          hx-on::after-request="if(event.detail.successful) document.getElementById('edit-card-modal').close()"
+          hx-on::before-request="document.getElementById('edit-card-modal').close()"
         >
           Delete Card
         </button>
@@ -165,6 +168,14 @@ const { board, users, tags } = Astro.props;
     <button>close</button>
   </form>
 </dialog>
+
+<!-- Loading Indicator -->
+<div
+  id="edit-card-loading"
+  class="htmx-indicator loading-backdrop"
+>
+  <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
 
 <script define:vars={{ board }}>
   // Initialize namespace if not exists

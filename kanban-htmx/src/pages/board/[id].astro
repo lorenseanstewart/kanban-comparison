@@ -13,16 +13,14 @@ if (!id) {
   return Astro.redirect("/");
 }
 
-const d1 = Astro.locals?.runtime?.env?.DB;
-
-const board = await getBoard(id, d1);
+const board = await getBoard(id);
 
 if (!board) {
   return Astro.redirect("/");
 }
 
-const users = await getUsers(d1);
-const tags = await getTags(d1);
+const users = await getUsers();
+const tags = await getTags();
 ---
 
 <!doctype html>
@@ -99,5 +97,13 @@ const tags = await getTags(d1);
       users={users}
       tags={tags}
     />
+
+    <!-- Loading Indicator for Drag & Drop -->
+    <div
+      id="drag-drop-loading"
+      class="htmx-indicator loading-backdrop"
+    >
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
   </body>
 </html>

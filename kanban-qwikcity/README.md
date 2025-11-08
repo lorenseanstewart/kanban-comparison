@@ -8,7 +8,9 @@ A full-featured Kanban board application built with Qwik City, featuring drag-an
 - **Database**: Neon Postgres with Drizzle ORM
 - **Hosting**: Vercel Edge Runtime
 - **Styling**: Tailwind CSS + DaisyUI
+- **Drag & Drop**: Native HTML5 Drag and Drop API
 - **Charts**: charts.css
+- **Validation**: Valibot
 
 ## Quick Start
 

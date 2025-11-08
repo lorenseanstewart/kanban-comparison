@@ -18,6 +18,31 @@
   background-color: rgba(139, 92, 246, 0.1);
 }
 
+/* Loading indicator styles */
+.loading-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999999 !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.loading-backdrop .loading-spinner {
+  pointer-events: auto;
+}
+
+.loading-backdrop.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .loading-backdrop.htmx-indicator,
+.loading-backdrop.htmx-indicator.htmx-request {
+  display: flex !important;
+}
+
 /* View transitions */
 @view-transition {
   navigation: auto;

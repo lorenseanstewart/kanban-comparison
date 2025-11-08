@@ -5,7 +5,7 @@ import { JSXElement, Suspense } from "solid-js";
 import { HydrationScript } from "solid-js/web";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import appCss from "~/styles/app.css?url";
+import appCssContent from "~/styles/app.css?inline";
 import { seo } from "~/utils/seo";
 
 export const Route = createRootRoute({
@@ -24,7 +24,6 @@ export const Route = createRootRoute({
       }),
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       {
         rel: "apple-touch-icon",
         sizes: "180x180",
@@ -56,6 +55,7 @@ function RootDocument({ children }: { children: JSXElement }) {
     <html>
       <head>
         <HydrationScript />
+        <style innerHTML={appCssContent} />
       </head>
       <body>
         <HeadContent />

@@ -3,8 +3,7 @@ import { getUsers } from '../../lib/api';
 
 export const GET: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
-    const users = await getUsers(d1);
+    const users = await getUsers();
     return new Response(JSON.stringify(users), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

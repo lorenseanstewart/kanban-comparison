@@ -159,21 +159,22 @@ For complete methodology details, measurement conditions, and reproducibility in
 
 ```
 kanban-comparison/
-├── kanban-analog/          # Angular 20 via Analog
-├── kanban-htmx/            # Astro + HTMX
-├── kanban-marko/           # Marko 6
-├── kanban-nextjs/          # Next.js 16 (React 19)
-├── kanban-nuxt/            # Nuxt 4 (Vue 3)
-├── kanban-qwikcity/        # Qwik City
-├── kanban-solidstart/      # SolidStart
-├── kanban-sveltekit/       # SvelteKit (Svelte 5)
-├── kanban-tanstack/        # TanStack Start (React)
-├── kanban-tanstack-solid/  # TanStack Start (Solid)
-├── scripts/                # Measurement and analysis scripts
-├── metrics/                # Generated measurement results
-├── _loren/                 # Blog posts and documentation
-├── METHODOLOGY.md          # Detailed measurement methodology
-└── package.json            # Root package with measurement scripts
+├── kanban-analog/                    # Angular 20 via Analog
+├── kanban-htmx/                      # Astro + HTMX
+├── kanban-marko/                     # Marko 6
+├── kanban-nextjs/                    # Next.js 16 (React 19)
+├── kanban-nuxt/                      # Nuxt 4 (Vue 3)
+├── kanban-qwikcity/                  # Qwik City
+├── kanban-solidstart/                # SolidStart
+├── kanban-sveltekit/                 # SvelteKit (Svelte 5)
+├── kanban-tanstack/                  # TanStack Start (React)
+├── kanban-tanstack-solid/            # TanStack Start (Solid)
+├── scripts/                          # Measurement and analysis scripts
+├── metrics/                          # Generated measurement results
+├── _loren/                           # Blog posts and documentation
+├── METHODOLOGY.md                    # Detailed measurement methodology
+├── CSS_OPTIMIZATION_STRATEGIES.md   # CSS inlining implementation guide
+└── package.json                      # Root package with measurement scripts
 ```
 
 ## Output Files

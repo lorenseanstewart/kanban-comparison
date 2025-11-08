@@ -5,8 +5,7 @@ import { BoardSchema } from '../../lib/validation';
 
 export const GET: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
-    const boards = await getBoards(d1);
+    const boards = await getBoards();
     return new Response(JSON.stringify(boards), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -22,7 +21,6 @@ export const GET: APIRoute = async (context) => {
 
 export const POST: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const formData = await context.request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
@@ -41,7 +39,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    const board = await createBoard(result.output, d1);
+    const board = await createBoard(result.output);
 
     return new Response(JSON.stringify({ success: true, board }), {
       status: 201,

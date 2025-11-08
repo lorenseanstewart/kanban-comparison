@@ -51,6 +51,7 @@ export interface ChartData {
     }
   `,
 })
+
 export class BarChartComponent {
   data = input.required<ChartData[]>();
   colors = input.required<string[]>();

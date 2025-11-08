@@ -8,8 +8,7 @@ A full-featured Kanban board application built with SvelteKit 5, featuring drag-
 - **Database**: Neon Postgres (serverless PostgreSQL) with Drizzle ORM
 - **Deployment**: Vercel (serverless functions)
 - **Styling**: Tailwind CSS 4 + DaisyUI
-- **Drag & Drop**: @formkit/drag-and-drop
-- **Animations**: @formkit/auto-animate
+- **Drag & Drop**: Native HTML5 Drag and Drop API
 - **Charts**: charts.css
 - **Validation**: Valibot
 

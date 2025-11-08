@@ -4,8 +4,6 @@ import BoardsList from '../../components/BoardsList.astro';
 import * as v from 'valibot';
 import { BoardSchema } from '../../lib/validation';
 
-const d1 = Astro.locals?.runtime?.env?.DB;
-
 // Handle POST - create a new board
 if (Astro.request.method === 'POST') {
   try {
@@ -24,7 +22,7 @@ if (Astro.request.method === 'POST') {
       return new Response(result.issues[0].message, { status: 400 });
     }
 
-    await createBoard(result.output, d1);
+    await createBoard(result.output);
   } catch (error) {
     console.error('Failed to create board:', error);
     Astro.response.status = 500;
@@ -33,7 +31,7 @@ if (Astro.request.method === 'POST') {
 }
 
 // Get updated boards list
-const boards = await getBoards(d1);
+const boards = await getBoards();
 ---
 
 <BoardsList boards={boards} />

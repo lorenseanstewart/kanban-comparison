@@ -8,12 +8,10 @@ if (!boardId || !cardId) {
   return new Response('Board ID and Card ID required', { status: 400 });
 }
 
-const d1 = Astro.locals?.runtime?.env?.DB;
-
 // Handle DELETE - delete a card
 if (Astro.request.method === 'DELETE') {
   try {
-    await deleteCard(cardId, d1);
+    await deleteCard(cardId);
   } catch (error) {
     console.error('Failed to delete card:', error);
     Astro.response.status = 500;
@@ -22,8 +20,8 @@ if (Astro.request.method === 'DELETE') {
 }
 
 // Get updated board and users
-const board = await getBoard(boardId, d1);
-const users = await getUsers(d1);
+const board = await getBoard(boardId);
+const users = await getUsers();
 
 if (!board) {
   Astro.response.status = 404;

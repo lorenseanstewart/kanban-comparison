@@ -3,7 +3,6 @@ import { getBoard } from '../../../lib/api';
 
 export const GET: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const boardId = context.params.id;
 
     if (!boardId) {
@@ -13,7 +12,7 @@ export const GET: APIRoute = async (context) => {
       });
     }
 
-    const board = await getBoard(boardId, d1);
+    const board = await getBoard(boardId);
 
     if (!board) {
       return new Response(JSON.stringify({ error: 'Board not found' }), {

@@ -1,6 +1,7 @@
 // @refresh reload
 import "dotenv/config";
 import { StartServer, createHandler } from "@solidjs/start/server";
+import appCssContent from "./app.css?inline";
 
 export default createHandler(() => (
   <StartServer
@@ -11,6 +12,7 @@ export default createHandler(() => (
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
           {assets}
+          <style innerHTML={appCssContent} />
         </head>
         <body data-theme="pastel">
           <div id="app">{children}</div>

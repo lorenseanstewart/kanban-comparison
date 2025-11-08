@@ -11,8 +11,6 @@ if (!boardId || !cardId) {
   return new Response('Board ID and Card ID required', { status: 400 });
 }
 
-const d1 = Astro.locals?.runtime?.env?.DB;
-
 // Handle POST - add a comment
 if (Astro.request.method === 'POST') {
   try {
@@ -32,7 +30,7 @@ if (Astro.request.method === 'POST') {
       return new Response(result.issues[0].message, { status: 400 });
     }
 
-    await addComment(result.output, d1);
+    await addComment(result.output);
   } catch (error) {
     console.error('Failed to add comment:', error);
     Astro.response.status = 500;
@@ -41,8 +39,8 @@ if (Astro.request.method === 'POST') {
 }
 
 // Get updated board and users
-const board = await getBoard(boardId, d1);
-const users = await getUsers(d1);
+const board = await getBoard(boardId);
+const users = await getUsers();
 
 if (!board) {
   Astro.response.status = 404;

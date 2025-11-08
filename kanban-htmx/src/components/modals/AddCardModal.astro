@@ -35,6 +35,8 @@ const { boardId, users, tags } = Astro.props;
       hx-post={`/api/board-cards/${boardId}`}
       hx-target="#board-cards-section"
       hx-swap="outerHTML"
+      hx-indicator="#add-card-loading"
+      hx-on::before-request="document.getElementById('add-card-modal').close()"
       hx-on::after-request="window.kanban.handleAddCardSuccess(event,this)"
     >
       <input
@@ -135,6 +137,14 @@ const { boardId, users, tags } = Astro.props;
     <button>close</button>
   </form>
 </dialog>
+
+<!-- Loading Indicator -->
+<div
+  id="add-card-loading"
+  class="htmx-indicator loading-backdrop"
+>
+  <span class="loading loading-spinner loading-lg text-primary"></span>
+</div>
 
 <script>
   // Handle tag selection

@@ -8,7 +8,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import * as React from 'react'
 import { DefaultCatchBoundary } from '~/components/DefaultCatchBoundary'
 import { NotFound } from '~/components/NotFound'
-import appCss from '~/styles/app.css?url'
+import appCssContent from '~/styles/app.css?inline'
 import { seo } from '~/utils/seo'
 
 export const Route = createRootRoute({
@@ -27,7 +27,6 @@ export const Route = createRootRoute({
       }),
     ],
     links: [
-      { rel: 'stylesheet', href: appCss },
       {
         rel: 'apple-touch-icon',
         sizes: '180x180',
@@ -59,6 +58,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html>
       <head>
         <HeadContent />
+        <style dangerouslySetInnerHTML={{ __html: appCssContent }} />
       </head>
       <body>
         {children}

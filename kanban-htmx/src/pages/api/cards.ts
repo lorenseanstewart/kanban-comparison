@@ -5,7 +5,6 @@ import { CardSchema } from '../../lib/validation';
 
 export const POST: APIRoute = async (context) => {
   try {
-    const d1 = context.locals?.runtime?.env?.DB;
     const formData = await context.request.formData();
     const boardId = formData.get('boardId') as string;
     const title = formData.get('title') as string;
@@ -37,7 +36,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    const card = await createCard(result.output, d1);
+    const card = await createCard(result.output);
 
     return new Response(JSON.stringify({ success: true, card }), {
       status: 201,
