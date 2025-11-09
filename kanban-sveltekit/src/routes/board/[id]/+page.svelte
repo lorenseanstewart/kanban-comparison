@@ -5,7 +5,6 @@
 	import AddCardModal from '$lib/components/modals/AddCardModal.svelte';
 	import { debounce } from '$lib/utils';
 	import { getBoardData, updateCardList, updateCardPositions } from '$lib/board.remote';
-	import { isHttpError } from '@sveltejs/kit';
 
 	let { params } = $props();
 
@@ -100,74 +99,51 @@
 	}
 </script>
 
-<svelte:boundary>
-	{#snippet failed(error: unknown)}
-		<div class="w-full p-8 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
-			<div class="alert alert-error">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="stroke-current shrink-0 h-6 w-6"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
-				<span>Error: {isHttpError(error) ? error.body.message : 'Internal error'}</span>
-			</div>
-		</div>
-	{/snippet}
+<main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
+	<div class="breadcrumbs text-sm">
+		<ul>
+			<li>
+				<a href="/" class="link link-hover">Boards</a>
+			</li>
+			<li>
+				<span class="text-base-content/60">{bordData.board.title}</span>
+			</li>
+		</ul>
+	</div>
 
-	<main class="w-full p-8 space-y-10 rounded-3xl bg-base-100 dark:bg-base-200 shadow-xl">
-		<div class="breadcrumbs text-sm">
-			<ul>
-				<li>
-					<a href="/" class="link link-hover">Boards</a>
-				</li>
-				<li>
-					<span class="text-base-content/60">{bordData.board.title}</span>
-				</li>
-			</ul>
+	<div class="space-y-8">
+		<BoardOverview data={bordData.board} />
+
+		<div class="flex justify-start mb-4">
+			<button type="button" class="btn btn-primary" onclick={() => (isAddCardModalOpen = true)}>
+				Add Card
+			</button>
 		</div>
 
-		<div class="space-y-8">
-			<BoardOverview data={bordData.board} />
+		<section class="flex gap-7 overflow-x-auto pb-8 relative">
+			{#if isUpdating}
+				<div class="absolute top-2 right-2 z-10">
+					<span class="loading loading-spinner loading-sm text-primary"></span>
+				</div>
+			{/if}
+			{#each optimisticBoard.lists as list (list.id)}
+				<CardList
+					{list}
+					boardId={params.id}
+					users={bordData.users}
+					allUsers={bordData.users}
+					allTags={bordData.tags}
+					onCardDrop={handleCardDrop}
+				/>
+			{/each}
+		</section>
+	</div>
 
-			<div class="flex justify-start mb-4">
-				<button type="button" class="btn btn-primary" onclick={() => (isAddCardModalOpen = true)}>
-					Add Card
-				</button>
-			</div>
-
-			<section class="flex gap-7 overflow-x-auto pb-8 relative">
-				{#if isUpdating}
-					<div class="absolute top-2 right-2 z-10">
-						<span class="loading loading-spinner loading-sm text-primary"></span>
-					</div>
-				{/if}
-				{#each optimisticBoard.lists as list (list.id)}
-					<CardList
-						{list}
-						boardId={params.id}
-						users={bordData.users}
-						allUsers={bordData.users}
-						allTags={bordData.tags}
-						onCardDrop={handleCardDrop}
-					/>
-				{/each}
-			</section>
-		</div>
-
-		<AddCardModal
-			boardId={bordData.board.id}
-			users={bordData.users}
-			tags={bordData.tags}
-			isOpen={isAddCardModalOpen}
-			onClose={() => (isAddCardModalOpen = false)}
-		/>
-	</main>
-</svelte:boundary>
+	<AddCardModal
+		boardId={bordData.board.id}
+		users={bordData.users}
+		tags={bordData.tags}
+		isOpen={isAddCardModalOpen}
+		onClose={() => (isAddCardModalOpen = false)}
+	/>
+</main>
