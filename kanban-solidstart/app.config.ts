@@ -26,6 +26,9 @@ export default defineConfig({
   vite: {
     plugins: [suppressCssOutput()],
     optimizeDeps: {
+      esbuildOptions: {
+        treeShaking: true, // Enable tree-shaking for dependencies
+      },
       exclude: ["lightningcss", "fsevents"],
     },
     ssr: {
@@ -35,6 +38,18 @@ export default defineConfig({
     build: {
       cssCodeSplit: false,
       cssMinify: true,
+      minify: 'terser', // Use terser for better minification
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console.log in production
+          drop_debugger: true, // Remove debugger statements
+        },
+      },
+      rollupOptions: {
+        treeshake: {
+          preset: 'recommended', // Enable aggressive tree-shaking
+        },
+      },
     },
   },
 });

@@ -24,6 +24,7 @@
     "drizzle-kit": "^0.31.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
+    "terser": "^5.44.1",
     "wrangler": "^4.45.4"
   },
   "private": true,
@@ -33,6 +34,7 @@
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview": "marko-run preview",
     "start": "node --enable-source-maps ./dist/index.mjs",
+    "deploy": "npm run build && npx wrangler pages deploy dist --project-name=kanban-marko",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate-db.ts",
     "db:push": "drizzle-kit push",

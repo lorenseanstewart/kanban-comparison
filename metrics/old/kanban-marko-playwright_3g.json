@@ -1,0 +1,617 @@
+{
+  "metadata": {
+    "frameworkName": "kanban-marko",
+    "url": "https://kanban-marko.pages.dev",
+    "timestamp": "2025-11-09T01:12:12.809Z",
+    "runsPerPage": 10,
+    "measurementType": "playwright-cold-warm",
+    "connectionType": "3G",
+    "tool": "playwright"
+  },
+  "results": [
+    {
+      "framework": "kanban-marko",
+      "page": "home",
+      "cacheMode": "cold",
+      "jsTransferred": {
+        "mean": 10455,
+        "median": 10443,
+        "stddev": 17.9,
+        "min": 10443,
+        "max": 10494,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 34344,
+        "median": 34344,
+        "stddev": 0,
+        "min": 34344,
+        "max": 34344,
+        "runs": 10
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalTransferred": {
+        "mean": 10455,
+        "median": 10443,
+        "stddev": 17.9,
+        "min": 10443,
+        "max": 10494,
+        "runs": 10
+      },
+      "totalUncompressed": {
+        "mean": 34344,
+        "median": 34344,
+        "stddev": 0,
+        "min": 34344,
+        "max": 34344,
+        "runs": 10
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 204,
+        "median": 198,
+        "stddev": 45.2,
+        "min": 100,
+        "max": 264,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "ttfb": {
+        "mean": 133,
+        "median": 121,
+        "stddev": 36.4,
+        "min": 67,
+        "max": 188,
+        "runs": 10
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 10
+      },
+      "timestamp": "2025-11-09T01:11:11.606Z"
+    },
+    {
+      "framework": "kanban-marko",
+      "page": "home",
+      "cacheMode": "warm",
+      "jsTransferred": {
+        "mean": 600,
+        "median": 600,
+        "stddev": 0,
+        "min": 600,
+        "max": 600,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalTransferred": {
+        "mean": 600,
+        "median": 600,
+        "stddev": 0,
+        "min": 600,
+        "max": 600,
+        "runs": 10
+      },
+      "totalUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 89,
+        "median": 88,
+        "stddev": 1.3,
+        "min": 88,
+        "max": 116,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "ttfb": {
+        "mean": 57,
+        "median": 58,
+        "stddev": 1.5,
+        "min": 55,
+        "max": 82,
+        "runs": 10
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 10
+      },
+      "timestamp": "2025-11-09T01:11:29.481Z"
+    },
+    {
+      "framework": "kanban-marko",
+      "page": "board",
+      "cacheMode": "cold",
+      "jsTransferred": {
+        "mean": 44286,
+        "median": 44279,
+        "stddev": 83.9,
+        "min": 44163,
+        "max": 44388,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 218320,
+        "median": 218320,
+        "stddev": 0,
+        "min": 218320,
+        "max": 218320,
+        "runs": 10
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalTransferred": {
+        "mean": 44286,
+        "median": 44279,
+        "stddev": 83.9,
+        "min": 44163,
+        "max": 44388,
+        "runs": 10
+      },
+      "totalUncompressed": {
+        "mean": 218320,
+        "median": 218320,
+        "stddev": 0,
+        "min": 218320,
+        "max": 218320,
+        "runs": 10
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 353,
+        "median": 354,
+        "stddev": 17.4,
+        "min": 224,
+        "max": 428,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "ttfb": {
+        "mean": 253,
+        "median": 265,
+        "stddev": 31.7,
+        "min": 176,
+        "max": 369,
+        "runs": 10
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 10
+      },
+      "timestamp": "2025-11-09T01:11:50.616Z"
+    },
+    {
+      "framework": "kanban-marko",
+      "page": "board",
+      "cacheMode": "warm",
+      "jsTransferred": {
+        "mean": 600,
+        "median": 600,
+        "stddev": 0,
+        "min": 600,
+        "max": 600,
+        "runs": 10
+      },
+      "jsUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalTransferred": {
+        "mean": 600,
+        "median": 600,
+        "stddev": 0,
+        "min": 600,
+        "max": 600,
+        "runs": 10
+      },
+      "totalUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 279,
+        "median": 268,
+        "stddev": 41.8,
+        "min": 240,
+        "max": 2484,
+        "runs": 10
+      },
+      "lcp": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "ttfb": {
+        "mean": 236,
+        "median": 222,
+        "stddev": 39.4,
+        "min": 198,
+        "max": 2431,
+        "runs": 10
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 10
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 10
+      },
+      "timestamp": "2025-11-09T01:12:12.795Z"
+    }
+  ]
+}

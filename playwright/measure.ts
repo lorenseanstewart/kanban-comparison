@@ -58,6 +58,8 @@ interface StatisticalSummary {
   min: number;
   max: number;
   runs: number;
+  ci95Lower: number; // 95% confidence interval lower bound
+  ci95Upper: number; // 95% confidence interval upper bound
 }
 
 interface AggregatedPageStats {
@@ -137,6 +139,12 @@ function calculateStats(values: number[]): StatisticalSummary {
     cleanedValues.length;
   const stddev = Math.sqrt(variance);
 
+  // Calculate 95% confidence interval (mean ± 1.96 * standard error)
+  const standardError = stddev / Math.sqrt(cleanedValues.length);
+  const marginOfError = 1.96 * standardError;
+  const ci95Lower = mean - marginOfError;
+  const ci95Upper = mean + marginOfError;
+
   return {
     mean: Math.round(mean),
     median: Math.round(median),
@@ -144,6 +152,8 @@ function calculateStats(values: number[]): StatisticalSummary {
     min: Math.min(...values),
     max: Math.max(...values),
     runs: values.length,
+    ci95Lower: Math.round(ci95Lower),
+    ci95Upper: Math.round(ci95Upper),
   };
 }
 
@@ -163,6 +173,12 @@ function calculateStatsFloat(values: number[]): StatisticalSummary {
     cleanedValues.length;
   const stddev = Math.sqrt(variance);
 
+  // Calculate 95% confidence interval (mean ± 1.96 * standard error)
+  const standardError = stddev / Math.sqrt(cleanedValues.length);
+  const marginOfError = 1.96 * standardError;
+  const ci95Lower = mean - marginOfError;
+  const ci95Upper = mean + marginOfError;
+
   return {
     mean: Math.round(mean * 1000) / 1000,
     median: Math.round(median * 1000) / 1000,
@@ -170,6 +186,8 @@ function calculateStatsFloat(values: number[]): StatisticalSummary {
     min: Math.round(Math.min(...values) * 1000) / 1000,
     max: Math.round(Math.max(...values) * 1000) / 1000,
     runs: values.length,
+    ci95Lower: Math.round(ci95Lower * 1000) / 1000,
+    ci95Upper: Math.round(ci95Upper * 1000) / 1000,
   };
 }
 
@@ -371,13 +389,22 @@ async function measurePage(
 
   const cdpSession = await page.context().newCDPSession(page);
 
-  // Use Chrome's built-in connection type presets
+  // Use Chrome's built-in connection type presets with proper values
+  // Good3G preset: ~400 Kbps download (realistic congested 4G)
+  // Regular4G preset: ~4 Mbps download (ideal 4G)
+  const networkConditions: Record<ConnectionType, { latency: number; downloadThroughput: number; uploadThroughput: number }> = {
+    cellular2g: { latency: 300, downloadThroughput: (250 * 1024) / 8, uploadThroughput: (50 * 1024) / 8 },
+    cellular3g: { latency: 100, downloadThroughput: (400 * 1024) / 8, uploadThroughput: (150 * 1024) / 8 }, // Good3G preset
+    cellular4g: { latency: 20, downloadThroughput: (4 * 1024 * 1024) / 8, uploadThroughput: (3 * 1024 * 1024) / 8 }, // Regular4G preset
+    none: { latency: 0, downloadThroughput: -1, uploadThroughput: -1 },
+  };
+
+  const conditions = networkConditions[connectionType];
   await cdpSession.send("Network.emulateNetworkConditions", {
     offline: false,
-    latency: 0,
-    downloadThroughput: -1,
-    uploadThroughput: -1,
-    connectionType: connectionType,
+    latency: conditions.latency,
+    downloadThroughput: conditions.downloadThroughput,
+    uploadThroughput: conditions.uploadThroughput,
   });
 
   // CPU throttling: 4x slowdown simulates mid-to-high-end mobile device
@@ -625,7 +652,7 @@ async function main() {
   const args = process.argv.slice(2);
   let url: string | undefined;
   let frameworkName: string | undefined;
-  let numRuns = 10;
+  let numRuns = 50; // Increased from 10 to 50 for better statistical reliability
   let connectionType: ConnectionType = "cellular4g";
 
   for (let i = 0; i < args.length; i++) {
@@ -672,7 +699,7 @@ async function main() {
       "  --name NAME           Framework name (inferred from URL if not provided)"
     );
     console.error(
-      "  --runs N              Number of measurement runs per page (default: 10)"
+      "  --runs N              Number of measurement runs per page (default: 50)"
     );
     console.error(
       "  --network TYPE        Connection type: cellular2g, cellular3g, cellular4g, none (default: cellular4g)"
@@ -711,7 +738,11 @@ async function main() {
       mkdirSync(metricsDir, { recursive: true });
     }
 
-    const reportPath = join(metricsDir, `${frameworkName}-playwright.json`);
+    // Add connection type suffix to filename (e.g., _3g, _4g)
+    const connectionSuffix = connectionType === "none"
+      ? ""
+      : `_${connectionType.replace("cellular", "")}`;
+    const reportPath = join(metricsDir, `${frameworkName}-playwright${connectionSuffix}.json`);
     const reportData = {
       metadata: {
         frameworkName,

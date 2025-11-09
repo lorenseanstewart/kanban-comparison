@@ -9,11 +9,20 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
   experimental: {
-    optimizePackageImports: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+    // Tree-shake these packages to reduce bundle size
+    optimizePackageImports: [
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      '@dnd-kit/utilities',
+      'recharts',
+      'lucide-react',
+    ],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Disable source maps in production for smaller bundles
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

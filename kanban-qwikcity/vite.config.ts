@@ -31,20 +31,44 @@ export default defineConfig(({ command, mode }): UserConfig => {
       }),
       tsconfigPaths({ root: "." }),
     ],
-    // This tells Vite which dependencies to pre-build in dev mode.
-    optimizeDeps: {
-      // Put problematic deps that break bundling here, mostly those with binaries.
-      // For example ['better-sqlite3'] if you use that in server functions.
-      exclude: [],
-    },
     build: {
-      cssCodeSplit: true,
+      cssCodeSplit: false, // Bundle all CSS for better mobile performance (disable splitting)
       cssMinify: true,
-      rollupOptions: {
-        output: {
-          manualChunks: undefined,
+      minify: 'terser', // Use terser for better minification
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console.log in production
+          drop_debugger: true, // Remove debugger statements
         },
       },
+      rollupOptions: {
+        treeshake: {
+          preset: 'recommended', // Enable aggressive tree-shaking
+        },
+        output: {
+          // Manual chunking to reduce resource count for better mobile performance
+          // Target: ~8-12 chunks instead of 26 (similar to SvelteKit optimization)
+          manualChunks(id) {
+            // Vendor chunk for node_modules
+            if (id.includes('node_modules')) {
+              // Group by major library
+              if (id.includes('@builder.io/qwik')) return 'vendor-qwik';
+              if (id.includes('dnd-kit')) return 'vendor-dnd';
+              return 'vendor-other';
+            }
+            // Group components
+            if (id.includes('/components/')) return 'components';
+            // Group routes
+            if (id.includes('/routes/')) return 'routes';
+          },
+        },
+      },
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        treeShaking: true, // Enable tree-shaking for dependencies
+      },
+      exclude: [],
     },
 
     /**

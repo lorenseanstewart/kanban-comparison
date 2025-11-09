@@ -51,6 +51,27 @@ export default defineConfig({
     }),
     inlineCss(),
   ],
+  build: {
+    cssCodeSplit: false, // Bundle all CSS into one file for inlining
+    cssMinify: true,
+    assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
+    // Note: minify disabled for Marko due to Cloudflare build script requirements
+    // The build-cloudflare script needs to parse index.mjs, which breaks with minification
+    minify: false,
+    rollupOptions: {
+      treeshake: {
+        preset: 'recommended', // Enable aggressive tree-shaking
+      },
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      treeShaking: true, // Enable tree-shaking for dependencies
+    },
+  },
   ssr: {
     external: ["better-sqlite3", "drizzle-orm/better-sqlite3"],
     noExternal: [],

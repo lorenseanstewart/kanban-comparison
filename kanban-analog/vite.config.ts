@@ -54,9 +54,17 @@ export default defineConfig(({ mode }) => ({
     cssMinify: true, // Minify CSS
     assetsInlineLimit: 100000, // Inline CSS files smaller than 100KB
     rollupOptions: {
+      treeshake: {
+        preset: 'recommended', // Enable aggressive tree-shaking
+      },
       output: {
         manualChunks: undefined, // Prevent unnecessary chunking
       },
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      treeShaking: true, // Enable tree-shaking for dependencies
     },
   },
   css: {
