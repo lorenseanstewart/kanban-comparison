@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { cards } from "@/drizzle/schema";
 import { revalidatePath } from 'next/cache';
 
+export const runtime = 'edge';
+
 
 export async function POST(request: NextRequest) {
   try {

@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache';
 import * as v from 'valibot';
 import { CardSchema } from '@/lib/validation';
 
+export const runtime = 'edge';
+
 
 export async function POST(request: NextRequest) {
   try {

@@ -4,6 +4,7 @@ import { HomePageClient } from "@/components/HomePageClient";
 
 // Force dynamic rendering since we need database access
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
 
 function LoadingFallback() {
   return (

@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import * as v from 'valibot';
 import { CommentSchema } from '@/lib/validation';
 
+export const runtime = 'edge';
+
 
 export async function POST(request: NextRequest) {
   try {

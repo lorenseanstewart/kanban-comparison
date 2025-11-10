@@ -2,7 +2,6 @@ import {
   component$,
   useSignal,
   $,
-  useTask$,
   createContextId,
   useContextProvider,
   type Signal,
@@ -500,15 +499,7 @@ export default component$(() => {
 
   useContextProvider(DraggedCardContext, draggedCardId);
 
-  // Sync local state with server data using useTask$
-  useTask$(({ track }) => {
-    const val = track(board);
-    if (val) {
-      boardState.value = val;
-    }
-  });
-
-  // Derived board data for child components
+  // Derive board data for better reactivity and performance
   const currentBoard = useComputed$(() => boardState.value || board.value);
   const boardOverviewKey = useComputed$(() => {
     const lists = currentBoard.value?.lists ?? [];

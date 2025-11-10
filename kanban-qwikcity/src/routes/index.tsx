@@ -1,14 +1,11 @@
 import {
   component$,
   useSignal,
-  $,
-  useTask$,
   useComputed$,
 } from "@builder.io/qwik";
 import { routeLoader$, routeAction$, Link } from "@builder.io/qwik-city";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { getBoards } from "~/db/queries";
-import type { BoardSummary } from "~/db/queries";
 import { getDatabase } from "~/lib/db";
 import { boards, lists } from "../../drizzle/schema";
 import { AddBoardModal } from "~/components/modals/AddBoardModal";
@@ -82,33 +79,13 @@ export default component$(() => {
   const boardsLoader = useBoards();
   const createBoardAction = useCreateBoardAction();
   const isAddBoardModalOpen = useSignal(false);
-  const boardsState = useSignal<BoardSummary[]>(boardsLoader.value);
 
-  useTask$(({ track }) => {
-    const loaderValue = track(boardsLoader);
-    if (loaderValue) {
-      boardsState.value = loaderValue;
-    }
-  });
-
+  // Derive sorted boards directly from loader for better performance
   const sortedBoards = useComputed$(() => {
-    return [...boardsState.value].sort((a, b) =>
+    return [...boardsLoader.value].sort((a, b) =>
       a.title.localeCompare(b.title),
     );
   });
-
-  // Handle board creation with server-generated ID
-  const handleBoardAdd = $(
-    (boardData: { id: string; title: string; description: string | null }) => {
-      const newBoard: BoardSummary = {
-        id: boardData.id,
-        title: boardData.title,
-        description: boardData.description,
-      };
-
-      boardsState.value = [...boardsState.value, newBoard];
-    },
-  );
 
   return (
     <main class="w-full max-w-4xl mx-auto p-8 space-y-10 rounded-[2.5rem] bg-base-100 dark:bg-base-200 shadow-xl">
@@ -174,7 +151,6 @@ export default component$(() => {
       <AddBoardModal
         isOpen={isAddBoardModalOpen}
         action={createBoardAction}
-        onBoardAdd={handleBoardAdd}
       />
     </main>
   );

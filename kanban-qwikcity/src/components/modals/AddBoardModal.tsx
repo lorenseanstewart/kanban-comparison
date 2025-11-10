@@ -53,13 +53,16 @@ export const AddBoardModal = component$<AddBoardModalProps>(
       // Submit to server action and wait for response
       const result = await action.submit(formData);
 
-      // Only update UI if server action succeeded
-      if (result.value?.success && result.value.boardId && onBoardAdd) {
-        onBoardAdd({
-          id: result.value.boardId,
-          title,
-          description: description || null,
-        });
+      // Close modal and reset form if server action succeeded
+      if (result.value?.success) {
+        // Call optional callback if provided
+        if (result.value.boardId && onBoardAdd) {
+          onBoardAdd({
+            id: result.value.boardId,
+            title,
+            description: description || null,
+          });
+        }
 
         isOpen.value = false;
         form.reset();
