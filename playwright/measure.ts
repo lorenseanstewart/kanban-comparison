@@ -191,42 +191,76 @@ function calculateStatsFloat(values: number[]): StatisticalSummary {
   };
 }
 
-async function collectWebVitals(page: Page): Promise<WebVitals> {
-  const vitals = await page.evaluate(() => {
-    const nav = performance.getEntriesByType(
-      "navigation"
-    )[0] as PerformanceNavigationTiming;
-    const paintEntries = performance.getEntriesByType("paint");
-
-    const fcp =
-      paintEntries.find((entry) => entry.name === "first-contentful-paint")
-        ?.startTime || 0;
-
-    const lcpEntries = performance.getEntriesByType("largest-contentful-paint");
-    const lcp =
-      lcpEntries.length > 0 ? lcpEntries[lcpEntries.length - 1].startTime : 0;
-
-    const clsValue =
-      (performance as any)
-        .getEntriesByType?.("layout-shift")
-        ?.reduce((sum: number, entry: any) => {
-          return sum + (entry.hadRecentInput ? 0 : entry.value);
-        }, 0) || 0;
-
-    const ttfb = nav?.responseStart ? nav.responseStart : 0;
-
-    return {
-      fcp: Math.round(fcp),
-      lcp: Math.round(lcp),
-      cls: Math.round(clsValue * 1000) / 1000,
-      ttfb: Math.round(ttfb),
+async function setupWebVitalsObserver(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    (window as any).__webVitals = {
+      fcp: 0,
+      lcp: 0,
+      cls: 0,
+      ttfb: 0,
     };
-  });
 
-  return vitals;
+    // Observe FCP
+    const fcpObserver = new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      for (const entry of entries) {
+        if (entry.name === "first-contentful-paint") {
+          (window as any).__webVitals.fcp = entry.startTime;
+        }
+      }
+    });
+    fcpObserver.observe({ type: "paint", buffered: true });
+
+    // Observe LCP
+    const lcpObserver = new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      // The last entry is the current LCP candidate
+      if (entries.length > 0) {
+        const lastEntry = entries[entries.length - 1] as any;
+        (window as any).__webVitals.lcp = lastEntry.startTime;
+      }
+    });
+    lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
+
+    // Observe CLS
+    const clsObserver = new PerformanceObserver((entryList) => {
+      for (const entry of entryList.getEntries()) {
+        const layoutShift = entry as any;
+        if (!layoutShift.hadRecentInput) {
+          (window as any).__webVitals.cls += layoutShift.value;
+        }
+      }
+    });
+    clsObserver.observe({ type: "layout-shift", buffered: true });
+
+    // Capture TTFB when navigation completes
+    window.addEventListener("load", () => {
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+      (window as any).__webVitals.ttfb = nav?.responseStart || 0;
+    });
+  });
 }
 
-async function collectResourceMetrics(page: Page): Promise<{
+async function collectWebVitals(page: Page): Promise<WebVitals> {
+  // Wait a bit for LCP to stabilize
+  await sleep(2000);
+
+  const vitals = await page.evaluate(() => {
+    return (window as any).__webVitals;
+  });
+
+  return {
+    fcp: Math.round(vitals.fcp),
+    lcp: Math.round(vitals.lcp),
+    cls: Math.round(vitals.cls * 1000) / 1000,
+    ttfb: Math.round(vitals.ttfb),
+  };
+}
+
+async function collectResourceMetrics(
+  page: Page,
+  cdpNetworkData?: Map<string, { encodedDataLength: number; decodedBodyLength: number }>
+): Promise<{
   jsTransferred: number;
   jsUncompressed: number;
   cssTransferred: number;
@@ -267,14 +301,36 @@ async function collectResourceMetrics(page: Page): Promise<{
   const cssFiles: ResourceMetrics[] = [];
 
   for (const resource of resources) {
+    // Use CDP data as fallback when Resource Timing API returns 0 (missing Timing-Allow-Origin header)
+    let transferred = resource.transferSize;
+    let uncompressed = resource.decodedBodySize;
+
+    if (transferred === 0 && cdpNetworkData) {
+      const cdpData = cdpNetworkData.get(resource.name);
+      if (cdpData) {
+        transferred = cdpData.encodedDataLength;
+        uncompressed = cdpData.decodedBodyLength || cdpData.encodedDataLength;
+      }
+    }
+
     if (resource.type === "script") {
-      jsTransferred += resource.transferSize;
-      jsUncompressed += resource.decodedBodySize;
-      jsFiles.push(resource);
+      jsTransferred += transferred;
+      jsUncompressed += uncompressed;
+      jsFiles.push({
+        ...resource,
+        transferSize: transferred,
+        decodedBodySize: uncompressed,
+        decodedSize: uncompressed,
+      });
     } else if (resource.type === "stylesheet") {
-      cssTransferred += resource.transferSize;
-      cssUncompressed += resource.decodedBodySize;
-      cssFiles.push(resource);
+      cssTransferred += transferred;
+      cssUncompressed += uncompressed;
+      cssFiles.push({
+        ...resource,
+        transferSize: transferred,
+        decodedBodySize: uncompressed,
+        decodedSize: uncompressed,
+      });
     }
   }
 
@@ -416,10 +472,70 @@ async function measurePage(
     await cdpSession.send("Network.clearBrowserCache");
   }
 
+  // Enable Network domain to track resource sizes (works regardless of Timing-Allow-Origin headers)
+  await cdpSession.send("Network.enable");
+
+  // Track network responses to capture accurate transfer sizes
+  const networkData = new Map<string, { encodedDataLength: number; decodedBodyLength: number }>();
+  const requestIdToUrl = new Map<string, string>();
+  const requestIdToType = new Map<string, string>();
+
+  cdpSession.on("Network.requestWillBeSent", (params: any) => {
+    if (params.requestId && params.request?.url) {
+      requestIdToUrl.set(params.requestId, params.request.url);
+      requestIdToType.set(params.requestId, params.type || 'Other');
+    }
+  });
+
+  cdpSession.on("Network.responseReceived", (params: any) => {
+    if (params.requestId && params.response?.url) {
+      // Update URL in case of redirects
+      requestIdToUrl.set(params.requestId, params.response.url);
+    }
+  });
+
+  cdpSession.on("Network.loadingFinished", (params: any) => {
+    const url = requestIdToUrl.get(params.requestId);
+    const type = requestIdToType.get(params.requestId);
+    if (url && params.encodedDataLength) {
+      // Only store JS and CSS resources
+      if (type === 'Script' || type === 'Stylesheet' ||
+          url.includes('.js') || url.includes('.css')) {
+        networkData.set(url, {
+          encodedDataLength: params.encodedDataLength,
+          decodedBodyLength: params.encodedDataLength, // CDP doesn't provide decoded length directly
+        });
+      }
+    }
+  });
+
+  // Setup web vitals observer BEFORE navigation
+  await setupWebVitalsObserver(page);
+
   await page.goto(url, { waitUntil: "networkidle" });
 
+  // Debug: Log CDP captured resources (only on first run)
+  if (runNumber === 1) {
+    console.error(`\n   📡 CDP Network Data Captured:`);
+    let jsTotal = 0;
+    let cssTotal = 0;
+    for (const [url, data] of networkData.entries()) {
+      if (data.encodedDataLength > 0) {
+        const filename = url.split('/').pop() || url;
+        if (url.includes('.js')) {
+          console.error(`      JS: ${(data.encodedDataLength / 1024).toFixed(1)}kB - ${filename}`);
+          jsTotal += data.encodedDataLength;
+        } else if (url.includes('.css')) {
+          console.error(`      CSS: ${(data.encodedDataLength / 1024).toFixed(1)}kB - ${filename}`);
+          cssTotal += data.encodedDataLength;
+        }
+      }
+    }
+    console.error(`   📊 CDP Totals: JS ${(jsTotal / 1024).toFixed(1)}kB | CSS ${(cssTotal / 1024).toFixed(1)}kB\n`);
+  }
+
   const webVitals = await collectWebVitals(page);
-  const resources = await collectResourceMetrics(page);
+  const resources = await collectResourceMetrics(page, networkData);
   const scriptMetrics = await collectScriptEvaluationMetrics(page);
   const parseCompileMetrics = await collectParseCompileMetrics(page);
 
@@ -456,10 +572,12 @@ async function measureFramework(
   frameworkName: string,
   baseUrl: string,
   numRuns: number,
-  connectionType: ConnectionType
+  connectionType: ConnectionType,
+  includeWarm: boolean = false
 ): Promise<AggregatedPageStats[]> {
+  const cacheInfo = includeWarm ? "cold + warm" : "cold only";
   console.error(
-    `\n📦 Measuring ${frameworkName} (${numRuns} runs per page, cold + warm)...`
+    `\n📦 Measuring ${frameworkName} (${numRuns} runs per page, ${cacheInfo})...`
   );
   console.error(`   🌐 URL: ${baseUrl}`);
 
@@ -495,11 +613,13 @@ async function measureFramework(
     for (const pageInfo of pages) {
       console.error(`   Measuring ${pageInfo.name} page...`);
 
-      const cacheModes: Array<{ mode: "cold" | "warm"; clearCache: boolean }> =
-        [
-          { mode: "cold", clearCache: true },
-          { mode: "warm", clearCache: false },
-        ];
+      const cacheModes: Array<{ mode: "cold" | "warm"; clearCache: boolean }> = [
+        { mode: "cold", clearCache: true },
+      ];
+
+      if (includeWarm) {
+        cacheModes.push({ mode: "warm", clearCache: false });
+      }
 
       for (const cacheMode of cacheModes) {
         console.error(`     🔹 ${cacheMode.mode}-load (${numRuns} runs)...`);
@@ -529,15 +649,21 @@ async function measureFramework(
             await context.close();
           }
         } else {
+          // Do ONE warmup request before all cold runs to prime server/CDN
+          const warmupContext = await browser.newContext(mobileDevice);
+          const warmupPageObj = await warmupContext.newPage();
+          try {
+            await warmupPage(warmupPageObj, pageInfo.url);
+          } finally {
+            await warmupContext.close();
+          }
+
+          // Now run actual cold cache measurements
           for (let i = 1; i <= numRuns; i++) {
             const context = await browser.newContext(mobileDevice);
             const page = await context.newPage();
 
             try {
-              if (i === 1) {
-                await warmupPage(page, pageInfo.url);
-              }
-
               const measurement = await measurePage(
                 page,
                 pageInfo.url,
@@ -654,6 +780,7 @@ async function main() {
   let frameworkName: string | undefined;
   let numRuns = 50; // Increased from 10 to 50 for better statistical reliability
   let connectionType: ConnectionType = "cellular4g";
+  let includeWarm = false; // Default: only measure cold cache
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--url" && i + 1 < args.length) {
@@ -678,6 +805,8 @@ async function main() {
       }
       connectionType = network;
       i++;
+    } else if (args[i] === "--include-warm") {
+      includeWarm = true;
     }
   }
 
@@ -703,6 +832,9 @@ async function main() {
     );
     console.error(
       "  --network TYPE        Connection type: cellular2g, cellular3g, cellular4g, none (default: cellular4g)"
+    );
+    console.error(
+      "  --include-warm        Also measure warm cache loads (default: cold only)"
     );
     process.exit(1);
   }
@@ -730,7 +862,8 @@ async function main() {
       frameworkName,
       url,
       numRuns,
-      connectionType
+      connectionType,
+      includeWarm
     );
 
     const metricsDir = join(process.cwd(), "metrics");

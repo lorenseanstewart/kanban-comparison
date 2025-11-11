@@ -94,19 +94,3 @@ Each cache mode includes:
 
 - `--runs 5` = 5 runs × 2 cache modes = 10 total page loads per page
 - For 2 pages: ~20-40 minutes (depending on network conditions)
-
-## Advantages over Lighthouse CLI
-
-1. **Cold + Warm Cache Measurements** - Automatically measures both first-visit and repeat-visit scenarios
-2. **More Accurate** - Direct access to browser performance data without Lighthouse processing
-3. **Better Script Metrics** - Granular JS/CSS parsing data via Resource Timing API
-4. **Faster** - Lower overhead (no synthetic audit processing)
-5. **Network Simulation** - Uses Chrome's built-in `cellular4g` connection type via CDP
-6. **Per-Resource Details** - Individual file metrics (size, duration, transfer size)
-
-## Advantages of Lighthouse CLI (still valuable)
-
-1. **Performance Scoring** - Standardized Lighthouse algorithm
-2. **Best Practices Audits** - Code quality and standards compliance
-3. **Accessibility Checks** - WCAG compliance validation
-4. **SEO Analysis** - Search engine optimization review

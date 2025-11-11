@@ -1,0 +1,387 @@
+{
+  "metadata": {
+    "frameworkName": "kanban-htmx",
+    "url": "https://kanban-htmx.vercel.app",
+    "timestamp": "2025-11-10T22:42:56.837Z",
+    "runsPerPage": 50,
+    "measurementType": "playwright-cold-warm",
+    "connectionType": "4G",
+    "tool": "playwright"
+  },
+  "results": [
+    {
+      "framework": "kanban-htmx",
+      "page": "home",
+      "cacheMode": "cold",
+      "jsTransferred": {
+        "mean": 1835,
+        "median": 1835,
+        "stddev": 0,
+        "min": 1835,
+        "max": 1835,
+        "runs": 50,
+        "ci95Lower": 1835,
+        "ci95Upper": 1835
+      },
+      "jsUncompressed": {
+        "mean": 3441,
+        "median": 3441,
+        "stddev": 0,
+        "min": 3441,
+        "max": 3441,
+        "runs": 50,
+        "ci95Lower": 3441,
+        "ci95Upper": 3441
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "totalTransferred": {
+        "mean": 1835,
+        "median": 1835,
+        "stddev": 0,
+        "min": 1835,
+        "max": 1835,
+        "runs": 50,
+        "ci95Lower": 1835,
+        "ci95Upper": 1835
+      },
+      "totalUncompressed": {
+        "mean": 3441,
+        "median": 3441,
+        "stddev": 0,
+        "min": 3441,
+        "max": 3441,
+        "runs": 50,
+        "ci95Lower": 3441,
+        "ci95Upper": 3441
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 496,
+        "median": 484,
+        "stddev": 52.6,
+        "min": 404,
+        "max": 648,
+        "runs": 50,
+        "ci95Lower": 482,
+        "ci95Upper": 511
+      },
+      "lcp": {
+        "mean": 496,
+        "median": 484,
+        "stddev": 52.6,
+        "min": 404,
+        "max": 648,
+        "runs": 50,
+        "ci95Lower": 482,
+        "ci95Upper": 511
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "ttfb": {
+        "mean": 95,
+        "median": 95,
+        "stddev": 5.7,
+        "min": 85,
+        "max": 131,
+        "runs": 50,
+        "ci95Lower": 94,
+        "ci95Upper": 97
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 50,
+        "ci95Lower": 2,
+        "ci95Upper": 2
+      },
+      "timestamp": "2025-11-10T22:38:59.651Z"
+    },
+    {
+      "framework": "kanban-htmx",
+      "page": "board",
+      "cacheMode": "cold",
+      "jsTransferred": {
+        "mean": 1964,
+        "median": 1964,
+        "stddev": 0,
+        "min": 1964,
+        "max": 1964,
+        "runs": 50,
+        "ci95Lower": 1964,
+        "ci95Upper": 1964
+      },
+      "jsUncompressed": {
+        "mean": 3570,
+        "median": 3570,
+        "stddev": 0,
+        "min": 3570,
+        "max": 3570,
+        "runs": 50,
+        "ci95Lower": 3570,
+        "ci95Upper": 3570
+      },
+      "cssTransferred": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "cssUncompressed": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "totalTransferred": {
+        "mean": 1964,
+        "median": 1964,
+        "stddev": 0,
+        "min": 1964,
+        "max": 1964,
+        "runs": 50,
+        "ci95Lower": 1964,
+        "ci95Upper": 1964
+      },
+      "totalUncompressed": {
+        "mean": 3570,
+        "median": 3570,
+        "stddev": 0,
+        "min": 3570,
+        "max": 3570,
+        "runs": 50,
+        "ci95Lower": 3570,
+        "ci95Upper": 3570
+      },
+      "jsToTotalRatio": 100,
+      "fcp": {
+        "mean": 915,
+        "median": 900,
+        "stddev": 55.7,
+        "min": 820,
+        "max": 1280,
+        "runs": 50,
+        "ci95Lower": 899,
+        "ci95Upper": 931
+      },
+      "lcp": {
+        "mean": 915,
+        "median": 900,
+        "stddev": 55.7,
+        "min": 820,
+        "max": 1280,
+        "runs": 50,
+        "ci95Lower": 899,
+        "ci95Upper": 931
+      },
+      "cls": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "ttfb": {
+        "mean": 93,
+        "median": 93,
+        "stddev": 4.8,
+        "min": 83,
+        "max": 130,
+        "runs": 50,
+        "ci95Lower": 92,
+        "ci95Upper": 95
+      },
+      "scriptEvalTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "jsExecutionTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "cssParseTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "styleRecalcTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "totalParseCompileTime": {
+        "mean": 0,
+        "median": 0,
+        "stddev": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 50,
+        "ci95Lower": 0,
+        "ci95Upper": 0
+      },
+      "resourceCount": {
+        "mean": 2,
+        "median": 2,
+        "stddev": 0,
+        "min": 2,
+        "max": 2,
+        "runs": 50,
+        "ci95Lower": 2,
+        "ci95Upper": 2
+      },
+      "timestamp": "2025-11-10T22:42:56.786Z"
+    }
+  ]
+}

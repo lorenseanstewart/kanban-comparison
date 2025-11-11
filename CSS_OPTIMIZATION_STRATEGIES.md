@@ -13,6 +13,7 @@ This document outlines the CSS optimization approaches used across all kanban ap
 | kanban-analog         | Analog (Angular)       | Vite       | **Full Inline**            | Vite plugin (`transformIndexHtml`)           |
 | kanban-sveltekit      | SvelteKit              | Vite       | **Full Inline**            | `?inline` import + `{@html}`                 |
 | kanban-solidstart     | SolidStart             | Vinxi/Vite | **Full Inline**            | `?inline` import + `innerHTML`               |
+| kanban-nuxt           | Nuxt                   | Vite       | **Full Inline**            | Nuxt native `features.inlineStyles`          |
 | kanban-nextjs         | Next.js App Router     | Turbopack  | **External (Recommended)** | Next.js default optimization                 |
 
 ## Implementation Details by Framework
@@ -169,10 +170,32 @@ function RootDocument({ children }: { children: JSXElement }) {
 
 ```typescript
 // vite.config.ts
-build: {
-  cssCodeSplit: false,
-  cssMinify: true,
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig, type Plugin } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+
+function suppressCssOutput(): Plugin {
+  return {
+    name: "suppress-css-output",
+    enforce: "post",
+    generateBundle(_, bundle) {
+      const cssFiles = Object.keys(bundle).filter((fileName) =>
+        fileName.endsWith(".css")
+      );
+      cssFiles.forEach((fileName) => {
+        delete bundle[fileName];
+      });
+    },
+  };
 }
+
+export default defineConfig({
+  plugins: [sveltekit(), tailwindcss(), suppressCssOutput()],
+  build: {
+    cssCodeSplit: false,
+    cssMinify: true,
+  },
+});
 ```
 
 **Why generic Vite plugin doesn't work:** SvelteKit with Vercel adapter uses SSR without static HTML file generation. The `transformIndexHtml` hook doesn't run for SSR pages.
@@ -231,7 +254,7 @@ import { defineConfig } from "@solidjs/start/config";
 import type { Plugin } from "vite";
 
 // Plugin to prevent CSS from being emitted as separate files
-// since we're inlining it in app.tsx
+// since we're inlining it in entry-server.tsx
 function suppressCssOutput(): Plugin {
   return {
     name: "suppress-css-output",
@@ -270,7 +293,40 @@ export default defineConfig({
 
 ---
 
-### 8. Next.js App Router (kanban-nextjs)
+### 8. Nuxt (kanban-nuxt)
+
+**Strategy:** Nuxt Native `features.inlineStyles`
+
+**Implementation:**
+
+```typescript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  features: {
+    inlineStyles: true,
+  },
+});
+```
+
+**Why it works:** Nuxt's built-in `inlineStyles` feature automatically inlines all CSS into the HTML document during SSR. This is a native Nuxt feature that requires no manual configuration like `?inline` imports or plugins.
+
+**How it differs from other SSR frameworks:**
+
+- **No manual imports needed:** Unlike TanStack, SvelteKit, and SolidStart, Nuxt handles inlining automatically
+- **Framework-native approach:** Similar to Qwik's `inlineStylesUpToBytes`, Nuxt provides a built-in solution
+- **Works seamlessly with SSR:** CSS is inlined in the HTML response, available immediately on page load
+- **Simpler than plugin approach:** No need for `transformIndexHtml` hooks or manual bundle manipulation
+
+**Key benefits:**
+
+- Automatic and transparent CSS inlining
+- No blocking CSS requests
+- Single HTTP request for HTML + CSS
+- Works with all Nuxt adapters (Vercel, Netlify, etc.)
+
+---
+
+### 9. Next.js App Router (kanban-nextjs)
 
 **Strategy:** External Stylesheets (Recommended by Next.js)
 
@@ -295,7 +351,7 @@ export default defineConfig({
 - Browser can download CSS and HTML in parallel
 - Next.js team's recommended best practice for App Router
 
-### 9. kanban-htmx (Astro + HTMX)
+### 10. kanban-htmx (Astro + HTMX)
 
 **Problem:**
 
@@ -394,6 +450,7 @@ For SSR frameworks, use framework-specific approaches:
 
 1. **Framework-native solutions** (Best)
    - Qwik: `inlineStylesUpToBytes`
+   - Nuxt: `features.inlineStyles`
 
 2. **Vite `?inline` import** (Good)
    - Import CSS as string: `import css from './style.css?inline'`

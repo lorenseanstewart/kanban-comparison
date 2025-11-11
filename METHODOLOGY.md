@@ -53,12 +53,14 @@ We use the **Interquartile Range (IQR) method** to identify and remove statistic
 
 ### Server Warmup
 
-Before measurements, we perform **warmup requests**:
+Before each measurement batch, we perform a **single warmup request**:
 
-- Each page is requested twice via fetch
-- Ensures server caches, database connections, and compilation are ready
-- Reduces variance from cold-start effects
-- Measurements still use cold-cache browser performance
+- Single warmup request to the home page before starting cold cache measurements
+- Primes server/CDN, database connections, and serverless functions
+- All subsequent runs have consistent server conditions
+- Measurements still use cold browser cache (cache cleared between each run)
+
+**Why one warmup**: This simulates a "primed CDN" scenario where the first visitor may have cold-started the server, but subsequent visitors benefit from warmed infrastructure.
 
 ### Why Median + Confidence Intervals?
 
@@ -116,15 +118,15 @@ Simulates optimal 4G conditions:
 
 ### CPU Throttling
 
-**We use 1x CPU** (no slowdown).
+**We use 4x CPU throttling** (4x slowdown).
 
 **Rationale:**
-- Isolates network/bundle size impact from CPU performance
-- Focuses on what developers control (bundle/network)
+- Simulates mid-to-high-end mobile devices (Pixel 5-7, iPhone 12-14, Galaxy S21-S22)
+- Reveals JavaScript parse/execution performance differences
+- More realistic representation of mobile device constraints
 - Ensures fair comparison across frameworks with different runtime characteristics
-- Reduces measurement variance
 
-**Trade-off**: Results may be more optimistic than low-end mobile devices. Real devices will show larger differences.
+**Trade-off**: Still more optimistic than low-end devices (which can be 6-10x slower). Results represent "good mobile device" performance, not worst-case scenarios.
 
 ## What We Measure
 
@@ -164,11 +166,21 @@ We measure actual bytes transferred over the network:
 For each framework × network combination, we test:
 
 1. **Home page - cold cache**: First visit to landing page
-2. **Home page - warm cache**: Second visit (browser cache enabled)
-3. **Board page - cold cache**: First visit to main Kanban board
-4. **Board page - warm cache**: Second visit to board
+2. **Board page - cold cache**: First visit to main Kanban board
+
+**Default configuration**: Cold cache only (default mode)
+
+**Optional**: Warm cache measurements can be enabled with `--include-warm` flag:
+- Home page - warm cache: Second visit (browser cache enabled)
+- Board page - warm cache: Second visit to board
 
 **Primary focus**: Board page cold cache (worst-case scenario, most sensitive to bundle size)
+
+**Why cold cache by default**:
+- Represents first-visit performance and SEO scenarios
+- Cache invalidation on every deployment means users often face "cold" cache
+- Most sensitive to bundle size differences
+- 50% faster measurement time (2 scenarios vs 4)
 
 ## Statistical Significance
 
@@ -204,19 +216,38 @@ Each measurement run follows this workflow:
 
 ```bash
 # Measure a framework on realistic 4G (cellular3g)
-tsx playwright/measure.ts \
+cd playwright
+tsx measure.ts \
   --url https://kanban-marko.pages.dev \
   --name kanban-marko \
   --network cellular3g \
   --runs 50
 
-# Output: metrics/kanban-marko-playwright_3g.json
+# Output: playwright/metrics/kanban-marko-playwright_3g.json
 ```
 
 This produces a JSON file with:
-- FCP, TTFB, bundle sizes for each scenario (home/board × cold/warm)
+- FCP, LCP, TTFB, CLS for home and board pages
+- Bundle sizes (JS, CSS, total transferred)
+- Script evaluation metrics
 - Statistical summaries: median, mean, stddev, min, max, 95% CI
-- Metadata: timestamp, network conditions, Playwright version
+- Metadata: timestamp, network conditions, tool version
+
+### Batch Measurements
+
+To measure all frameworks efficiently (3 apps at a time = 6 concurrent processes):
+
+```bash
+# Run all measurements in batches
+./scripts/run-all-measurements.sh
+```
+
+This script:
+- Processes 11 frameworks in 4 batches (3+3+3+2)
+- Runs both 3G and 4G measurements simultaneously for each app
+- Shows real-time output with prefixes like `[kanban-marko-3G]`
+- Waits for each batch to complete before starting the next
+- Total time: ~3-4 hours for all 11 frameworks × 2 networks × 50 runs
 
 ### Aggregate & Analyze
 
@@ -230,14 +261,22 @@ tsx scripts/extract-metrics.ts
 
 ### Test Configuration
 
-URLs are defined in `playwright/urls.json`:
+URLs are defined in `scripts/run-all-measurements.sh`:
 
-```json
-{
-  "kanban-marko": "https://kanban-marko.pages.dev",
-  "kanban-nextjs": "https://kanban-nextjs-ochre.vercel.app",
-  "kanban-solidstart": "https://kanban-solidstart.vercel.app"
-}
+```bash
+APP_NAMES=(
+  "kanban-analog"
+  "kanban-htmx"
+  "kanban-marko"
+  # ... etc
+)
+
+APP_URLS=(
+  "https://kanban-analog.vercel.app"
+  "https://kanban-htmx.vercel.app"
+  "https://kanban-marko.pages.dev"
+  # ... etc
+)
 ```
 
 ## Fairness Criteria
@@ -341,23 +380,24 @@ cd kanban-comparison
 # 2. Install dependencies
 npm install
 
-# 3. Measure a framework on realistic 4G (50 runs)
-tsx playwright/measure.ts \
+# 3. Option A: Run all frameworks in batches (recommended)
+./scripts/run-all-measurements.sh
+
+# 3. Option B: Measure individual framework
+cd playwright
+tsx measure.ts \
   --url https://kanban-marko.pages.dev \
   --name kanban-marko \
   --network cellular3g \
   --runs 50
 
-# 4. Measure same framework on ideal 4G
-tsx playwright/measure.ts \
+tsx measure.ts \
   --url https://kanban-marko.pages.dev \
   --name kanban-marko \
   --network cellular4g \
   --runs 50
 
-# 5. Repeat for all frameworks (see playwright/urls.json)
-
-# 6. Extract and analyze results
+# 4. Extract and analyze results
 tsx scripts/extract-metrics.ts
 ```
 
@@ -365,7 +405,9 @@ tsx scripts/extract-metrics.ts
 - Node.js 20+
 - Playwright (automatically installs Chromium)
 - Production deployment URLs
-- ~30 minutes per framework (50 runs × 4 scenarios × 30s/run)
+- Time estimates:
+  - Single framework (both networks): ~30-40 minutes
+  - All 11 frameworks in batches: ~3-4 hours
 
 **Expected variance:**
 
@@ -373,6 +415,12 @@ With 50 runs, you should see:
 - FCP within ±5% of published median values
 - Confidence intervals similar width to published results
 - Same relative rankings
+
+**Batch execution benefits:**
+- Processes 3 apps at a time (6 concurrent processes)
+- Real-time output with labeled prefixes
+- Automatic URL management from previous measurements
+- Efficient use of system resources
 
 ## Comparison to Previous Methodology
 
