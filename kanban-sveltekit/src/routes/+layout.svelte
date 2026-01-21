@@ -1,12 +1,10 @@
 <script lang="ts">
-	import appCss from '../app.css?inline';
+	import '../app.css';
 
 	let { children } = $props();
 </script>
 
-<svelte:head>
-	{@html `<style>${appCss}</style>`}
-</svelte:head>
+<!-- CSS now handled by Vite at build time instead of runtime injection -->
 
 <div class="min-h-screen bg-base-200">
 	{@render children?.()}

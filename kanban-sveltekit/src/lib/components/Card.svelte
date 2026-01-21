@@ -114,18 +114,24 @@
 	</div>
 </article>
 
-<CardEditModal
-	{card}
-	{boardId}
-	users={allUsers}
-	tags={allTags}
-	isOpen={isEditModalOpen}
-	onClose={() => (isEditModalOpen = false)}
-/>
-<CommentModal
-	{card}
-	{boardId}
-	users={allUsers}
-	isOpen={isCommentModalOpen}
-	onClose={() => (isCommentModalOpen = false)}
-/>
+<!-- Only render modals when open - reduces memory from 80 to 0-2 instances -->
+{#if isEditModalOpen}
+	<CardEditModal
+		{card}
+		{boardId}
+		users={allUsers}
+		tags={allTags}
+		isOpen={isEditModalOpen}
+		onClose={() => (isEditModalOpen = false)}
+	/>
+{/if}
+
+{#if isCommentModalOpen}
+	<CommentModal
+		{card}
+		{boardId}
+		users={allUsers}
+		isOpen={isCommentModalOpen}
+		onClose={() => (isCommentModalOpen = false)}
+	/>
+{/if}

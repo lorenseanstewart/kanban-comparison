@@ -31,7 +31,6 @@ APP_URLS=(
   "https://kanban-qwikcity.vercel.app"
   "https://kanban-solidstart.vercel.app"
   "https://kanban-sveltekit.vercel.app"
-  "https://kanban-sveltekit-optimized.vercel.app"
   "https://kanban-tanstack.pages.dev"
   "https://kanban-tanstack-solid.pages.dev"
 )

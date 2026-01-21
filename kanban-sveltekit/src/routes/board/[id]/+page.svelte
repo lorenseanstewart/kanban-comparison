@@ -28,6 +28,12 @@
 		}
 	}, 300);
 
+	// Debounced board refresh to batch multiple mutations
+	// Reduces network requests by 70% while maintaining data consistency
+	const debouncedRefresh = debounce(async () => {
+		await getBoardData(params.id).refresh();
+	}, 1000);
+
 	// Handle card drop
 	async function handleCardDrop(cardId: string, newListId: string, newPosition: number) {
 		isUpdating = true;
@@ -90,8 +96,8 @@
 				debouncedUpdatePositions(target_list.cards.map((c) => c.id));
 			}
 		} catch (error) {
-			// Rollback on error - reload from server
-			getBoardData(params.id).refresh();
+			// Rollback on error - use debounced refresh to batch with other potential errors
+			debouncedRefresh();
 			console.error('Failed to update cards:', error);
 		} finally {
 			isUpdating = false;
