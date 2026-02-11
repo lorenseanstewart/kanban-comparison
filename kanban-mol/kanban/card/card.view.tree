@@ -1,0 +1,23 @@
+$kanban_card $mol_view
+	card null
+	click?event null
+	event *
+		^
+		click?event <=> click?event
+	attr *
+		^
+		hyoo_kanban_card_completed <= completed false
+	sub /
+		<= Title $mol_view
+			dom_name \h3
+			sub / <= card_title \
+		<= Description $mol_view
+			sub / <= card_description \
+		<= Footer $mol_row
+			sub <= footer /
+	Tag* $mol_view
+		sub / <= tag_title* \
+	Assignee $mol_view
+		sub / <= assignee_name \
+	Comment_count $mol_view
+		sub / <= comment_count_text \

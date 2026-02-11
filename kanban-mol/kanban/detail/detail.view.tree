@@ -1,0 +1,58 @@
+$kanban_detail $mol_page
+	domain $kanban_domain_mock
+	card null
+	back?event null
+	title <= card_title_text \
+	tools /
+		<= Back $mol_button_minor
+			click?event <=> back?event
+			sub / <= Back_icon $mol_icon_arrow_left
+		<= Delete $mol_button_minor
+			click?event <=> delete_card?event null
+			sub / <= Delete_icon $mol_icon_trash_can_outline
+	body /
+		<= Title_field $mol_form_field
+			name \Title
+			Content <= Title_input $mol_string
+				value? <=> card_title? \
+		<= Desc_field $mol_form_field
+			name \Description
+			Content <= Desc_input $mol_textarea
+				value? <=> card_description? \
+		<= Assignee_field $mol_form_field
+			name \Assignee
+			Content <= Assignee_select $mol_select
+				value? <=> assignee_id? \
+				dictionary <= assignee_dictionary *
+				options <= assignee_options /string
+		<= Tags_field $mol_form_field
+			name \Tags
+			Content <= Tags_row $mol_row
+				sub <= tag_buttons /$mol_view
+		<= Completed_field $mol_form_field
+			name \Completed
+			Content <= Completed_check $mol_check_box
+				checked? <=> card_completed? false
+				title \Done
+		<= Comments_title $mol_view
+			dom_name \h3
+			sub / \Comments
+		<= Comments_list $mol_list
+			rows <= comment_rows /$mol_view
+		<= Add_comment $mol_row
+			sub /
+				<= Comment_input $mol_string
+					hint \Add a comment...
+					value? <=> new_comment_text? \
+				<= Comment_submit $mol_button_major
+					click?event <=> submit_comment?event null
+					title \Send
+	Tag_button* $mol_check_box
+		checked? <=> tag_checked*? false
+		title <= tag_button_title* \
+	Comment_row* $mol_row
+		sub /
+			<= Comment_author* $mol_view
+				sub / <= comment_author* \
+			<= Comment_text* $mol_view
+				sub / <= comment_text* \
