@@ -1,0 +1,14 @@
+$kanban $mol_book2
+	plugins /
+		<= Theme $mol_theme_auto
+	domain $kanban_domain_mock
+	board null
+	card_id \
+	Board_page $kanban_board
+		board <= board
+		domain <= domain
+		card_id? <=> card_id? \
+	Detail_page $kanban_detail
+		card <= selected_card null
+		domain <= domain
+		back?event <=> close_detail?event null

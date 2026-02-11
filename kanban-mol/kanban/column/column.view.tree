@@ -1,0 +1,28 @@
+$kanban_column $mol_page
+	domain $kanban_domain_mock
+	list null
+	card_id? \
+	title <= column_title \
+	tools /
+		<= Card_count $mol_view
+			sub / <= card_count \0
+		<= Add_button $mol_button_minor
+			click?event <=> add_card?event null
+			sub / <= Add_icon $mol_icon_plus
+	body /
+		<= Column_drop $mol_drop
+			adopt?transfer <=> transfer_adopt?transfer null
+			receive?obj <=> receive_card?obj null
+			Sub <= Cards $mol_list
+				rows <= card_rows /$mol_view
+	Card_drag* $mol_drag
+		transfer *
+			text/plain <= drag_card_id* \
+			text/html \
+			text/uri-list \
+		Sub <= Card_drop* $mol_drop
+			adopt?transfer <=> transfer_adopt?transfer null
+			receive?obj <=> receive_before*?obj null
+			Sub <= Card* $kanban_card
+				card <= card* null
+				click?event <=> card_click*?event null

@@ -1,0 +1,14 @@
+$kanban_board $mol_page
+	domain $kanban_domain_mock
+	board null
+	card_id? \
+	title <= board_title \
+	tools /
+		<= Lights $mol_lights_toggle
+	body /
+		<= Columns $mol_row
+			sub <= columns /$mol_view
+	Column* $kanban_column
+		list <= list* null
+		domain <= domain
+		card_id? <=> card_id? \

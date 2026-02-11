@@ -67,3 +67,7 @@ Thumbs.db
 drizzle/db.sqlite
 *.sqlite
 *.sqlite-*
+
+#$mol
+-*
+.DS_Store
